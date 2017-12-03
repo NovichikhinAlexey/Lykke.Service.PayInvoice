@@ -2,7 +2,8 @@
 using Lykke.Pay.Service.Invoces.Models.IsAlive;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.PlatformAbstractions;
-using Swashbuckle.SwaggerGen.Annotations;
+using Swashbuckle.AspNetCore.SwaggerGen;
+
 
 namespace Lykke.Pay.Service.Invoces.Controllers
 {

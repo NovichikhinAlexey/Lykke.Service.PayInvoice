@@ -34,8 +34,9 @@ namespace Lykke.Pay.Service.Invoces.DependencyInjection
 
         private void RegisterInvoices(ContainerBuilder builder)
         {
+            
             var invoiceRequestRepo =
-                new InvoiceRepository(new AzureTableStorage<InvoiceEntity>(_settings.InvoicesService.DbConnectionString, "Invoices", _log));
+                new InvoiceRepository(AzureTableStorage<InvoiceEntity>.Create(new StringSettingsManager(_settings.InvoicesService.DbConnectionString), "Invoices", _log));
             builder.RegisterInstance(invoiceRequestRepo).As<IInvoiceRepository>();
             builder.RegisterType<InvoiceService>().As<IInvoiceService<IInvoiceEntity>>();
 

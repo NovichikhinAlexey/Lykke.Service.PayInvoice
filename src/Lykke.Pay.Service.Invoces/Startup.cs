@@ -4,7 +4,6 @@ using Autofac.Extensions.DependencyInjection;
 using AzureStorage.Tables;
 using Common.Log;
 using JetBrains.Annotations;
-using Lykke.AzureQueueIntegration;
 using Lykke.Common.ApiLibrary.Middleware;
 using Lykke.Common.ApiLibrary.Swagger;
 using Lykke.Logs;
@@ -12,7 +11,6 @@ using Lykke.Pay.Service.Invoces.Core;
 using Lykke.Pay.Service.Invoces.DependencyInjection;
 using Lykke.Pay.Service.Invoces.Models;
 using Lykke.SettingsReader;
-using Lykke.SlackNotification.AzureQueue;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
@@ -20,7 +18,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Converters;
 
-namespace Lykke.Service.Assets
+namespace Lykke.Pay.Service.Invoces
 {
     [UsedImplicitly]
     public class Startup
@@ -52,7 +50,7 @@ namespace Lykke.Service.Assets
 
             services.AddSwaggerGen(options =>
             {
-                options.DefaultLykkeConfiguration("v1", "Assets service");
+                options.DefaultLykkeConfiguration("v1", "Invoices service");
             });
 
             var settings = HttpSettingsLoader.Load<ApplicationSettings>();
@@ -80,21 +78,15 @@ namespace Lykke.Service.Assets
             if (!string.IsNullOrEmpty(appSettings.Logs.DbConnectionString) &&
                 !(appSettings.Logs.DbConnectionString.StartsWith("${") && appSettings.Logs.DbConnectionString.EndsWith("}")))
             {
-                logToAzureStorage = new LykkeLogToAzureStorage("Lykke.Service.Assets", new AzureTableStorage<LogEntity>(
-                    appSettings.Logs.DbConnectionString, "AssetsServiceLogs", logToConsole));
+                logToAzureStorage = new LykkeLogToAzureStorage(Constants.ComponentName,new LykkeLogToAzureStoragePersistenceManager(
+                    AzureTableStorage<LogEntity>.Create(new StringSettingsManager(appSettings.Logs.DbConnectionString), "AssetsServiceLogs", null)));
 
                 logAggregate.AddLogger(logToAzureStorage);
             }
 
             var log = logAggregate.CreateLogger();
 
-            var slackService = services.UseSlackNotificationsSenderViaAzureQueue(new AzureQueueSettings
-            {
-                ConnectionString = settings.SlackNotifications.AzureQueue.ConnectionString,
-                QueueName = settings.SlackNotifications.AzureQueue.QueueName
-            }, log);
-
-            logToAzureStorage?.SetSlackNotification(slackService);
+           
             return log;
         }
 
@@ -105,11 +97,29 @@ namespace Lykke.Service.Assets
             loggerFactory.AddConsole(Configuration.GetSection("Logging"));
             loggerFactory.AddDebug();
 
-            app.UseLykkeMiddleware(Constants.ComponentName, ex => ErrorResponse.Create("Technical problem"));
+            //app.UseLykkeMiddleware(Constants.ComponentName, ex => ErrorResponse.Create("Technical problem"));
 
             app.UseMvc();
-            app.UseSwagger();
-            app.UseSwaggerUi();
+
+            app.UseSwagger(c =>
+
+            {
+
+                c.PreSerializeFilters.Add((swagger, httpReq) => swagger.Host = httpReq.Host.Value);
+
+            });
+
+            app.UseSwaggerUI(x =>
+
+            {
+
+                x.RoutePrefix = "swagger/ui";
+
+                x.SwaggerEndpoint("/swagger/v1/swagger.json", "v1");
+
+            });
+
+            app.UseStaticFiles();
         }
     }
 }

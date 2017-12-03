@@ -38,6 +38,8 @@ namespace Lykke.Pay.Service.Invoces.Core
 
             public string QueueName { get; set; }
         }
+
+        
     }
 
     
