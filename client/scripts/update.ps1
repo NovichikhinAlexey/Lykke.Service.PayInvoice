@@ -1,3 +1,3 @@
-cd ./client/Lykke.Service.Assets.Client/
-iwr http://localhost:5000/swagger/v1/swagger.json -o Service.Assets.json
-autorest --input-file=Service.Assets.json --csharp --namespace=Lykke.Service.Assets.Client --output-folder=./
+cd ../Lykke.Pay.Service.Invoces.Client
+iwr http://pay-invoice-service.lykke-pay.svc.cluster.local/swagger/v1/swagger.json -o Service.Invoice.json
+autorest --input-file=Service.Invoice.json --csharp --namespace=Lykke.Pay.Service.Invoces.Client --output-folder=./
