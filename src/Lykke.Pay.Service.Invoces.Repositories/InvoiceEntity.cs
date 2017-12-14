@@ -31,7 +31,9 @@ namespace Lykke.Pay.Service.Invoces.Repositories
                 Amount = invoice.Amount,
                 Label = invoice.Label,
                 Status = invoice.Status,
-                WalletAddress = invoice.WalletAddress
+                WalletAddress = invoice.WalletAddress,
+                StartDate = invoice.StartDate
+
             };
         }
 
@@ -52,5 +54,6 @@ namespace Lykke.Pay.Service.Invoces.Repositories
         public string Label { get; set; }
         public string Status { get; set; }
         public string WalletAddress { get; set; }
+        public string StartDate { get; set; }
     }
 }

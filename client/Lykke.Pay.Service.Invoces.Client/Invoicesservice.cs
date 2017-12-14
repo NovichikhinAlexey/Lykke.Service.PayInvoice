@@ -113,7 +113,7 @@ namespace Lykke.Pay.Service.Invoces.Client
         /// </summary>
         private void Initialize()
         {
-            BaseUri = new System.Uri("http://pay-invoice-service.lykke-pay.svc.cluster.local/");
+            BaseUri = new System.Uri("http://localhost:5000/");
             SerializationSettings = new JsonSerializerSettings
             {
                 Formatting = Newtonsoft.Json.Formatting.Indented,
