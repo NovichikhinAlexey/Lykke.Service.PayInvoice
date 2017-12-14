@@ -22,7 +22,7 @@ namespace Lykke.Pay.Service.Invoces.Client.Models
         /// <summary>
         /// Initializes a new instance of the IInvoiceEntity class.
         /// </summary>
-        public IInvoiceEntity(double amount, string invoiceId = default(string), string invoiceNumber = default(string), string currency = default(string), string clientId = default(string), string clientName = default(string), string clientUserId = default(string), string clientEmail = default(string), string dueDate = default(string), string label = default(string))
+        public IInvoiceEntity(double amount, string invoiceId = default(string), string invoiceNumber = default(string), string currency = default(string), string clientId = default(string), string clientName = default(string), string clientUserId = default(string), string clientEmail = default(string), string dueDate = default(string), string label = default(string), string status = default(string), string walletAddress = default(string))
         {
             InvoiceId = invoiceId;
             InvoiceNumber = invoiceNumber;
@@ -34,6 +34,8 @@ namespace Lykke.Pay.Service.Invoces.Client.Models
             ClientEmail = clientEmail;
             DueDate = dueDate;
             Label = label;
+            Status = status;
+            WalletAddress = walletAddress;
             CustomInit();
         }
 
@@ -91,6 +93,16 @@ namespace Lykke.Pay.Service.Invoces.Client.Models
         /// </summary>
         [JsonProperty(PropertyName = "Label")]
         public string Label { get; set; }
+
+        /// <summary>
+        /// </summary>
+        [JsonProperty(PropertyName = "Status")]
+        public string Status { get; set; }
+
+        /// <summary>
+        /// </summary>
+        [JsonProperty(PropertyName = "WalletAddress")]
+        public string WalletAddress { get; set; }
 
         /// <summary>
         /// Validate the object.
