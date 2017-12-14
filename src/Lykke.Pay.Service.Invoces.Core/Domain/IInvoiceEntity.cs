@@ -21,5 +21,8 @@ namespace Lykke.Pay.Service.Invoces.Core.Domain
         string DueDate { get; set; }
 
         string Label { get; set; }
+
+        string Status { get; set; }
+        string WalletAddress { get; set; }
     }
 }
