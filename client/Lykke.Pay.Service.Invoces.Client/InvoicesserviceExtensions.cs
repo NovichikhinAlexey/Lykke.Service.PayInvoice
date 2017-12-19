@@ -94,6 +94,29 @@ namespace Lykke.Pay.Service.Invoces.Client
             /// <param name='operations'>
             /// The operations group for this extension method.
             /// </param>
+            /// <param name='invoiceId'>
+            /// </param>
+            public static void ApiInvoicesByInvoiceIdDeleteGet(this IInvoicesservice operations, string invoiceId)
+            {
+                operations.ApiInvoicesByInvoiceIdDeleteGetAsync(invoiceId).GetAwaiter().GetResult();
+            }
+
+            /// <param name='operations'>
+            /// The operations group for this extension method.
+            /// </param>
+            /// <param name='invoiceId'>
+            /// </param>
+            /// <param name='cancellationToken'>
+            /// The cancellation token.
+            /// </param>
+            public static async Task ApiInvoicesByInvoiceIdDeleteGetAsync(this IInvoicesservice operations, string invoiceId, CancellationToken cancellationToken = default(CancellationToken))
+            {
+                (await operations.ApiInvoicesByInvoiceIdDeleteGetWithHttpMessagesAsync(invoiceId, null, cancellationToken).ConfigureAwait(false)).Dispose();
+            }
+
+            /// <param name='operations'>
+            /// The operations group for this extension method.
+            /// </param>
             public static IsAliveResponse IsAlive(this IInvoicesservice operations)
             {
                 return operations.IsAliveAsync().GetAwaiter().GetResult();
