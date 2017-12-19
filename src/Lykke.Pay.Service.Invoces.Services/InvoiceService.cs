@@ -30,5 +30,10 @@ namespace Lykke.Pay.Service.Invoces.Services
         {
             return await _repository.GetInvoice(invoiceId);
         }
+
+        public async Task DeleteInvoice(string invoiceId)
+        {
+            await _repository.DeleteInvoice(invoiceId);
+        }
     }
 }

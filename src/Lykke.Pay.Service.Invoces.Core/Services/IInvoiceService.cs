@@ -12,5 +12,6 @@ namespace Lykke.Pay.Service.Invoces.Core.Services
         Task<List<TInvoiceEntity>> GetInvoices();
 
         Task<TInvoiceEntity> GetInvoice(string invoiceId);
+        Task DeleteInvoice(string invoiceId);
     }
 }

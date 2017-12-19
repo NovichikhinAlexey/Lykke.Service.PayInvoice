@@ -37,6 +37,12 @@ namespace Lykke.Pay.Service.Invoces.Controllers
         {
             return await _service.GetInvoice(invoiceId);
         }
+
+        [HttpGet("{invoiceId}/delete")]
+        public async Task DeleteInvoice(string invoiceId)
+        {
+            await _service.DeleteInvoice(invoiceId);
+        }
     }
 
 }

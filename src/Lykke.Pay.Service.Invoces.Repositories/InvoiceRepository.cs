@@ -40,5 +40,10 @@ namespace Lykke.Pay.Service.Invoces.Repositories
         {
             return await _tableStorage.GetDataAsync(InvoiceEntity.GeneratePartitionKey(), invoiceId);
         }
+
+        public async Task DeleteInvoice(string invoiceId)
+        {
+            await _tableStorage.DeleteAsync(InvoiceEntity.GeneratePartitionKey(), invoiceId);
+        }
     }
 }
