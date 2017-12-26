@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
+using Lykke.Pay.Common;
 using Lykke.Pay.Service.Invoces.Core.Domain;
 using Lykke.Pay.Service.Invoces.Core.Services;
 
@@ -33,7 +34,21 @@ namespace Lykke.Pay.Service.Invoces.Services
 
         public async Task DeleteInvoice(string invoiceId)
         {
-            await _repository.DeleteInvoice(invoiceId);
+            var invoice  = await _repository.GetInvoice(invoiceId);
+            if (invoice != null)
+            {
+                var invoiceStatus = invoice.Status.ParsePayEnum<InvoiceStatus>();
+                if (invoiceStatus == InvoiceStatus.Draft)
+                {
+                    await _repository.DeleteInvoice(invoiceId);
+                }
+                else if (invoiceStatus == InvoiceStatus.Unpaid)
+                {
+                    invoice.Status = InvoiceStatus.Removed.ToString();
+                    await _repository.SaveInvoice(invoice);
+                }
+            }
+            
         }
     }
 }

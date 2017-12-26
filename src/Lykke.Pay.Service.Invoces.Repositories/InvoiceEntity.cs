@@ -33,7 +33,8 @@ namespace Lykke.Pay.Service.Invoces.Repositories
                 Status = invoice.Status,
                 WalletAddress = invoice.WalletAddress,
                 StartDate = invoice.StartDate,
-                Transaction = invoice.Transaction
+                Transaction = invoice.Transaction,
+                ETag = "*"
 
             };
         }

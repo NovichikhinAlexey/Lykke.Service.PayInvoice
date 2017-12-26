@@ -5,6 +5,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Lykke.Pay.Common" Version="1.0.76" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\Lykke.Pay.Service.Invoces.Core\Lykke.Pay.Service.Invoces.Core.csproj" />
   </ItemGroup>
 
