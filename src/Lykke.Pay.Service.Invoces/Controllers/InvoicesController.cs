@@ -27,21 +27,21 @@ namespace Lykke.Pay.Service.Invoces.Controllers
         }
 
         [HttpGet]
-        public async Task<List<IInvoiceEntity>> GetInvoices()
+        public async Task<List<IInvoiceEntity>> GetInvoices(string merchantId)
         {
-            return await _service.GetInvoices();
+            return await _service.GetInvoices(merchantId);
         }
 
         [HttpGet("{invoiceId}")]
-        public async Task<IInvoiceEntity> GetInvoice(string invoiceId)
+        public async Task<IInvoiceEntity> GetInvoice(string merchantId, string invoiceId)
         {
-            return await _service.GetInvoice(invoiceId);
+            return await _service.GetInvoice(merchantId, invoiceId);
         }
 
         [HttpGet("{invoiceId}/delete")]
-        public async Task DeleteInvoice(string invoiceId)
+        public async Task DeleteInvoice(string merchantId, string invoiceId)
         {
-            await _service.DeleteInvoice(invoiceId);
+            await _service.DeleteInvoice(merchantId, invoiceId);
         }
     }
 

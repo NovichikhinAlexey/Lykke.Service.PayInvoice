@@ -20,20 +20,24 @@ namespace Lykke.Pay.Service.Invoces.Client
             /// <param name='operations'>
             /// The operations group for this extension method.
             /// </param>
-            public static IList<IInvoiceEntity> ApiInvoicesGet(this IInvoicesservice operations)
+            /// <param name='merchantId'>
+            /// </param>
+            public static IList<IInvoiceEntity> ApiInvoicesGet(this IInvoicesservice operations, string merchantId = default(string))
             {
-                return operations.ApiInvoicesGetAsync().GetAwaiter().GetResult();
+                return operations.ApiInvoicesGetAsync(merchantId).GetAwaiter().GetResult();
             }
 
             /// <param name='operations'>
             /// The operations group for this extension method.
             /// </param>
+            /// <param name='merchantId'>
+            /// </param>
             /// <param name='cancellationToken'>
             /// The cancellation token.
             /// </param>
-            public static async Task<IList<IInvoiceEntity>> ApiInvoicesGetAsync(this IInvoicesservice operations, CancellationToken cancellationToken = default(CancellationToken))
+            public static async Task<IList<IInvoiceEntity>> ApiInvoicesGetAsync(this IInvoicesservice operations, string merchantId = default(string), CancellationToken cancellationToken = default(CancellationToken))
             {
-                using (var _result = await operations.ApiInvoicesGetWithHttpMessagesAsync(null, cancellationToken).ConfigureAwait(false))
+                using (var _result = await operations.ApiInvoicesGetWithHttpMessagesAsync(merchantId, null, cancellationToken).ConfigureAwait(false))
                 {
                     return _result.Body;
                 }
@@ -70,9 +74,11 @@ namespace Lykke.Pay.Service.Invoces.Client
             /// </param>
             /// <param name='invoiceId'>
             /// </param>
-            public static IInvoiceEntity ApiInvoicesByInvoiceIdGet(this IInvoicesservice operations, string invoiceId)
+            /// <param name='merchantId'>
+            /// </param>
+            public static IInvoiceEntity ApiInvoicesByInvoiceIdGet(this IInvoicesservice operations, string invoiceId, string merchantId = default(string))
             {
-                return operations.ApiInvoicesByInvoiceIdGetAsync(invoiceId).GetAwaiter().GetResult();
+                return operations.ApiInvoicesByInvoiceIdGetAsync(invoiceId, merchantId).GetAwaiter().GetResult();
             }
 
             /// <param name='operations'>
@@ -80,12 +86,14 @@ namespace Lykke.Pay.Service.Invoces.Client
             /// </param>
             /// <param name='invoiceId'>
             /// </param>
+            /// <param name='merchantId'>
+            /// </param>
             /// <param name='cancellationToken'>
             /// The cancellation token.
             /// </param>
-            public static async Task<IInvoiceEntity> ApiInvoicesByInvoiceIdGetAsync(this IInvoicesservice operations, string invoiceId, CancellationToken cancellationToken = default(CancellationToken))
+            public static async Task<IInvoiceEntity> ApiInvoicesByInvoiceIdGetAsync(this IInvoicesservice operations, string invoiceId, string merchantId = default(string), CancellationToken cancellationToken = default(CancellationToken))
             {
-                using (var _result = await operations.ApiInvoicesByInvoiceIdGetWithHttpMessagesAsync(invoiceId, null, cancellationToken).ConfigureAwait(false))
+                using (var _result = await operations.ApiInvoicesByInvoiceIdGetWithHttpMessagesAsync(invoiceId, merchantId, null, cancellationToken).ConfigureAwait(false))
                 {
                     return _result.Body;
                 }
@@ -96,9 +104,11 @@ namespace Lykke.Pay.Service.Invoces.Client
             /// </param>
             /// <param name='invoiceId'>
             /// </param>
-            public static void ApiInvoicesByInvoiceIdDeleteGet(this IInvoicesservice operations, string invoiceId)
+            /// <param name='merchantId'>
+            /// </param>
+            public static void ApiInvoicesByInvoiceIdDeleteGet(this IInvoicesservice operations, string invoiceId, string merchantId = default(string))
             {
-                operations.ApiInvoicesByInvoiceIdDeleteGetAsync(invoiceId).GetAwaiter().GetResult();
+                operations.ApiInvoicesByInvoiceIdDeleteGetAsync(invoiceId, merchantId).GetAwaiter().GetResult();
             }
 
             /// <param name='operations'>
@@ -106,12 +116,14 @@ namespace Lykke.Pay.Service.Invoces.Client
             /// </param>
             /// <param name='invoiceId'>
             /// </param>
+            /// <param name='merchantId'>
+            /// </param>
             /// <param name='cancellationToken'>
             /// The cancellation token.
             /// </param>
-            public static async Task ApiInvoicesByInvoiceIdDeleteGetAsync(this IInvoicesservice operations, string invoiceId, CancellationToken cancellationToken = default(CancellationToken))
+            public static async Task ApiInvoicesByInvoiceIdDeleteGetAsync(this IInvoicesservice operations, string invoiceId, string merchantId = default(string), CancellationToken cancellationToken = default(CancellationToken))
             {
-                (await operations.ApiInvoicesByInvoiceIdDeleteGetWithHttpMessagesAsync(invoiceId, null, cancellationToken).ConfigureAwait(false)).Dispose();
+                (await operations.ApiInvoicesByInvoiceIdDeleteGetWithHttpMessagesAsync(invoiceId, merchantId, null, cancellationToken).ConfigureAwait(false)).Dispose();
             }
 
             /// <param name='operations'>

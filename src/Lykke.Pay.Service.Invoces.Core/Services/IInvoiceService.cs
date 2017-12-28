@@ -8,10 +8,12 @@ namespace Lykke.Pay.Service.Invoces.Core.Services
         where TInvoiceEntity : IInvoiceEntity
     {
         Task<bool> SaveInvoice(TInvoiceEntity invoice);
-
-        Task<List<TInvoiceEntity>> GetInvoices();
-
-        Task<TInvoiceEntity> GetInvoice(string invoiceId);
-        Task DeleteInvoice(string invoiceId);
+        Task<List<TInvoiceEntity>> GetInvoices(string merchantId);
+        Task<TInvoiceEntity> GetInvoice(string merchantId, string invoiceId);
+        Task DeleteInvoice(string merchantId, string invoiceId);
+        Task UploadFile(IFileEntity entity);
+        Task<List<IFileMetaEntity>> GetFileMetaList(string invoiceId);
+        Task<IFileEntity> GetFileEntity(string invoiceId, string fileId);
+        Task DeleteFiles(string invoiceId);
     }
 }

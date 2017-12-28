@@ -29,6 +29,6 @@ namespace Lykke.Pay.Service.Invoces.Core.Domain
         string StartDate { get; set; }
 
         string Transaction { get; set; }
-        
+        string MerchantId { get; set; }
     }
 }

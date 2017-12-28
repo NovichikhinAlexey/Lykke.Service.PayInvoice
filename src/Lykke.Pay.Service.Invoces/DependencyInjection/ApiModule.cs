@@ -1,4 +1,5 @@
 ﻿using Autofac;
+using AzureStorage.Blob;
 using AzureStorage.Tables;
 using Common.Log;
 using Lykke.Pay.Service.Invoces.Core;
@@ -34,9 +35,11 @@ namespace Lykke.Pay.Service.Invoces.DependencyInjection
 
         private void RegisterInvoices(ContainerBuilder builder)
         {
-            
+            var settingManager = new StringSettingsManager(_settings.InvoicesService.DbConnectionString);
             var invoiceRequestRepo =
-                new InvoiceRepository(AzureTableStorage<InvoiceEntity>.Create(new StringSettingsManager(_settings.InvoicesService.DbConnectionString), "Invoices", _log));
+                new InvoiceRepository(AzureTableStorage<InvoiceEntity>.Create(settingManager, "Invoices", _log),
+                    AzureTableStorage<FileMetaEntity>.Create(settingManager, "FileMetaData", _log),
+                    AzureBlobStorage.Create(settingManager));
             builder.RegisterInstance(invoiceRequestRepo).As<IInvoiceRepository>();
             builder.RegisterType<InvoiceService>().As<IInvoiceService<IInvoiceEntity>>();
 

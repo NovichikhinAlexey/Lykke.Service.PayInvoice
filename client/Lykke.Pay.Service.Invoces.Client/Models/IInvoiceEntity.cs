@@ -22,7 +22,7 @@ namespace Lykke.Pay.Service.Invoces.Client.Models
         /// <summary>
         /// Initializes a new instance of the IInvoiceEntity class.
         /// </summary>
-        public IInvoiceEntity(double amount, string invoiceId = default(string), string invoiceNumber = default(string), string currency = default(string), string clientId = default(string), string clientName = default(string), string clientUserId = default(string), string clientEmail = default(string), string dueDate = default(string), string label = default(string), string status = default(string), string walletAddress = default(string), string startDate = default(string), string transaction = default(string))
+        public IInvoiceEntity(double amount, string invoiceId = default(string), string invoiceNumber = default(string), string currency = default(string), string clientId = default(string), string clientName = default(string), string clientUserId = default(string), string clientEmail = default(string), string dueDate = default(string), string label = default(string), string status = default(string), string walletAddress = default(string), string startDate = default(string), string transaction = default(string), string merchantId = default(string))
         {
             InvoiceId = invoiceId;
             InvoiceNumber = invoiceNumber;
@@ -38,6 +38,7 @@ namespace Lykke.Pay.Service.Invoces.Client.Models
             WalletAddress = walletAddress;
             StartDate = startDate;
             Transaction = transaction;
+            MerchantId = merchantId;
             CustomInit();
         }
 
@@ -115,6 +116,11 @@ namespace Lykke.Pay.Service.Invoces.Client.Models
         /// </summary>
         [JsonProperty(PropertyName = "Transaction")]
         public string Transaction { get; set; }
+
+        /// <summary>
+        /// </summary>
+        [JsonProperty(PropertyName = "MerchantId")]
+        public string MerchantId { get; set; }
 
         /// <summary>
         /// Validate the object.

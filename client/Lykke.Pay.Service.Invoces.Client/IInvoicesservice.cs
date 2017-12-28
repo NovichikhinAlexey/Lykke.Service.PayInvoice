@@ -34,13 +34,15 @@ namespace Lykke.Pay.Service.Invoces.Client
         JsonSerializerSettings DeserializationSettings { get; }
 
 
+        /// <param name='merchantId'>
+        /// </param>
         /// <param name='customHeaders'>
         /// The headers that will be added to request.
         /// </param>
         /// <param name='cancellationToken'>
         /// The cancellation token.
         /// </param>
-        Task<HttpOperationResponse<IList<IInvoiceEntity>>> ApiInvoicesGetWithHttpMessagesAsync(Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
+        Task<HttpOperationResponse<IList<IInvoiceEntity>>> ApiInvoicesGetWithHttpMessagesAsync(string merchantId = default(string), Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
 
         /// <param name='invoice'>
         /// </param>
@@ -54,23 +56,27 @@ namespace Lykke.Pay.Service.Invoces.Client
 
         /// <param name='invoiceId'>
         /// </param>
+        /// <param name='merchantId'>
+        /// </param>
         /// <param name='customHeaders'>
         /// The headers that will be added to request.
         /// </param>
         /// <param name='cancellationToken'>
         /// The cancellation token.
         /// </param>
-        Task<HttpOperationResponse<IInvoiceEntity>> ApiInvoicesByInvoiceIdGetWithHttpMessagesAsync(string invoiceId, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
+        Task<HttpOperationResponse<IInvoiceEntity>> ApiInvoicesByInvoiceIdGetWithHttpMessagesAsync(string invoiceId, string merchantId = default(string), Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
 
         /// <param name='invoiceId'>
         /// </param>
+        /// <param name='merchantId'>
+        /// </param>
         /// <param name='customHeaders'>
         /// The headers that will be added to request.
         /// </param>
         /// <param name='cancellationToken'>
         /// The cancellation token.
         /// </param>
-        Task<HttpOperationResponse> ApiInvoicesByInvoiceIdDeleteGetWithHttpMessagesAsync(string invoiceId, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
+        Task<HttpOperationResponse> ApiInvoicesByInvoiceIdDeleteGetWithHttpMessagesAsync(string invoiceId, string merchantId = default(string), Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
 
         /// <param name='customHeaders'>
         /// The headers that will be added to request.

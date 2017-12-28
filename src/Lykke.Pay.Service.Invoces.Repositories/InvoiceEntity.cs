@@ -5,9 +5,9 @@ namespace Lykke.Pay.Service.Invoces.Repositories
 {
     public class InvoiceEntity : TableEntity, IInvoiceEntity
     {
-        public static string GeneratePartitionKey()
+        public static string GeneratePartitionKey(string merchantId)
         {
-            return "I";
+            return merchantId;
         }
 
         public static string GenerateRowKey(string id)
@@ -19,7 +19,7 @@ namespace Lykke.Pay.Service.Invoces.Repositories
         {
             return new InvoiceEntity
             {
-                PartitionKey = GeneratePartitionKey(),
+                PartitionKey = GeneratePartitionKey(invoice.MerchantId),
                 RowKey = GenerateRowKey(invoice.InvoiceId),
                 Currency = invoice.Currency,
                 ClientId = invoice.ClientId,
@@ -34,6 +34,7 @@ namespace Lykke.Pay.Service.Invoces.Repositories
                 WalletAddress = invoice.WalletAddress,
                 StartDate = invoice.StartDate,
                 Transaction = invoice.Transaction,
+                MerchantId = invoice.MerchantId,
                 ETag = "*"
 
             };
@@ -58,5 +59,6 @@ namespace Lykke.Pay.Service.Invoces.Repositories
         public string WalletAddress { get; set; }
         public string StartDate { get; set; }
         public string Transaction { get; set; }
+        public string MerchantId { get; set; }
     }
 }

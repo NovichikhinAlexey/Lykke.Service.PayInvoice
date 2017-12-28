@@ -22,25 +22,26 @@ namespace Lykke.Pay.Service.Invoces.Services
             return await _repository.SaveInvoice(invoice);
         }
 
-        public async Task<List<IInvoiceEntity>> GetInvoices()
+        public async Task<List<IInvoiceEntity>> GetInvoices(string merchantId)
         {
-            return await _repository.GetInvoices();
+            return await _repository.GetInvoices(merchantId);
         }
 
-        public async Task<IInvoiceEntity> GetInvoice(string invoiceId)
+        public async Task<IInvoiceEntity> GetInvoice(string merchantId, string invoiceId)
         {
-            return await _repository.GetInvoice(invoiceId);
+            return await _repository.GetInvoice(merchantId, invoiceId);
         }
 
-        public async Task DeleteInvoice(string invoiceId)
+        public async Task DeleteInvoice(string merchantId, string invoiceId)
         {
-            var invoice  = await _repository.GetInvoice(invoiceId);
+            var invoice  = await _repository.GetInvoice(merchantId, invoiceId);
             if (invoice != null)
             {
                 var invoiceStatus = invoice.Status.ParsePayEnum<InvoiceStatus>();
                 if (invoiceStatus == InvoiceStatus.Draft)
                 {
-                    await _repository.DeleteInvoice(invoiceId);
+                    await _repository.DeleteInvoice(merchantId, invoiceId);
+                    await _repository.DeleteFiles(invoiceId);
                 }
                 else if (invoiceStatus == InvoiceStatus.Unpaid)
                 {
@@ -49,6 +50,27 @@ namespace Lykke.Pay.Service.Invoces.Services
                 }
             }
             
+        }
+
+        public async Task UploadFile(IFileEntity entity)
+        {
+            await _repository.UploadFile(entity);
+        }
+
+        public async Task<List<IFileMetaEntity>> GetFileMetaList(string invoiceId)
+        {
+            return await _repository.GetFileMeta(invoiceId);
+        }
+
+        public async Task<IFileEntity> GetFileEntity(string invoiceId, string fileId)
+        {
+            return await _repository.GetFileEntity(invoiceId, fileId);
+        }
+
+
+        public async Task DeleteFiles(string invoiceId)
+        {
+            await _repository.DeleteFiles(invoiceId);
         }
     }
 }

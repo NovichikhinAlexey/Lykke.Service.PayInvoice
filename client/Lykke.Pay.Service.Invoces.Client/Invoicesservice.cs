@@ -141,6 +141,8 @@ namespace Lykke.Pay.Service.Invoces.Client
             };
             CustomInitialize();
         }
+        /// <param name='merchantId'>
+        /// </param>
         /// <param name='customHeaders'>
         /// Headers that will be added to request.
         /// </param>
@@ -156,7 +158,7 @@ namespace Lykke.Pay.Service.Invoces.Client
         /// <return>
         /// A response object containing the response body and response headers.
         /// </return>
-        public async Task<HttpOperationResponse<IList<IInvoiceEntity>>> ApiInvoicesGetWithHttpMessagesAsync(Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<HttpOperationResponse<IList<IInvoiceEntity>>> ApiInvoicesGetWithHttpMessagesAsync(string merchantId = default(string), Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken))
         {
             // Tracing
             bool _shouldTrace = ServiceClientTracing.IsEnabled;
@@ -165,12 +167,22 @@ namespace Lykke.Pay.Service.Invoces.Client
             {
                 _invocationId = ServiceClientTracing.NextInvocationId.ToString();
                 Dictionary<string, object> tracingParameters = new Dictionary<string, object>();
+                tracingParameters.Add("merchantId", merchantId);
                 tracingParameters.Add("cancellationToken", cancellationToken);
                 ServiceClientTracing.Enter(_invocationId, this, "ApiInvoicesGet", tracingParameters);
             }
             // Construct URL
             var _baseUrl = BaseUri.AbsoluteUri;
             var _url = new System.Uri(new System.Uri(_baseUrl + (_baseUrl.EndsWith("/") ? "" : "/")), "api/Invoices").ToString();
+            List<string> _queryParameters = new List<string>();
+            if (merchantId != null)
+            {
+                _queryParameters.Add(string.Format("merchantId={0}", System.Uri.EscapeDataString(merchantId)));
+            }
+            if (_queryParameters.Count > 0)
+            {
+                _url += "?" + string.Join("&", _queryParameters);
+            }
             // Create HTTP transport objects
             var _httpRequest = new HttpRequestMessage();
             HttpResponseMessage _httpResponse = null;
@@ -390,6 +402,8 @@ namespace Lykke.Pay.Service.Invoces.Client
 
         /// <param name='invoiceId'>
         /// </param>
+        /// <param name='merchantId'>
+        /// </param>
         /// <param name='customHeaders'>
         /// Headers that will be added to request.
         /// </param>
@@ -411,7 +425,7 @@ namespace Lykke.Pay.Service.Invoces.Client
         /// <return>
         /// A response object containing the response body and response headers.
         /// </return>
-        public async Task<HttpOperationResponse<IInvoiceEntity>> ApiInvoicesByInvoiceIdGetWithHttpMessagesAsync(string invoiceId, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<HttpOperationResponse<IInvoiceEntity>> ApiInvoicesByInvoiceIdGetWithHttpMessagesAsync(string invoiceId, string merchantId = default(string), Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken))
         {
             if (invoiceId == null)
             {
@@ -424,6 +438,7 @@ namespace Lykke.Pay.Service.Invoces.Client
             {
                 _invocationId = ServiceClientTracing.NextInvocationId.ToString();
                 Dictionary<string, object> tracingParameters = new Dictionary<string, object>();
+                tracingParameters.Add("merchantId", merchantId);
                 tracingParameters.Add("invoiceId", invoiceId);
                 tracingParameters.Add("cancellationToken", cancellationToken);
                 ServiceClientTracing.Enter(_invocationId, this, "ApiInvoicesByInvoiceIdGet", tracingParameters);
@@ -432,6 +447,15 @@ namespace Lykke.Pay.Service.Invoces.Client
             var _baseUrl = BaseUri.AbsoluteUri;
             var _url = new System.Uri(new System.Uri(_baseUrl + (_baseUrl.EndsWith("/") ? "" : "/")), "api/Invoices/{invoiceId}").ToString();
             _url = _url.Replace("{invoiceId}", System.Uri.EscapeDataString(invoiceId));
+            List<string> _queryParameters = new List<string>();
+            if (merchantId != null)
+            {
+                _queryParameters.Add(string.Format("merchantId={0}", System.Uri.EscapeDataString(merchantId)));
+            }
+            if (_queryParameters.Count > 0)
+            {
+                _url += "?" + string.Join("&", _queryParameters);
+            }
             // Create HTTP transport objects
             var _httpRequest = new HttpRequestMessage();
             HttpResponseMessage _httpResponse = null;
@@ -521,6 +545,8 @@ namespace Lykke.Pay.Service.Invoces.Client
 
         /// <param name='invoiceId'>
         /// </param>
+        /// <param name='merchantId'>
+        /// </param>
         /// <param name='customHeaders'>
         /// Headers that will be added to request.
         /// </param>
@@ -539,7 +565,7 @@ namespace Lykke.Pay.Service.Invoces.Client
         /// <return>
         /// A response object containing the response body and response headers.
         /// </return>
-        public async Task<HttpOperationResponse> ApiInvoicesByInvoiceIdDeleteGetWithHttpMessagesAsync(string invoiceId, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<HttpOperationResponse> ApiInvoicesByInvoiceIdDeleteGetWithHttpMessagesAsync(string invoiceId, string merchantId = default(string), Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken))
         {
             if (invoiceId == null)
             {
@@ -552,6 +578,7 @@ namespace Lykke.Pay.Service.Invoces.Client
             {
                 _invocationId = ServiceClientTracing.NextInvocationId.ToString();
                 Dictionary<string, object> tracingParameters = new Dictionary<string, object>();
+                tracingParameters.Add("merchantId", merchantId);
                 tracingParameters.Add("invoiceId", invoiceId);
                 tracingParameters.Add("cancellationToken", cancellationToken);
                 ServiceClientTracing.Enter(_invocationId, this, "ApiInvoicesByInvoiceIdDeleteGet", tracingParameters);
@@ -560,6 +587,15 @@ namespace Lykke.Pay.Service.Invoces.Client
             var _baseUrl = BaseUri.AbsoluteUri;
             var _url = new System.Uri(new System.Uri(_baseUrl + (_baseUrl.EndsWith("/") ? "" : "/")), "api/Invoices/{invoiceId}/delete").ToString();
             _url = _url.Replace("{invoiceId}", System.Uri.EscapeDataString(invoiceId));
+            List<string> _queryParameters = new List<string>();
+            if (merchantId != null)
+            {
+                _queryParameters.Add(string.Format("merchantId={0}", System.Uri.EscapeDataString(merchantId)));
+            }
+            if (_queryParameters.Count > 0)
+            {
+                _url += "?" + string.Join("&", _queryParameters);
+            }
             // Create HTTP transport objects
             var _httpRequest = new HttpRequestMessage();
             HttpResponseMessage _httpResponse = null;
