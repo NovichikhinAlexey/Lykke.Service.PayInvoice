@@ -30,7 +30,7 @@ namespace Lykke.Pay.Service.Invoces.Repositories
             try
             {
                 InvoiceEntity invoiceEntity = InvoiceEntity.Create(invoice);
-               
+
                 await invoiceRepository._tableStorage.InsertOrMergeAsync(invoiceEntity);
                 return true;
             }
@@ -42,12 +42,33 @@ namespace Lykke.Pay.Service.Invoces.Repositories
 
         public async Task<List<IInvoiceEntity>> GetInvoices(string merchantId)
         {
-            return (await _tableStorage.GetDataAsync(InvoiceEntity.GeneratePartitionKey(merchantId))).ToList<IInvoiceEntity>();
+            if (!string.IsNullOrEmpty(merchantId))
+                return (await _tableStorage.GetDataAsync(InvoiceEntity.GeneratePartitionKey(merchantId))).ToList<IInvoiceEntity>();
+            return (await _tableStorage.GetDataAsync()).ToList<IInvoiceEntity>();
         }
 
         public async Task<IInvoiceEntity> GetInvoice(string merchantId, string invoiceId)
         {
-            return await _tableStorage.GetDataAsync(InvoiceEntity.GeneratePartitionKey(merchantId), invoiceId);
+            if (string.IsNullOrEmpty(invoiceId))
+            {
+                return null;
+            }
+            if (!string.IsNullOrEmpty(merchantId))
+                return await _tableStorage.GetDataAsync(InvoiceEntity.GeneratePartitionKey(merchantId), invoiceId);
+            return (from i in await _tableStorage.GetDataAsync()
+                where invoiceId.Equals(i.InvoiceId)
+                select i).FirstOrDefault();
+        }
+
+        public async Task<IInvoiceEntity> GetInvoiceByAddress(string address)
+        {
+            if (string.IsNullOrEmpty(address))
+            {
+                return null;
+            }
+            return (from i in await _tableStorage.GetDataAsync()
+                    where address.Equals(i.WalletAddress)
+                    select i).FirstOrDefault();
         }
 
         public async Task DeleteInvoice(string merchantId, string invoiceId)
@@ -57,7 +78,7 @@ namespace Lykke.Pay.Service.Invoces.Repositories
 
         public async Task UploadFile(IFileEntity entity)
         {
-            var fileInfo = new FileMetaEntity(entity) {FileId = Guid.NewGuid().ToString(), FileSize = entity.FileBody.Length};
+            var fileInfo = new FileMetaEntity(entity) { FileId = Guid.NewGuid().ToString(), FileSize = entity.FileBody.Length };
             await _tableFileStorage.InsertOrMergeAsync(fileInfo);
             await _fileBlobStorage.CreateContainerIfNotExistsAsync(FileContainer);
             await _fileBlobStorage.SaveBlobAsync(FileContainer, fileInfo.FileId, entity.FileBody);
@@ -89,7 +110,7 @@ namespace Lykke.Pay.Service.Invoces.Repositories
 
         public async Task<List<IFileMetaEntity>> GetFileMeta(string invoiceId)
         {
-            
+
             var result = from fmi in await _tableFileStorage.GetDataAsync(invoiceId)
                          select (IFileMetaEntity)fmi;
             return result.ToList();

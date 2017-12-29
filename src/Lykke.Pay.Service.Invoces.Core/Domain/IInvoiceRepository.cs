@@ -8,6 +8,7 @@ namespace Lykke.Pay.Service.Invoces.Core.Domain
         Task<bool> SaveInvoice(IInvoiceEntity invoice);
         Task<List<IInvoiceEntity>> GetInvoices(string merchantId);
         Task<IInvoiceEntity> GetInvoice(string merchantId, string invoiceId);
+        Task<IInvoiceEntity> GetInvoiceByAddress(string address);
         Task DeleteInvoice(string merchantId, string invoiceId);
         Task UploadFile(IFileEntity entity);
         Task<List<IFileMetaEntity>> GetFileMeta(string invoiceId);

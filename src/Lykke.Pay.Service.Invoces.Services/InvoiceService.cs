@@ -32,6 +32,11 @@ namespace Lykke.Pay.Service.Invoces.Services
             return await _repository.GetInvoice(merchantId, invoiceId);
         }
 
+        public async Task<IInvoiceEntity> GetInvoiceByAddress(string address)
+        {
+            return await _repository.GetInvoiceByAddress(address);
+        }
+
         public async Task DeleteInvoice(string merchantId, string invoiceId)
         {
             var invoice  = await _repository.GetInvoice(merchantId, invoiceId);
