@@ -4,6 +4,7 @@ using Lykke.Pay.Service.Invoces.Core.Domain;
 using Lykke.Pay.Service.Invoces.Core.Services;
 using Lykke.Pay.Service.Invoces.Repositories;
 using Microsoft.AspNetCore.Mvc;
+using Swashbuckle.AspNetCore.SwaggerGen;
 
 namespace Lykke.Pay.Service.Invoces.Controllers
 {
@@ -21,30 +22,35 @@ namespace Lykke.Pay.Service.Invoces.Controllers
         }
 
         [HttpPost]
+        [SwaggerOperation("SaveInvoice")]
         public async Task<bool> SaveInvoice([FromBody]InvoiceEntity invoice)
         {
             return await _service.SaveInvoice(invoice);
         }
 
         [HttpGet]
+        [SwaggerOperation("GetInvoices")]
         public async Task<List<IInvoiceEntity>> GetInvoices(string merchantId)
         {
             return await _service.GetInvoices(merchantId);
         }
 
         [HttpGet("{invoiceId}")]
+        [SwaggerOperation("GetInvoiceById")]
         public async Task<IInvoiceEntity> GetInvoice(string merchantId, string invoiceId)
         {
             return await _service.GetInvoice(merchantId, invoiceId);
         }
 
         [HttpGet("{invoiceId}/delete")]
+        [SwaggerOperation("DeleteInvoice")]
         public async Task DeleteInvoice(string merchantId, string invoiceId)
         {
             await _service.DeleteInvoice(merchantId, invoiceId);
         }
 
         [HttpGet("address/{address}")]
+        [SwaggerOperation("GetInvoiceByAddress")]
         public async Task<IInvoiceEntity> GetInvoiceByAddress(string address)
         {
             return await _service.GetInvoiceByAddress(address);

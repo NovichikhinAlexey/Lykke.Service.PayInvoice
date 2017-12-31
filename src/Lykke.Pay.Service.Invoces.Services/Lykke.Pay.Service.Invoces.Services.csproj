@@ -5,7 +5,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Lykke.Pay.Common" Version="1.0.76" />
+    <PackageReference Include="Lykke.Pay.Common" Version="1.0.81" />
   </ItemGroup>
 
   <ItemGroup>
