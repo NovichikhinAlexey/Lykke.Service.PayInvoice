@@ -53,8 +53,9 @@ namespace Lykke.Pay.Service.Invoces
                 options.DefaultLykkeConfiguration("v1", "Invoices service");
             });
 
-            var settings = HttpSettingsLoader.Load<ApplicationSettings>();
-            var log = CreateLog(services, settings);
+            var appSettings = Configuration.LoadSettings<ApplicationSettings>();
+            var settings = appSettings.CurrentValue;
+            var log = CreateLog(services, appSettings);
             var builder = new ContainerBuilder();
 
             builder.RegisterModule(new ApiModule(settings, log));
@@ -65,29 +66,42 @@ namespace Lykke.Pay.Service.Invoces
             return new AutofacServiceProvider(ApplicationContainer);
         }
 
-        private static ILog CreateLog(IServiceCollection services, ApplicationSettings settings)
+        private static ILog CreateLog(IServiceCollection services, IReloadingManager<ApplicationSettings> settings)
         {
-            var appSettings = settings.InvoicesService;
+            var consoleLogger = new LogToConsole();
+            var aggregateLogger = new AggregateLogger();
 
-            LykkeLogToAzureStorage logToAzureStorage = null;
-            var logToConsole = new LogToConsole();
-            var logAggregate = new LogAggregate();
+            aggregateLogger.AddLog(consoleLogger);
 
-            logAggregate.AddLogger(logToConsole);
+            var dbLogConnectionStringManager = settings.Nested(x => x.InvoicesService.Logs.DbConnectionString);
+            var dbLogConnectionString = dbLogConnectionStringManager.CurrentValue;
 
-            if (!string.IsNullOrEmpty(appSettings.Logs.DbConnectionString) &&
-                !(appSettings.Logs.DbConnectionString.StartsWith("${") && appSettings.Logs.DbConnectionString.EndsWith("}")))
+            if (string.IsNullOrEmpty(dbLogConnectionString))
             {
-                logToAzureStorage = new LykkeLogToAzureStorage(Constants.ComponentName,new LykkeLogToAzureStoragePersistenceManager(
-                    AzureTableStorage<LogEntity>.Create(new StringSettingsManager(appSettings.Logs.DbConnectionString), "LykkePayServiceInvocesLog", null)));
-
-                logAggregate.AddLogger(logToAzureStorage);
+                consoleLogger.WriteWarningAsync(nameof(Startup), nameof(CreateLog), "Table loggger is not inited").Wait();
+                return aggregateLogger;
             }
 
-            var log = logAggregate.CreateLogger();
+            if (dbLogConnectionString.StartsWith("${") && dbLogConnectionString.EndsWith("}"))
+                throw new InvalidOperationException($"LogsConnString {dbLogConnectionString} is not filled in settings");
 
-           
-            return log;
+            var persistenceManager = new LykkeLogToAzureStoragePersistenceManager(
+                AzureTableStorage<LogEntity>.Create(dbLogConnectionStringManager, "LykkePayServiceInvocesLog", consoleLogger),
+                consoleLogger);
+
+
+
+            // Creating azure storage logger, which logs own messages to concole log
+            var azureStorageLogger = new LykkeLogToAzureStorage(
+                persistenceManager,
+                null,
+                consoleLogger);
+
+            azureStorageLogger.Start();
+
+            aggregateLogger.AddLog(azureStorageLogger);
+
+            return aggregateLogger;
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
