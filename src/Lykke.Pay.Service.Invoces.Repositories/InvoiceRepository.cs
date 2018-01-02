@@ -53,11 +53,15 @@ namespace Lykke.Pay.Service.Invoces.Repositories
             {
                 return null;
             }
+
             if (!string.IsNullOrEmpty(merchantId))
+            {
                 return await _tableStorage.GetDataAsync(InvoiceEntity.GeneratePartitionKey(merchantId), invoiceId);
-            return (from i in await _tableStorage.GetDataAsync()
-                where invoiceId.Equals(i.InvoiceId)
-                select i).FirstOrDefault();
+            }
+
+            var invoiceList = await _tableStorage.GetDataAsync();
+            var invoice = invoiceList.FirstOrDefault(e => e.InvoiceId.Equals(invoiceId));
+            return invoice;
         }
 
         public async Task<IInvoiceEntity> GetInvoiceByAddress(string address)
