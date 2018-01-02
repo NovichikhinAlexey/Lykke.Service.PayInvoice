@@ -155,6 +155,85 @@ namespace Lykke.Pay.Service.Invoces.Client
             /// <param name='operations'>
             /// The operations group for this extension method.
             /// </param>
+            /// <param name='invoiceId'>
+            /// </param>
+            public static IList<IFileMetaEntity> ApiInvoicesFilesByInvoiceIdGet(this IInvoicesservice operations, string invoiceId)
+            {
+                return operations.ApiInvoicesFilesByInvoiceIdGetAsync(invoiceId).GetAwaiter().GetResult();
+            }
+
+            /// <param name='operations'>
+            /// The operations group for this extension method.
+            /// </param>
+            /// <param name='invoiceId'>
+            /// </param>
+            /// <param name='cancellationToken'>
+            /// The cancellation token.
+            /// </param>
+            public static async Task<IList<IFileMetaEntity>> ApiInvoicesFilesByInvoiceIdGetAsync(this IInvoicesservice operations, string invoiceId, CancellationToken cancellationToken = default(CancellationToken))
+            {
+                using (var _result = await operations.ApiInvoicesFilesByInvoiceIdGetWithHttpMessagesAsync(invoiceId, null, cancellationToken).ConfigureAwait(false))
+                {
+                    return _result.Body;
+                }
+            }
+
+            /// <param name='operations'>
+            /// The operations group for this extension method.
+            /// </param>
+            /// <param name='invoiceId'>
+            /// </param>
+            /// <param name='fileId'>
+            /// </param>
+            public static IFileEntity ApiInvoicesFileByFileIdOfInvoiceByInvoiceIdGet(this IInvoicesservice operations, string invoiceId, string fileId)
+            {
+                return operations.ApiInvoicesFileByFileIdOfInvoiceByInvoiceIdGetAsync(invoiceId, fileId).GetAwaiter().GetResult();
+            }
+
+            /// <param name='operations'>
+            /// The operations group for this extension method.
+            /// </param>
+            /// <param name='invoiceId'>
+            /// </param>
+            /// <param name='fileId'>
+            /// </param>
+            /// <param name='cancellationToken'>
+            /// The cancellation token.
+            /// </param>
+            public static async Task<IFileEntity> ApiInvoicesFileByFileIdOfInvoiceByInvoiceIdGetAsync(this IInvoicesservice operations, string invoiceId, string fileId, CancellationToken cancellationToken = default(CancellationToken))
+            {
+                using (var _result = await operations.ApiInvoicesFileByFileIdOfInvoiceByInvoiceIdGetWithHttpMessagesAsync(invoiceId, fileId, null, cancellationToken).ConfigureAwait(false))
+                {
+                    return _result.Body;
+                }
+            }
+
+            /// <param name='operations'>
+            /// The operations group for this extension method.
+            /// </param>
+            /// <param name='entity'>
+            /// </param>
+            public static void ApiInvoicesUploadFilePost(this IInvoicesservice operations, IFileEntity entity = default(IFileEntity))
+            {
+                operations.ApiInvoicesUploadFilePostAsync(entity).GetAwaiter().GetResult();
+            }
+
+            /// <param name='operations'>
+            /// The operations group for this extension method.
+            /// </param>
+            /// <param name='entity'>
+            /// </param>
+            /// <param name='cancellationToken'>
+            /// The cancellation token.
+            /// </param>
+            public static async Task ApiInvoicesUploadFilePostAsync(this IInvoicesservice operations, IFileEntity entity = default(IFileEntity), CancellationToken cancellationToken = default(CancellationToken))
+            {
+                (await operations.ApiInvoicesUploadFilePostWithHttpMessagesAsync(entity, null, cancellationToken).ConfigureAwait(false)).Dispose();
+            }
+
+            /// <param name='operations'>
+            /// The operations group for this extension method.
+            /// </param>
             public static IsAliveResponse IsAlive(this IInvoicesservice operations)
             {
                 return operations.IsAliveAsync().GetAwaiter().GetResult();

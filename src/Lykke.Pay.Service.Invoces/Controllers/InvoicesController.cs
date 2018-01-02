@@ -49,6 +49,24 @@ namespace Lykke.Pay.Service.Invoces.Controllers
         {
             return await _service.GetInvoiceByAddress(address);
         }
+
+        [HttpGet("files/{invoiceId}")]
+        public async Task<List<IFileMetaEntity>> GetFileMetaList(string invoiceId)
+        {
+            return await _service.GetFileMetaList(invoiceId);
+        }
+
+        [HttpGet("file/{fileId}/ofInvoice/{invoiceId}")]
+        public async Task<IFileEntity> GetFileEntity(string invoiceId, string fileId)
+        {
+            return await _service.GetFileEntity(invoiceId, fileId);
+        }
+
+        [HttpPost("uploadFile")]
+        public async Task UploadFile([FromBody]IFileEntity entity)
+        {
+            await _service.UploadFile(entity);
+        }
     }
 
 }

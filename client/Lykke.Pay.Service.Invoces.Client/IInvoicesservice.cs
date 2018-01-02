@@ -88,6 +88,38 @@ namespace Lykke.Pay.Service.Invoces.Client
         /// </param>
         Task<HttpOperationResponse<IInvoiceEntity>> ApiInvoicesAddressByAddressGetWithHttpMessagesAsync(string address, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
 
+        /// <param name='invoiceId'>
+        /// </param>
+        /// <param name='customHeaders'>
+        /// The headers that will be added to request.
+        /// </param>
+        /// <param name='cancellationToken'>
+        /// The cancellation token.
+        /// </param>
+        Task<HttpOperationResponse<IList<IFileMetaEntity>>> ApiInvoicesFilesByInvoiceIdGetWithHttpMessagesAsync(string invoiceId, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
+
+        /// <param name='invoiceId'>
+        /// </param>
+        /// <param name='fileId'>
+        /// </param>
+        /// <param name='customHeaders'>
+        /// The headers that will be added to request.
+        /// </param>
+        /// <param name='cancellationToken'>
+        /// The cancellation token.
+        /// </param>
+        Task<HttpOperationResponse<IFileEntity>> ApiInvoicesFileByFileIdOfInvoiceByInvoiceIdGetWithHttpMessagesAsync(string invoiceId, string fileId, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
+
+        /// <param name='entity'>
+        /// </param>
+        /// <param name='customHeaders'>
+        /// The headers that will be added to request.
+        /// </param>
+        /// <param name='cancellationToken'>
+        /// The cancellation token.
+        /// </param>
+        Task<HttpOperationResponse> ApiInvoicesUploadFilePostWithHttpMessagesAsync(IFileEntity entity = default(IFileEntity), Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
+
         /// <param name='customHeaders'>
         /// The headers that will be added to request.
         /// </param>
