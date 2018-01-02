@@ -79,7 +79,7 @@ namespace Lykke.Pay.Service.Invoces
                 !(appSettings.Logs.DbConnectionString.StartsWith("${") && appSettings.Logs.DbConnectionString.EndsWith("}")))
             {
                 logToAzureStorage = new LykkeLogToAzureStorage(Constants.ComponentName,new LykkeLogToAzureStoragePersistenceManager(
-                    AzureTableStorage<LogEntity>.Create(new StringSettingsManager(appSettings.Logs.DbConnectionString), "AssetsServiceLogs", null)));
+                    AzureTableStorage<LogEntity>.Create(new StringSettingsManager(appSettings.Logs.DbConnectionString), "LykkePayServiceInvocesLog", null)));
 
                 logAggregate.AddLogger(logToAzureStorage);
             }
