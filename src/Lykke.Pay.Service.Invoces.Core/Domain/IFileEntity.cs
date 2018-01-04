@@ -2,6 +2,6 @@
 {
     public interface IFileEntity : IFileMetaEntity
     {
-        byte[] FileBody { get; set; }
+        string FileBodyBase64 { get; set; }
     }
 }

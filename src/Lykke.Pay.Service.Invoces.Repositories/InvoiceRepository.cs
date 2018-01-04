@@ -82,10 +82,10 @@ namespace Lykke.Pay.Service.Invoces.Repositories
 
         public async Task UploadFile(IFileEntity entity)
         {
-            var fileInfo = new FileMetaEntity(entity) { FileId = Guid.NewGuid().ToString(), FileSize = entity.FileBody.Length };
+            var fileInfo = new FileMetaEntity(entity) { FileId = Guid.NewGuid().ToString() };
             await _tableFileStorage.InsertOrMergeAsync(fileInfo);
             await _fileBlobStorage.CreateContainerIfNotExistsAsync(FileContainer);
-            await _fileBlobStorage.SaveBlobAsync(FileContainer, fileInfo.FileId, entity.FileBody);
+            await _fileBlobStorage.SaveBlobAsync(FileContainer, fileInfo.FileId, Convert.FromBase64String(entity.FileBodyBase64));
         }
 
 
@@ -107,7 +107,7 @@ namespace Lykke.Pay.Service.Invoces.Repositories
                 {
                     ms.Write(buffer, 0, read);
                 }
-                result.FileBody = ms.ToArray();
+                result.FileBodyBase64 = Convert.ToBase64String(ms.ToArray());
             }
             return result;
         }

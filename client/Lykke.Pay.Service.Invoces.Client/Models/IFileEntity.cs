@@ -22,9 +22,9 @@ namespace Lykke.Pay.Service.Invoces.Client.Models
         /// <summary>
         /// Initializes a new instance of the IFileEntity class.
         /// </summary>
-        public IFileEntity(byte[] fileBody = default(byte[]), string invoiceId = default(string), string fileId = default(string), string fileName = default(string), string fileMetaType = default(string), int? fileSize = default(int?))
+        public IFileEntity(string fileBodyBase64 = default(string), string invoiceId = default(string), string fileId = default(string), string fileName = default(string), string fileMetaType = default(string), int? fileSize = default(int?))
         {
-            FileBody = fileBody;
+            FileBodyBase64 = fileBodyBase64;
             InvoiceId = invoiceId;
             FileId = fileId;
             FileName = fileName;
@@ -40,8 +40,8 @@ namespace Lykke.Pay.Service.Invoces.Client.Models
 
         /// <summary>
         /// </summary>
-        [JsonProperty(PropertyName = "FileBody")]
-        public byte[] FileBody { get; set; }
+        [JsonProperty(PropertyName = "FileBodyBase64")]
+        public string FileBodyBase64 { get; set; }
 
         /// <summary>
         /// </summary>

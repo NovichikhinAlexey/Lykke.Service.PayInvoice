@@ -42,7 +42,7 @@ namespace Lykke.Pay.Service.Invoces.Client
         /// <param name='cancellationToken'>
         /// The cancellation token.
         /// </param>
-        Task<HttpOperationResponse<IList<IInvoiceEntity>>> ApiInvoicesGetWithHttpMessagesAsync(string merchantId = default(string), Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
+        Task<HttpOperationResponse<IList<IInvoiceEntity>>> GetInvoicesWithHttpMessagesAsync(string merchantId = default(string), Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
 
         /// <param name='invoice'>
         /// </param>
@@ -52,7 +52,7 @@ namespace Lykke.Pay.Service.Invoces.Client
         /// <param name='cancellationToken'>
         /// The cancellation token.
         /// </param>
-        Task<HttpOperationResponse<bool?>> ApiInvoicesPostWithHttpMessagesAsync(InvoiceEntity invoice = default(InvoiceEntity), Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
+        Task<HttpOperationResponse<bool?>> SaveInvoiceWithHttpMessagesAsync(InvoiceEntity invoice = default(InvoiceEntity), Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
 
         /// <param name='invoiceId'>
         /// </param>
@@ -64,7 +64,7 @@ namespace Lykke.Pay.Service.Invoces.Client
         /// <param name='cancellationToken'>
         /// The cancellation token.
         /// </param>
-        Task<HttpOperationResponse<IInvoiceEntity>> ApiInvoicesByInvoiceIdGetWithHttpMessagesAsync(string invoiceId, string merchantId = default(string), Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
+        Task<HttpOperationResponse<IInvoiceEntity>> GetInvoiceByIdWithHttpMessagesAsync(string invoiceId, string merchantId = default(string), Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
 
         /// <param name='invoiceId'>
         /// </param>
@@ -76,7 +76,7 @@ namespace Lykke.Pay.Service.Invoces.Client
         /// <param name='cancellationToken'>
         /// The cancellation token.
         /// </param>
-        Task<HttpOperationResponse> ApiInvoicesByInvoiceIdDeleteGetWithHttpMessagesAsync(string invoiceId, string merchantId = default(string), Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
+        Task<HttpOperationResponse> DeleteInvoiceWithHttpMessagesAsync(string invoiceId, string merchantId = default(string), Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
 
         /// <param name='address'>
         /// </param>
@@ -86,7 +86,7 @@ namespace Lykke.Pay.Service.Invoces.Client
         /// <param name='cancellationToken'>
         /// The cancellation token.
         /// </param>
-        Task<HttpOperationResponse<IInvoiceEntity>> ApiInvoicesAddressByAddressGetWithHttpMessagesAsync(string address, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
+        Task<HttpOperationResponse<IInvoiceEntity>> GetInvoiceByAddressWithHttpMessagesAsync(string address, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
 
         /// <param name='invoiceId'>
         /// </param>

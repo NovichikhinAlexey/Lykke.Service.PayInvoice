@@ -15,7 +15,7 @@ namespace Lykke.Pay.Service.Invoces.Repositories
 
         public FileEntity(IFileEntity entity) : this((IFileMetaEntity)entity)
         {
-            FileBody = entity.FileBody;
+            FileBodyBase64 = entity.FileBodyBase64;
         }
 
         public FileEntity(IFileMetaEntity entity)
@@ -33,6 +33,6 @@ namespace Lykke.Pay.Service.Invoces.Repositories
         public string FileName { get; set; }
         public string FileMetaType { get; set; }
         public int FileSize { get; set; }
-        public byte[] FileBody { get; set; }
+        public string FileBodyBase64 { get; set; }
     }
 }
