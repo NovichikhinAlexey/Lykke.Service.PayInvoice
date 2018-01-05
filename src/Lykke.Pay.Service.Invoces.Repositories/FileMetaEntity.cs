@@ -10,7 +10,7 @@ namespace Lykke.Pay.Service.Invoces.Repositories
     {
         public FileMetaEntity()
         {
-            
+
         }
 
         public FileMetaEntity(IFileMetaEntity fileMetaEntity)
@@ -18,12 +18,14 @@ namespace Lykke.Pay.Service.Invoces.Repositories
             InvoiceId = fileMetaEntity.InvoiceId;
             FileId = fileMetaEntity.FileId;
             FileName = fileMetaEntity.FileName;
-            FileMetaType = fileMetaEntity.FileMetaType;
+            FileMetaType = fileMetaEntity.FileMetaType ?? string.Empty;
             FileSize = fileMetaEntity.FileSize;
+            ETag = "*";
+            PartitionKey = InvoiceId;
+            RowKey = FileId;
         }
 
-        public string PrimaryPartitionKey => InvoiceId;
-        public string PrimaryRowKey => FileId;
+
 
         public string InvoiceId { get; set; }
         public string FileId { get; set; }

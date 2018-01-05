@@ -69,7 +69,7 @@ namespace Lykke.Pay.Service.Invoces.Controllers
         }
 
         [HttpPost("uploadFile")]
-        public async Task UploadFile([FromBody]IFileEntity entity)
+        public async Task UploadFile([FromBody]FileEntity entity)
         {
             await _service.UploadFile(entity);
         }
