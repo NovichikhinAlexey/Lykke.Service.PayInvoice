@@ -1,139 +1,235 @@
 ﻿using System;
+using System.Threading.Tasks;
 using Autofac;
 using Autofac.Extensions.DependencyInjection;
+using AutoMapper;
 using AzureStorage.Tables;
 using Common.Log;
-using JetBrains.Annotations;
 using Lykke.Common.ApiLibrary.Middleware;
 using Lykke.Common.ApiLibrary.Swagger;
 using Lykke.Logs;
-using Lykke.Pay.Service.Invoces.Core;
-using Lykke.Pay.Service.Invoces.DependencyInjection;
-using Lykke.Pay.Service.Invoces.Models;
+using Lykke.Pay.Service.Invoces.Core.Services;
+using Lykke.Pay.Service.Invoces.Settings;
+using Lykke.Pay.Service.Invoces.Swagger;
 using Lykke.SettingsReader;
+using Lykke.SlackNotification.AzureQueue;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using Newtonsoft.Json.Converters;
+using Swashbuckle.AspNetCore.Swagger;
 
 namespace Lykke.Pay.Service.Invoces
 {
-    [UsedImplicitly]
     public class Startup
     {
-        private IContainer ApplicationContainer { get; set; }
+        public IHostingEnvironment Environment { get; }
+        public IContainer ApplicationContainer { get; private set; }
+        public IConfigurationRoot Configuration { get; }
+        public ILog Log { get; private set; }
 
         public Startup(IHostingEnvironment env)
         {
             var builder = new ConfigurationBuilder()
                 .SetBasePath(env.ContentRootPath)
-                .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
-                .AddJsonFile($"appsettings.{env.EnvironmentName}.json", optional: true)
                 .AddEnvironmentVariables();
             Configuration = builder.Build();
+
+            Environment = env;
         }
 
-        private IConfigurationRoot Configuration { get; }
-
-        // This method gets called by the runtime. Use this method to add services to the container.
-        [UsedImplicitly]
         public IServiceProvider ConfigureServices(IServiceCollection services)
         {
-            services.AddMvc()
-                .AddJsonOptions(options =>
+            try
+            {
+                services.AddMvc()
+                    .AddJsonOptions(options =>
+                    {
+                        options.SerializerSettings.ContractResolver =
+                            new Newtonsoft.Json.Serialization.DefaultContractResolver();
+                    });
+
+                services.AddSwaggerGen(options =>
                 {
-                    options.SerializerSettings.Converters.Add(new StringEnumConverter());
-                    options.SerializerSettings.ContractResolver = new Newtonsoft.Json.Serialization.DefaultContractResolver();
+                    options.SwaggerDoc(
+                        "v1",
+                        new Info
+                        {
+                            Version = "v1",
+                            Title = "Lykke.Pay.Service.Invoces API"
+                        });
+
+                    options.DescribeAllEnumsAsStrings();
+                    options.EnableXmsEnumExtension();
+                    options.EnableXmlDocumentation();
+
+                    options.OperationFilter<FileUploadOperation>();
                 });
 
-            services.AddSwaggerGen(options =>
+                Mapper.Initialize(cfg =>
+                {
+                    cfg.AddProfiles(typeof(AutoMapperProfile));
+                    cfg.AddProfiles(typeof(Services.AutoMapperProfile));
+                    cfg.AddProfiles(typeof(Repositories.AutoMapperProfile));
+                });
+
+                Mapper.AssertConfigurationIsValid();
+
+                var builder = new ContainerBuilder();
+                var appSettings = Configuration.LoadSettings<AppSettings>();
+                Log = CreateLogWithSlack(services, appSettings);
+
+                builder.RegisterModule(new Repositories.AutofacModule(appSettings.Nested(o => o.InvoicesService.Db.DataConnectionString), Log));
+                builder.RegisterModule(new Services.AutofacModule());
+                builder.RegisterModule(new AutofacModule(appSettings));
+
+                builder.RegisterInstance(Log)
+                    .As<ILog>()
+                    .SingleInstance();
+
+                builder.Populate(services);
+                ApplicationContainer = builder.Build();
+
+                return new AutofacServiceProvider(ApplicationContainer);
+            }
+            catch (Exception exception)
             {
-                options.DefaultLykkeConfiguration("v1", "Invoices service");
-            });
-
-            var appSettings = Configuration.LoadSettings<ApplicationSettings>();
-            var settings = appSettings.CurrentValue;
-            var log = CreateLog(services, appSettings);
-            var builder = new ContainerBuilder();
-
-            builder.RegisterModule(new ApiModule(settings, log));
-            builder.Populate(services);
-
-            ApplicationContainer = builder.Build();
-
-            return new AutofacServiceProvider(ApplicationContainer);
+                Log?.WriteFatalErrorAsync(nameof(Startup), nameof(ConfigureServices), "", exception).Wait();
+                throw;
+            }
         }
 
-        private static ILog CreateLog(IServiceCollection services, IReloadingManager<ApplicationSettings> settings)
+        public void Configure(IApplicationBuilder app, IHostingEnvironment env, IApplicationLifetime appLifetime)
+        {
+            try
+            {
+                if (env.IsDevelopment())
+                {
+                    app.UseDeveloperExceptionPage();
+                }
+
+                app.UseLykkeMiddleware("Lykke.Pay.Service.Invoces", ex => new
+                {
+                    Message = "Technical problem"
+                });
+
+                app.UseMvc();
+                app.UseSwagger();
+                app.UseSwaggerUI(x =>
+                {
+                    x.RoutePrefix = "swagger/ui";
+                    x.SwaggerEndpoint("/swagger/v1/swagger.json", "v1");
+                });
+                app.UseStaticFiles();
+
+                appLifetime.ApplicationStarted.Register(() => StartApplication().Wait());
+                appLifetime.ApplicationStopping.Register(() => StopApplication().Wait());
+                appLifetime.ApplicationStopped.Register(() => CleanUp().Wait());
+            }
+            catch (Exception exception)
+            {
+                Log?.WriteFatalErrorAsync(nameof(Startup), nameof(ConfigureServices), "", exception).Wait();
+                throw;
+            }
+        }
+
+        private async Task StartApplication()
+        {
+            try
+            {
+                // NOTE: Service not yet recieve and process requests here
+
+                await ApplicationContainer.Resolve<IStartupManager>().StartAsync();
+
+                await Log.WriteMonitorAsync("", $"Env: {Program.EnvInfo}", "Started");
+            }
+            catch (Exception exception)
+            {
+                await Log.WriteFatalErrorAsync(nameof(Startup), nameof(StartApplication), "", exception);
+                throw;
+            }
+        }
+
+        private async Task StopApplication()
+        {
+            try
+            {
+                // NOTE: Service still can recieve and process requests here, so take care about it if you add logic here.
+
+                await ApplicationContainer.Resolve<IShutdownManager>().StopAsync();
+            }
+            catch (Exception exception)
+            {
+                if (Log != null)
+                {
+                    await Log.WriteFatalErrorAsync(nameof(Startup), nameof(StopApplication), "", exception);
+                }
+                throw;
+            }
+        }
+
+        private async Task CleanUp()
+        {
+            try
+            {
+                // NOTE: Service can't recieve and process requests here, so you can destroy all resources
+
+                if (Log != null)
+                {
+                    await Log.WriteMonitorAsync("", $"Env: {Program.EnvInfo}", "Terminating");
+                }
+
+                ApplicationContainer.Dispose();
+            }
+            catch (Exception exception)
+            {
+                if (Log != null)
+                {
+                    await Log.WriteFatalErrorAsync(nameof(Startup), nameof(CleanUp), "", exception);
+                    (Log as IDisposable)?.Dispose();
+                }
+                throw;
+            }
+        }
+
+        private static ILog CreateLogWithSlack(IServiceCollection services, IReloadingManager<AppSettings> settings)
         {
             var consoleLogger = new LogToConsole();
             var aggregateLogger = new AggregateLogger();
 
             aggregateLogger.AddLog(consoleLogger);
 
-            var dbLogConnectionStringManager = settings.Nested(x => x.InvoicesService.Logs.DbConnectionString);
+            var vl = settings.CurrentValue;
+            Console.WriteLine(vl);
+
+            // Creating slack notification service, which logs own azure queue processing messages to aggregate log
+            var slackService = services.UseSlackNotificationsSenderViaAzureQueue(settings.CurrentValue.SlackNotifications.AzureQueue, aggregateLogger);
+
+            var dbLogConnectionStringManager = settings.Nested(x => x.InvoicesService.Db.LogsConnectionString);
             var dbLogConnectionString = dbLogConnectionStringManager.CurrentValue;
 
-            if (string.IsNullOrEmpty(dbLogConnectionString))
+            // Creating azure storage logger, which logs own messages to concole log
+            if (!string.IsNullOrEmpty(dbLogConnectionString) &&
+                !(dbLogConnectionString.StartsWith("${") && dbLogConnectionString.EndsWith("}")))
             {
-                consoleLogger.WriteWarningAsync(nameof(Startup), nameof(CreateLog), "Table loggger is not inited").Wait();
-                return aggregateLogger;
+                var persistenceManager = new LykkeLogToAzureStoragePersistenceManager(
+                    AzureTableStorage<LogEntity>.Create(dbLogConnectionStringManager, "LykkePayServiceInvocesLog", consoleLogger),
+                    consoleLogger);
+
+                var slackNotificationsManager =
+                    new LykkeLogToAzureSlackNotificationsManager(slackService, consoleLogger);
+
+                var azureStorageLogger = new LykkeLogToAzureStorage(
+                    persistenceManager,
+                    slackNotificationsManager,
+                    consoleLogger);
+
+                azureStorageLogger.Start();
+
+                aggregateLogger.AddLog(azureStorageLogger);
             }
 
-            if (dbLogConnectionString.StartsWith("${") && dbLogConnectionString.EndsWith("}"))
-                throw new InvalidOperationException($"LogsConnString {dbLogConnectionString} is not filled in settings");
-
-            var persistenceManager = new LykkeLogToAzureStoragePersistenceManager(
-                AzureTableStorage<LogEntity>.Create(dbLogConnectionStringManager, "LykkePayServiceInvocesLog", consoleLogger),
-                consoleLogger);
-
-
-
-            // Creating azure storage logger, which logs own messages to concole log
-            var azureStorageLogger = new LykkeLogToAzureStorage(
-                persistenceManager,
-                null,
-                consoleLogger);
-
-            azureStorageLogger.Start();
-
-            aggregateLogger.AddLog(azureStorageLogger);
-
             return aggregateLogger;
-        }
-
-        // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        [UsedImplicitly]
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory)
-        {
-            loggerFactory.AddConsole(Configuration.GetSection("Logging"));
-            loggerFactory.AddDebug();
-
-            //app.UseLykkeMiddleware(Constants.ComponentName, ex => ErrorResponse.Create("Technical problem"));
-
-            app.UseMvc();
-
-            app.UseSwagger(c =>
-
-            {
-
-                c.PreSerializeFilters.Add((swagger, httpReq) => swagger.Host = httpReq.Host.Value);
-
-            });
-
-            app.UseSwaggerUI(x =>
-
-            {
-
-                x.RoutePrefix = "swagger/ui";
-
-                x.SwaggerEndpoint("/swagger/v1/swagger.json", "v1");
-
-            });
-
-            app.UseStaticFiles();
         }
     }
 }

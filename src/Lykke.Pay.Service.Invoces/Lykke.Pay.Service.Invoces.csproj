@@ -12,7 +12,7 @@
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <DocumentationFile>bin\Debug\netcoreapp1.1\Lykke.Service.Assets.xml</DocumentationFile>
+    <DocumentationFile>bin\Debug\netcoreapp2.0\Lykke.Pay.Service.Invoces.xml</DocumentationFile>
     <NoWarn>1701;1702;1705;1591</NoWarn>
   </PropertyGroup>
 
@@ -24,9 +24,8 @@
 
   <ItemGroup>
     <PackageReference Include="Autofac.Extensions.DependencyInjection" Version="4.2.0" />
-    <PackageReference Include="JetBrains.Annotations" Version="11.1.0" />
     <PackageReference Include="Lykke.AzureStorage" Version="3.2.0" />
-    <PackageReference Include="Lykke.Common" Version="3.2.0" />
+    <PackageReference Include="Lykke.Common" Version="4.0.0" />
     <PackageReference Include="Lykke.Common.ApiLibrary" Version="1.1.0" />
     <PackageReference Include="Lykke.Logs" Version="3.5.0" />
     <PackageReference Include="Lykke.SettingsReader" Version="1.0.45" />
@@ -36,6 +35,7 @@
     <PackageReference Include="Microsoft.AspNetCore.Mvc" Version="2.0.1" />
     <PackageReference Include="Microsoft.AspNetCore.StaticFiles" Version="2.0.1" />
     <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="2.0.0" />
+    <PackageReference Include="refit" Version="4.0.1" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="1.1.0" />
   </ItemGroup>
 

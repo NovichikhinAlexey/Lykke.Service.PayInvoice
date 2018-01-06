@@ -1,134 +1,103 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using AutoMapper;
 using AzureStorage;
-using Common.RemoteUi;
 using Lykke.Pay.Service.Invoces.Core.Domain;
+using Lykke.Pay.Service.Invoces.Core.Repositories;
+using Microsoft.WindowsAzure.Storage.Table;
 
 namespace Lykke.Pay.Service.Invoces.Repositories
 {
     public class InvoiceRepository : IInvoiceRepository
     {
-        private readonly INoSQLTableStorage<InvoiceEntity> _tableStorage;
-        private readonly INoSQLTableStorage<FileMetaEntity> _tableFileStorage;
-        private readonly IBlobStorage _fileBlobStorage;
-        private const string FileContainer = "invoicefiles";
+        private readonly INoSQLTableStorage<InvoiceEntity> _storage;
 
-        public InvoiceRepository(INoSQLTableStorage<InvoiceEntity> tableStorage, INoSQLTableStorage<FileMetaEntity> tableFileStorage,
-            IBlobStorage fileBlobStorage)
+        public InvoiceRepository(INoSQLTableStorage<InvoiceEntity> storage)
         {
-            _tableStorage = tableStorage;
-            _tableFileStorage = tableFileStorage;
-            _fileBlobStorage = fileBlobStorage;
+            _storage = storage;
         }
 
-        public async Task<bool> SaveInvoice(IInvoiceEntity invoice)
+        public async Task<IEnumerable<IInvoice>> GetAsync()
         {
-            InvoiceRepository invoiceRepository = this;
-            try
-            {
-                InvoiceEntity invoiceEntity = InvoiceEntity.Create(invoice);
+            IList<InvoiceEntity> entities = await _storage.GetDataAsync();
 
-                await invoiceRepository._tableStorage.InsertOrMergeAsync(invoiceEntity);
-                return true;
-            }
-            catch
-            {
-                return false;
-            }
+            return Mapper.Map<List<Invoice>>(entities);
         }
 
-        public async Task<List<IInvoiceEntity>> GetInvoices(string merchantId)
+        // TODO: Need refactoring
+        public async Task<IInvoice> GetAsync(string invoiceId)
         {
-            if (!string.IsNullOrEmpty(merchantId))
-                return (await _tableStorage.GetDataAsync(InvoiceEntity.GeneratePartitionKey(merchantId))).ToList<IInvoiceEntity>();
-            return (await _tableStorage.GetDataAsync()).ToList<IInvoiceEntity>();
+            string filter = TableQuery
+                .GenerateFilterCondition(nameof(InvoiceEntity.RowKey), QueryComparisons.Equal, GetRowKey(invoiceId));
+
+            var query = new TableQuery<InvoiceEntity>().Where(filter);
+
+            IEnumerable<InvoiceEntity> entities = await _storage.WhereAsync(query);
+
+            return Mapper.Map<Invoice>(entities.FirstOrDefault());
         }
 
-        public async Task<IInvoiceEntity> GetInvoice(string merchantId, string invoiceId)
+        public async Task<IInvoice> GetAsync(string merchantId, string invoiceId)
         {
-            if (string.IsNullOrEmpty(invoiceId))
-            {
-                return null;
-            }
+            InvoiceEntity entity = await _storage.GetDataAsync(GetPartitionKey(merchantId), GetRowKey(invoiceId));
 
-            if (!string.IsNullOrEmpty(merchantId))
-            {
-                return await _tableStorage.GetDataAsync(InvoiceEntity.GeneratePartitionKey(merchantId), invoiceId);
-            }
-
-            var invoiceList = await _tableStorage.GetDataAsync();
-            var invoice = invoiceList.FirstOrDefault(e => e.InvoiceId.Equals(invoiceId));
-            return invoice;
+            return Mapper.Map<Invoice>(entity);
         }
 
-        public async Task<IInvoiceEntity> GetInvoiceByAddress(string address)
+        public async Task<IEnumerable<IInvoice>> GetByMerchantIdAsync(string merchantId)
         {
-            if (string.IsNullOrEmpty(address))
-            {
-                return null;
-            }
-            return (from i in await _tableStorage.GetDataAsync()
-                    where address.Equals(i.WalletAddress)
-                    select i).FirstOrDefault();
+            IEnumerable<InvoiceEntity> entities = await _storage.GetDataAsync(GetPartitionKey(merchantId));
+
+            return Mapper.Map<List<Invoice>>(entities);
         }
 
-        public async Task DeleteInvoice(string merchantId, string invoiceId)
+        // TODO: Need refactoring
+        public async Task<IInvoice> GetByAddressAsync(string address)
         {
-            await _tableStorage.DeleteAsync(InvoiceEntity.GeneratePartitionKey(merchantId), invoiceId);
+            string filter = TableQuery
+                .GenerateFilterCondition(nameof(InvoiceEntity.WalletAddress), QueryComparisons.Equal, address);
+
+            var query = new TableQuery<InvoiceEntity>().Where(filter);
+
+            IEnumerable<InvoiceEntity> entities = await _storage.WhereAsync(query);
+
+            return Mapper.Map<Invoice>(entities.FirstOrDefault());
         }
 
-        public async Task UploadFile(IFileEntity entity)
+        public async Task InsertAsync(IInvoice invoice)
         {
-            var fileInfo = new FileMetaEntity(entity) { FileId = Guid.NewGuid().ToString() };
-            await _tableFileStorage.InsertOrMergeAsync(fileInfo);
-            await _fileBlobStorage.CreateContainerIfNotExistsAsync(FileContainer);
-            await _fileBlobStorage.SaveBlobAsync(FileContainer, fileInfo.FileId, Convert.FromBase64String(entity.FileBodyBase64));
+            var entity = new InvoiceEntity
+            {
+                PartitionKey = GetPartitionKey(invoice.MerchantId),
+                RowKey = GetRowKey(invoice.InvoiceId)
+            };
+
+            Mapper.Map(invoice, entity);
+
+            await _storage.InsertOrMergeAsync(entity);
         }
 
-
-        public async Task<IFileEntity> GetFileEntity(string invoiceId, string fileId)
+        public async Task UpdateAsync(IInvoice invoice)
         {
-            await _fileBlobStorage.CreateContainerIfNotExistsAsync(FileContainer);
-            var item = await _tableFileStorage.GetDataAsync(invoiceId, fileId);
-            if (item == null)
-            {
-                return null;
-            }
-            var result = new FileEntity(item);
-            var stream = await _fileBlobStorage.GetAsync(FileContainer, result.FileId);
-            byte[] buffer = new byte[16 * 1024];
-            using (var ms = new MemoryStream())
-            {
-                int read;
-                while ((read = await stream.ReadAsync(buffer, 0, buffer.Length)) > 0)
+            await _storage.MergeAsync(GetPartitionKey(invoice.MerchantId), GetRowKey(invoice.InvoiceId),
+                entity =>
                 {
-                    ms.Write(buffer, 0, read);
-                }
-                result.FileBodyBase64 = Convert.ToBase64String(ms.ToArray());
-            }
-            return result;
+                    Mapper.Map(invoice, entity);
+                    return entity;
+                });
         }
 
-        public async Task<List<IFileMetaEntity>> GetFileMeta(string invoiceId)
+        public async Task DeleteAsync(string merchantId, string invoiceId)
         {
-
-            var result = from fmi in await _tableFileStorage.GetDataAsync(invoiceId)
-                         select (IFileMetaEntity)fmi;
-            return result.ToList();
+            await _storage.DeleteAsync(GetPartitionKey(merchantId), GetRowKey(invoiceId));
         }
 
-        public async Task DeleteFiles(string invoiceId)
-        {
-            await _fileBlobStorage.CreateContainerIfNotExistsAsync(FileContainer);
-            var files = (await _tableFileStorage.GetDataAsync(invoiceId)).ToList();
-            foreach (var f in files)
-            {
-                await _tableFileStorage.DeleteAsync(f);
-                await _fileBlobStorage.DelBlobAsync(FileContainer, f.FileId);
-            }
-        }
+        private static string GetPartitionKey(string merchantId)
+            => merchantId;
+
+        private static string GetRowKey(string invoiceId)
+            => invoiceId;
     }
 }

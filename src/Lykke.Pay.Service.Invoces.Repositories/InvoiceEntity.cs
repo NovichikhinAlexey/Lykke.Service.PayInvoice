@@ -1,51 +1,10 @@
-using Lykke.Pay.Service.Invoces.Core.Domain;
 using Microsoft.WindowsAzure.Storage.Table;
 
 namespace Lykke.Pay.Service.Invoces.Repositories
 {
-    public class InvoiceEntity : TableEntity, IInvoiceEntity
+    public class InvoiceEntity : TableEntity
     {
-        public static string GeneratePartitionKey(string merchantId)
-        {
-            return merchantId;
-        }
-
-        public static string GenerateRowKey(string id)
-        {
-            return id;
-        }
-
-        public static InvoiceEntity Create(IInvoiceEntity invoice)
-        {
-            return new InvoiceEntity
-            {
-                PartitionKey = GeneratePartitionKey(invoice.MerchantId),
-                RowKey = GenerateRowKey(invoice.InvoiceId),
-                Currency = invoice.Currency,
-                ClientId = invoice.ClientId,
-                ClientName = invoice.ClientName,
-                ClientUserId = invoice.ClientUserId,
-                ClientEmail = invoice.ClientEmail,
-                DueDate = invoice.DueDate,
-                InvoiceNumber = invoice.InvoiceNumber,
-                Amount = invoice.Amount,
-                Label = invoice.Label,
-                Status = invoice.Status,
-                WalletAddress = invoice.WalletAddress,
-                StartDate = invoice.StartDate,
-                Transaction = invoice.Transaction,
-                MerchantId = invoice.MerchantId,
-                ETag = "*"
-
-            };
-        }
-
-        public string InvoiceId
-        {
-            get => RowKey;
-            set => RowKey = value;
-        }
-
+        public string InvoiceId { get; set; }
         public string InvoiceNumber { get; set; }
         public double Amount { get; set; }
         public string Currency { get; set; }

@@ -7,7 +7,7 @@ namespace Lykke.Pay.Service.Invoces.Services.ext
 {
     public static class ContextEntityExt
     {
-        public static Dictionary<string, object> ToContext(this IInvoiceEntity invoice)
+        public static Dictionary<string, object> ToContext(this IInvoice invoice)
         {
             var result = new Dictionary<string, object>();
             result["InvoiceId"] = invoice.InvoiceId;
@@ -28,16 +28,16 @@ namespace Lykke.Pay.Service.Invoces.Services.ext
             return result;
         }
 
-        public static Dictionary<string, object> ToContext(this IFileMetaEntity entity)
-        {
-            var result = new Dictionary<string, object>();
-            result["InvoiceId"] = entity.InvoiceId;
-            result["FileId"] = entity.FileId;
-            result["FileName"] = entity.FileName;
-            result["FileMetaType"] = entity.FileMetaType;
-            result["FileSize"] = entity.FileSize;
-            return result;
-        }
+        //public static Dictionary<string, object> ToContext(this IFileInfo entity)
+        //{
+        //    var result = new Dictionary<string, object>();
+        //    result["InvoiceId"] = entity.InvoiceId;
+        //    result["FileId"] = entity.FileId;
+        //    result["FileName"] = entity.FileName;
+        //    result["FileMetaType"] = entity.FileMetaType;
+        //    result["FileSize"] = entity.FileSize;
+        //    return result;
+        //}
 
         public static Dictionary<string, object> AddParam(this Dictionary<string, object> context, string key, object value)
         {
