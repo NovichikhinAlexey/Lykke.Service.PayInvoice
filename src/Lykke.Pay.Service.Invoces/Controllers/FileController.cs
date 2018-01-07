@@ -23,23 +23,6 @@ namespace Lykke.Pay.Service.Invoces.Controllers
         }
 
         /// <summary>
-        /// Returns collection of file info for invoice.
-        /// </summary>
-        /// <param name="invoiceId">The invoice id.</param>
-        /// <returns>The collection of file info.</returns>
-        /// <response code="200">The collection of file info.</response>
-        [HttpGet]
-        [Route("invoice/{invoiceId}")]
-        [SwaggerOperation("FileGetInfoInvoice")]
-        [ProducesResponseType(typeof(IEnumerable<FileInfoModel>), (int)HttpStatusCode.OK)]
-        public async Task<IActionResult> GetInfoByInvoiceAsync(string invoiceId)
-        {
-            IEnumerable<IFileInfo> fileInfos = await _fileService.GetInfoAsync(invoiceId);
-
-            return Ok(Mapper.Map<List<FileInfoModel>>(fileInfos));
-        }
-
-        /// <summary>
         /// Returns file info.
         /// </summary>
         /// <param name="invoiceId">The invoice id.</param>
@@ -48,11 +31,11 @@ namespace Lykke.Pay.Service.Invoces.Controllers
         /// <response code="200">The file info.</response>
         /// <response code="404">File info not found.</response>
         [HttpGet]
-        [Route("{fileId}/invoice/{invoiceId}")]
-        [SwaggerOperation("FileGetInfo")]
+        [Route("invoice/{invoiceId}/{fileId}")]
+        [SwaggerOperation("FileGet")]
         [ProducesResponseType(typeof(FileInfoModel), (int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
-        public async Task<IActionResult> GetInfoAsync(string invoiceId, string fileId)
+        public async Task<IActionResult> GetAsync(string invoiceId, string fileId)
         {
             IFileInfo fileInfo = await _fileService.GetInfoAsync(invoiceId, fileId);
 
@@ -60,6 +43,23 @@ namespace Lykke.Pay.Service.Invoces.Controllers
                 return NotFound();
 
             return Ok(Mapper.Map<FileInfoModel>(fileInfo));
+        }
+
+        /// <summary>
+        /// Returns collection of file info for invoice.
+        /// </summary>
+        /// <param name="invoiceId">The invoice id.</param>
+        /// <returns>The collection of file info.</returns>
+        /// <response code="200">The collection of file info.</response>
+        [HttpGet]
+        [Route("invoice/{invoiceId}")]
+        [SwaggerOperation("FileGetAll")]
+        [ProducesResponseType(typeof(IEnumerable<FileInfoModel>), (int)HttpStatusCode.OK)]
+        public async Task<IActionResult> GetAllAsync(string invoiceId)
+        {
+            IEnumerable<IFileInfo> fileInfos = await _fileService.GetInfoAsync(invoiceId);
+
+            return Ok(Mapper.Map<List<FileInfoModel>>(fileInfos));
         }
 
         /// <summary>
@@ -71,10 +71,10 @@ namespace Lykke.Pay.Service.Invoces.Controllers
         /// <response code="200">The file stream.</response>
         /// <response code="404">File info not found.</response>
         [HttpGet]
-        [Route("{fileId}/invoice/{invoiceId}/content")]
-        [SwaggerOperation("FileGet")]
+        [Route("invoice/{invoiceId}/{fileId}/content")]
+        [SwaggerOperation("FileGetContent")]
         [ProducesResponseType(typeof(FileStreamResult), (int)HttpStatusCode.OK)]
-        public async Task<IActionResult> GetAsync(string invoiceId, string fileId)
+        public async Task<IActionResult> GetContentAsync(string invoiceId, string fileId)
         {
             IFileInfo fileInfo = await _fileService.GetInfoAsync(invoiceId, fileId);
 
@@ -95,10 +95,10 @@ namespace Lykke.Pay.Service.Invoces.Controllers
         /// <response code="400">Invalid file.</response>
         [HttpPost]
         [Route("invoice/{invoiceId}")]
-        [SwaggerOperation("FileGet")]
+        [SwaggerOperation("FileUpload")]
         [ProducesResponseType((int)HttpStatusCode.NoContent)]
         [ProducesResponseType((int)HttpStatusCode.BadRequest)]
-        public async Task<IActionResult> UploadFile(string invoiceId, IFormFile file)
+        public async Task<IActionResult> UploadAsync(string invoiceId, IFormFile file)
         {
             if(file == null || file.Length == 0)
                 return BadRequest("Invalid file");

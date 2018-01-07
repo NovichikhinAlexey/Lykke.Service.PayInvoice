@@ -8,17 +8,17 @@ namespace Lykke.Pay.Service.Invoces.Client.Api
 {
     public interface IFileApi
     {
-        [Get("/api/file/{fileId}/invoice/{invoiceId}")]
-        Task<FileInfoModel> GetInfoAsync(string invoiceId, string fileId);
+        [Get("/api/file/invoice/{invoiceId}/{fileId}")]
+        Task<FileInfoModel> GetAsync(string invoiceId, string fileId);
 
         [Get("/api/file/invoice/{invoiceId}")]
-        Task<IEnumerable<FileInfoModel>> GetInfoByInvoiceAsync(string invoiceId);
+        Task<IEnumerable<FileInfoModel>> GetAllAsync(string invoiceId);
 
-        [Get("/api/file/{fileId}/invoice/{invoiceId}/content")]
-        Task<HttpResponseMessage> GetFileAsync(string invoiceId, string fileId);
+        [Get("/api/file/invoice/{invoiceId}/{fileId}/content")]
+        Task<HttpResponseMessage> GetContentAsync(string invoiceId, string fileId);
 
         [Multipart]
         [Post("/api/file/invoice/{invoiceId}")]
-        Task UploadFileAsync(string invoiceId, [AliasAs("file")] StreamPart stream);
+        Task UploadAsync(string invoiceId, [AliasAs("file")] StreamPart stream);
     }
 }

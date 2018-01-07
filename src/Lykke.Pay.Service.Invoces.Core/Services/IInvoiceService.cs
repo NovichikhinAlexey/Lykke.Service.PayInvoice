@@ -17,7 +17,7 @@ namespace Lykke.Pay.Service.Invoces.Core.Services
         Task<IInvoice> GenerateAsync(IInvoice invoice);
         Task<IInvoice> GenerateFromDraftAsync(IInvoice invoice);
         Task UpdateStatus(string invoiceId, InvoiceStatus status);
-        Task<Tuple<IInvoice, IOrder>> GetOrderDetails(string merchantId, string invoiceId);
+        Task<Tuple<IInvoice, IOrder>> GetOrderDetails(string invoiceId);
         Task DeleteAsync(string merchantId, string invoiceId);
     }
 }

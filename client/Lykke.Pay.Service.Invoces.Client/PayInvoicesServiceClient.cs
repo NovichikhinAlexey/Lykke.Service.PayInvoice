@@ -11,7 +11,7 @@ using Refit;
 
 namespace Lykke.Pay.Service.Invoces.Client
 {
-    public class PayInvoicesServiceClient : IDisposable, IPayInvoicesServiceClient
+    public class PayInvoicesServiceClient : IPayInvoicesServiceClient, IDisposable
     {
         private readonly HttpClient _httpClient;
         private readonly IInvoiceApi _invoiceApi;
@@ -43,22 +43,27 @@ namespace Lykke.Pay.Service.Invoces.Client
             _runner = new ApiRunner();
         }
 
-        public async Task<InvoiceModel> GetInvoiceAsync(string invoiceId, string merchantId)
+        public async Task<InvoiceSummaryModel> GetInvoiceSummaryAsync(string invoiceId)
         {
-            return await _runner.RunAsync(() => _invoiceApi.GetAsync(invoiceId, merchantId));
+            return await _runner.RunAsync(() => _invoiceApi.GetSummaryAsync(invoiceId));
         }
 
-        public async Task<IEnumerable<InvoiceModel>> GetInvoicesByMerchantIdAsync(string merchantId)
+        public async Task<InvoiceModel> GetInvoiceAsync(string merchantId, string invoiceId)
         {
-            return await _runner.RunAsync(() => _invoiceApi.GetByMerchantIdAsync(merchantId));
+            return await _runner.RunAsync(() => _invoiceApi.GetAsync(merchantId, invoiceId));
         }
 
-        public async Task<InvoiceModel> CreateDraftInvoiceAsync(NewInvoiceModel model)
+        public async Task<IEnumerable<InvoiceModel>> GetInvoicesAsync(string merchantId)
+        {
+            return await _runner.RunAsync(() => _invoiceApi.GetAllAsync(merchantId));
+        }
+
+        public async Task<InvoiceModel> CreateDraftInvoiceAsync(NewDraftInvoiceModel model)
         {
             return await _runner.RunAsync(() => _invoiceApi.CreateDraftAsync(model));
         }
 
-        public async Task UpdateDraftInvoiceAsync(InvoiceModel model)
+        public async Task UpdateDraftInvoiceAsync(UpdateDraftInvoiceModel model)
         {
             await _runner.RunAsync(() => _invoiceApi.UpdateDraftAsync(model));
         }
@@ -68,29 +73,29 @@ namespace Lykke.Pay.Service.Invoces.Client
             return await _runner.RunAsync(() => _invoiceApi.GenerateAsync(model));
         }
 
-        public async Task<InvoiceModel> GenerateInvoiceFromDraftAsync(InvoiceModel model)
+        public async Task<InvoiceModel> GenerateInvoiceFromDraftAsync(UpdateInvoiceModel model)
         {
             return await _runner.RunAsync(() => _invoiceApi.GenerateFromDraftAsync(model));
         }
 
-        public async Task DeleteInvoiceAsync(string invoiceId, string merchantId)
+        public async Task DeleteInvoiceAsync(string merchantId, string invoiceId)
         {
-            await _runner.RunAsync(() => _invoiceApi.DeleteAsync(invoiceId, merchantId));
+            await _runner.RunAsync(() => _invoiceApi.DeleteAsync(merchantId, invoiceId));
         }
 
         public async Task<FileInfoModel> GetFileInfoAsync(string invoiceId, string fileId)
         {
-            return await _runner.RunAsync(() => _fileApi.GetInfoAsync(invoiceId, fileId));
+            return await _runner.RunAsync(() => _fileApi.GetAsync(invoiceId, fileId));
         }
 
         public async Task<IEnumerable<FileInfoModel>> GetFileInfoByInvoiceAsync(string invoiceId)
         {
-            return await _runner.RunAsync(() => _fileApi.GetInfoByInvoiceAsync(invoiceId));
+            return await _runner.RunAsync(() => _fileApi.GetAllAsync(invoiceId));
         }
         
         public async Task<byte[]> GetFileContentAsync(string invoiceId, string fileId)
         {
-            HttpResponseMessage response = await _runner.RunAsync(() => _fileApi.GetFileAsync(invoiceId, fileId));
+            HttpResponseMessage response = await _runner.RunAsync(() => _fileApi.GetContentAsync(invoiceId, fileId));
 
             return await response.Content.ReadAsByteArrayAsync();
         }
@@ -99,7 +104,7 @@ namespace Lykke.Pay.Service.Invoces.Client
         {
             var streamPart = new StreamPart(new MemoryStream(content), fileName, contentType);
 
-            await _runner.RunAsync(() => _fileApi.UploadFileAsync(invoiceId, streamPart));
+            await _runner.RunAsync(() => _fileApi.UploadAsync(invoiceId, streamPart));
         }
 
         public void Dispose()

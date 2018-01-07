@@ -7,13 +7,14 @@ namespace Lykke.Pay.Service.Invoces.Client
 {
     public interface IPayInvoicesServiceClient
     {
-        Task<InvoiceModel> GetInvoiceAsync(string invoiceId, string merchantId);
-        Task<IEnumerable<InvoiceModel>> GetInvoicesByMerchantIdAsync(string merchantId);
-        Task<InvoiceModel> CreateDraftInvoiceAsync(NewInvoiceModel model);
-        Task UpdateDraftInvoiceAsync(InvoiceModel model);
+        Task<InvoiceSummaryModel> GetInvoiceSummaryAsync(string invoiceId);
+        Task<InvoiceModel> GetInvoiceAsync(string merchantId, string invoiceId);
+        Task<IEnumerable<InvoiceModel>> GetInvoicesAsync(string merchantId);
+        Task<InvoiceModel> CreateDraftInvoiceAsync(NewDraftInvoiceModel model);
+        Task UpdateDraftInvoiceAsync(UpdateDraftInvoiceModel model);
         Task<InvoiceModel> GenerateInvoiceAsync(NewInvoiceModel model);
-        Task<InvoiceModel> GenerateInvoiceFromDraftAsync(InvoiceModel model);
-        Task DeleteInvoiceAsync(string invoiceId, string merchantId);
+        Task<InvoiceModel> GenerateInvoiceFromDraftAsync(UpdateInvoiceModel model);
+        Task DeleteInvoiceAsync(string merchantId, string invoiceId);
         Task<FileInfoModel> GetFileInfoAsync(string invoiceId, string fileId);
         Task<IEnumerable<FileInfoModel>> GetFileInfoByInvoiceAsync(string invoiceId);
         Task<byte[]> GetFileContentAsync(string invoiceId, string fileId);

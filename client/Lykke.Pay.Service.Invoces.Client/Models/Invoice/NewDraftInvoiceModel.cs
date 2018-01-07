@@ -1,6 +1,6 @@
 ﻿namespace Lykke.Pay.Service.Invoces.Client.Models.Invoice
 {
-    public class NewInvoiceModel
+    public class NewDraftInvoiceModel
     {
         public string MerchantId { get; set; }
         public string InvoiceNumber { get; set; }

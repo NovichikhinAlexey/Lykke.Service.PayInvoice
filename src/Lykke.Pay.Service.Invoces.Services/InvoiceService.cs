@@ -203,12 +203,9 @@ namespace Lykke.Pay.Service.Invoces.Services
             }
         }
 
-        public async Task<Tuple<IInvoice, IOrder>> GetOrderDetails(string merchantId, string invoiceId)
+        public async Task<Tuple<IInvoice, IOrder>> GetOrderDetails(string invoiceId)
         {
-            IInvoice invoice = await _invoiceRepository.GetAsync(merchantId, invoiceId);
-
-            if(invoice.Status != InvoiceStatus.Unpaid.ToString())
-                throw new InvalidOperationException("Invoice status is invalid.");
+            IInvoice invoice = await _invoiceRepository.GetAsync(invoiceId);
 
             Core.Clients.OrderResponse response =
                 await _lykkePayServiceClient.ReCreateOrder(invoice.WalletAddress, invoice.MerchantId);

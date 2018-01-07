@@ -5,6 +5,7 @@ using Common.Log;
 using Lykke.Pay.Common;
 using Lykke.Pay.Service.Invoces.Core.Exceptions;
 using Lykke.Pay.Service.Invoces.Core.Services;
+using Lykke.Pay.Service.Invoces.Core.Utils;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.SwaggerGen;
 
@@ -37,8 +38,8 @@ namespace Lykke.Pay.Service.Invoces.Controllers
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
         public async Task<IActionResult> SuccessAsync(string invoiceId, [FromBody]PaymentSuccessResponse response)
         {
-            await _log.WriteInfoAsync(nameof(CallbackController), nameof(SuccessAsync), invoiceId,
-                response?.ToJson());
+            await _log.WriteInfoAsync(nameof(CallbackController), nameof(SuccessAsync),
+                invoiceId.ToContext(nameof(invoiceId)).ToJson(), response?.ToJson());
 
             try
             {
@@ -46,8 +47,8 @@ namespace Lykke.Pay.Service.Invoces.Controllers
             }
             catch (InvoiceNotFoundException exception)
             {
-                await _log.WriteWarningAsync(nameof(CallbackController), nameof(SuccessAsync), invoiceId,
-                    exception.Message);
+                await _log.WriteWarningAsync(nameof(CallbackController), nameof(SuccessAsync),
+                    invoiceId.ToContext(nameof(invoiceId)).ToJson(), exception.Message);
 
                 return NotFound();
             }
@@ -69,8 +70,8 @@ namespace Lykke.Pay.Service.Invoces.Controllers
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
         public async Task<IActionResult> ProgressAsync(string invoiceId, [FromBody]PaymentInProgressResponse response)
         {
-            await _log.WriteInfoAsync(nameof(CallbackController), nameof(ProgressAsync), invoiceId,
-                response?.ToJson());
+            await _log.WriteInfoAsync(nameof(CallbackController), nameof(ProgressAsync),
+                invoiceId.ToContext(nameof(invoiceId)).ToJson(), response?.ToJson());
 
             try
             {
@@ -78,8 +79,8 @@ namespace Lykke.Pay.Service.Invoces.Controllers
             }
             catch (InvoiceNotFoundException exception)
             {
-                await _log.WriteWarningAsync(nameof(CallbackController), nameof(ProgressAsync), invoiceId,
-                    exception.Message);
+                await _log.WriteWarningAsync(nameof(CallbackController), nameof(ProgressAsync),
+                    invoiceId.ToContext(nameof(invoiceId)).ToJson(), exception.Message);
 
                 return NotFound();
             }
@@ -101,8 +102,8 @@ namespace Lykke.Pay.Service.Invoces.Controllers
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
         public async Task<IActionResult> ErrorAsync(string invoiceId, [FromBody]PaymentErrorReturn response)
         {
-            await _log.WriteInfoAsync(nameof(CallbackController), nameof(ErrorAsync), invoiceId,
-                response.ToJson());
+            await _log.WriteInfoAsync(nameof(CallbackController), nameof(ErrorAsync),
+                invoiceId.ToContext(nameof(invoiceId)).ToJson(), response.ToJson());
 
             InvoiceStatus status = InvoiceStatus.Removed;
 
@@ -128,8 +129,8 @@ namespace Lykke.Pay.Service.Invoces.Controllers
             }
             catch (InvoiceNotFoundException exception)
             {
-                await _log.WriteWarningAsync(nameof(CallbackController), nameof(ErrorAsync), invoiceId,
-                    exception.Message);
+                await _log.WriteWarningAsync(nameof(CallbackController), nameof(ErrorAsync),
+                    invoiceId.ToContext(nameof(invoiceId)).ToJson(), exception.Message);
 
                 return NotFound();
             }
