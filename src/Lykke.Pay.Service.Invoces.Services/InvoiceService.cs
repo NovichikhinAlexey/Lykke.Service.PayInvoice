@@ -104,10 +104,11 @@ namespace Lykke.Pay.Service.Invoces.Services
         {
             var generatedInvoice = Mapper.Map<Invoice>(invoice);
 
+            generatedInvoice.InvoiceId = Guid.NewGuid().ToString("D");
+
             string walletAddress = await CreateOrder(invoice);
 
             generatedInvoice.Status = InvoiceStatus.Unpaid.ToString();
-            generatedInvoice.InvoiceId = Guid.NewGuid().ToString("D");
             generatedInvoice.StartDate = DateTime.Now.RepoDateStr();
             generatedInvoice.WalletAddress = walletAddress;
 
