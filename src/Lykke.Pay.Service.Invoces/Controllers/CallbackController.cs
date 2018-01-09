@@ -36,7 +36,7 @@ namespace Lykke.Pay.Service.Invoces.Controllers
         [SwaggerOperation("CallbackSuccess")]
         [ProducesResponseType((int)HttpStatusCode.NoContent)]
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
-        public async Task<IActionResult> SuccessAsync(string invoiceId, [FromBody]PaymentSuccessResponse response)
+        public async Task<IActionResult> SuccessAsync(string invoiceId, [FromBody]PaymentSuccessReturn response)
         {
             await _log.WriteInfoAsync(nameof(CallbackController), nameof(SuccessAsync),
                 invoiceId.ToContext(nameof(invoiceId)).ToJson(), response?.ToJson());
@@ -68,7 +68,7 @@ namespace Lykke.Pay.Service.Invoces.Controllers
         [SwaggerOperation("CallbackProgress")]
         [ProducesResponseType((int)HttpStatusCode.NoContent)]
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
-        public async Task<IActionResult> ProgressAsync(string invoiceId, [FromBody]PaymentInProgressResponse response)
+        public async Task<IActionResult> ProgressAsync(string invoiceId, [FromBody]PaymentInProgressReturn response)
         {
             await _log.WriteInfoAsync(nameof(CallbackController), nameof(ProgressAsync),
                 invoiceId.ToContext(nameof(invoiceId)).ToJson(), response?.ToJson());

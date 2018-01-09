@@ -243,10 +243,10 @@ namespace Lykke.Pay.Service.Invoces.Services
                     Amount = invoice.Amount.ToString(CultureInfo.InvariantCulture),
                     ExchangeCurrency = "BTC",
                     OrderId = invoice.InvoiceNumber,
-                    Markup = new Markup
+                    Markup = new Markup //TODO Needs to set Merchant Markup here
                     {
-                        Percent = 1,
-                        Pips = 10
+                        Percent = 0,
+                        Pips = 0
                     },
                     SuccessUrl = _callbackUrlFormatter.GetSuccessUrl(invoice.InvoiceId),
                     ErrorUrl = _callbackUrlFormatter.GetErrorUrl(invoice.InvoiceId),
