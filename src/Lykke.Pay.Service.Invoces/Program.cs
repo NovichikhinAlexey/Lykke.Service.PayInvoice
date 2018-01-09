@@ -1,37 +1,28 @@
 ﻿using System;
 using System.IO;
-using System.Runtime.Loader;
-using System.Threading;
 using System.Threading.Tasks;
-using JetBrains.Annotations;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.PlatformAbstractions;
 
 namespace Lykke.Pay.Service.Invoces
 {
-    [UsedImplicitly]
-    internal class Program
+    public class Program
     {
-        [UsedImplicitly]
-        private static void Main(string[] args)
-        {
-            var webHostCancellationTokenSource = new CancellationTokenSource();
-            IWebHost webHost;
-            Task webHostTask = null;
+        public static string EnvInfo => Environment.GetEnvironmentVariable("ENV_INFO");
 
-            var end = new ManualResetEvent(false);
+        public static void Main(string[] args)
+        {
+            Console.WriteLine($"Lykke.Pay.Service.Invoces version {PlatformServices.Default.Application.ApplicationVersion}");
+#if DEBUG
+            Console.WriteLine("Is DEBUG");
+#else
+            Console.WriteLine("Is RELEASE");
+#endif           
+            Console.WriteLine($"ENV_INFO: {EnvInfo}");
 
             try
             {
-                AssemblyLoadContext.Default.Unloading += ctx =>
-                {
-                    Console.WriteLine("SIGTERM recieved");
-
-                    webHostCancellationTokenSource.Cancel();
-
-                    end.WaitOne();
-                };
-
-                webHost = new WebHostBuilder()
+                var host = new WebHostBuilder()
                     .UseKestrel()
                     .UseUrls("http://*:5000")
                     .UseContentRoot(Directory.GetCurrentDirectory())
@@ -39,23 +30,29 @@ namespace Lykke.Pay.Service.Invoces
                     .UseApplicationInsights()
                     .Build();
 
-                
-                webHostTask = Task.Factory.StartNew(() => webHost.Run());
-
-                // WhenAny to handle any task termination with exception, 
-                // or gracefully termination of webHostTask
-                Task.WhenAny(webHostTask).Wait(webHostCancellationTokenSource.Token);
+                host.Run();
             }
-            finally
+            catch (Exception ex)
             {
-                Console.WriteLine("Terminating...");
+                Console.WriteLine("Fatal error:");
+                Console.WriteLine(ex);
 
-                webHostCancellationTokenSource.Cancel();
-              
-                webHostTask?.Wait();
-                
-                end.Set();
+                // Lets devops to see startup error in console between restarts in the Kubernetes
+                var delay = TimeSpan.FromMinutes(1);
+
+                Console.WriteLine();
+                Console.WriteLine($"Process will be terminated in {delay}. Press any key to terminate immediately.");
+
+                Task.WhenAny(
+                        Task.Delay(delay),
+                        Task.Run(() =>
+                        {
+                            Console.ReadKey(true);
+                        }))
+                    .Wait();
             }
+
+            Console.WriteLine("Terminated");
         }
     }
 }

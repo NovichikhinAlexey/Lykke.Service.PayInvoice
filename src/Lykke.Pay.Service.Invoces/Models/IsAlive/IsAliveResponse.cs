@@ -1,17 +1,19 @@
-﻿namespace Lykke.Pay.Service.Invoces.Models.IsAlive
+﻿using System.Collections.Generic;
+
+namespace Lykke.Pay.Service.Invoces.Models.IsAlive
 {
-    /// <summary>
-    /// Checks service is alive response
-    /// </summary>
     public class IsAliveResponse
     {
-        /// <summary>
-        /// API version
-        /// </summary>
+        public string Name { get; set; }
         public string Version { get; set; }
-        /// <summary>
-        /// Environment variables
-        /// </summary>
         public string Env { get; set; }
+        public bool IsDebug { get; set; }
+        public IEnumerable<IssueIndicator> IssueIndicators { get; set; }
+
+        public class IssueIndicator
+        {
+            public string Type { get; set; }
+            public string Value { get; set; }
+        }
     }
 }

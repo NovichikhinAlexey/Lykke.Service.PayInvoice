@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.26730.10
+VisualStudioVersion = 15.0.27130.2003
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "1. Core", "1. Core", "{9ED8EFD0-B340-4111-9BA1-F79B205DB0D3}"
 EndProject
@@ -10,11 +10,6 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "3. Tests", "3. Tests", "{6F04271F-62A2-4C7F-82D9-EDBD1773C745}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "4. Client", "4. Client", "{3420C66E-488B-49E5-95D4-992D9E1F7540}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Scripts", "Scripts", "{1F5202EC-8C70-44EF-9D83-DC19D1FB4F2F}"
-	ProjectSection(SolutionItems) = preProject
-		client\scripts\update.ps1 = client\scripts\update.ps1
-	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Lykke.Pay.Service.Invoces.Core", "src\Lykke.Pay.Service.Invoces.Core\Lykke.Pay.Service.Invoces.Core.csproj", "{381267A7-4B2E-4538-829E-8467BD7C0C87}"
 EndProject
@@ -25,6 +20,12 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Lykke.Pay.Service.Invoces.Client", "client\Lykke.Pay.Service.Invoces.Client\Lykke.Pay.Service.Invoces.Client.csproj", "{51B8FA0B-1EE1-4A97-A7B8-6034CA036BC8}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Lykke.Pay.Service.Invoces", "src\Lykke.Pay.Service.Invoces\Lykke.Pay.Service.Invoces.csproj", "{EB6183ED-242C-4715-9C9C-0EB332DCDA95}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Lykke.Pay.Service.Invoices.Tests", "tests\Lykke.Pay.Service.Invoices.Tests\Lykke.Pay.Service.Invoices.Tests.csproj", "{98E127B3-2DE5-45CD-B51B-D2356375A43D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Lykke.Pay.Service.Invoices.Repositories.Tests", "tests\Lykke.Pay.Service.Invoices.Repositories.Tests\Lykke.Pay.Service.Invoices.Repositories.Tests.csproj", "{65C1CBB8-66B6-4486-A8DC-84A5BF86AB29}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Lykke.Pay.Service.Invoices.Services.Tests", "tests\Lykke.Pay.Service.Invoices.Services.Tests\Lykke.Pay.Service.Invoices.Services.Tests.csproj", "{967D8151-CCF8-4A03-9937-73F012877267}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -52,16 +53,30 @@ Global
 		{EB6183ED-242C-4715-9C9C-0EB332DCDA95}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{EB6183ED-242C-4715-9C9C-0EB332DCDA95}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{EB6183ED-242C-4715-9C9C-0EB332DCDA95}.Release|Any CPU.Build.0 = Release|Any CPU
+		{98E127B3-2DE5-45CD-B51B-D2356375A43D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{98E127B3-2DE5-45CD-B51B-D2356375A43D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{98E127B3-2DE5-45CD-B51B-D2356375A43D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{98E127B3-2DE5-45CD-B51B-D2356375A43D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{65C1CBB8-66B6-4486-A8DC-84A5BF86AB29}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{65C1CBB8-66B6-4486-A8DC-84A5BF86AB29}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{65C1CBB8-66B6-4486-A8DC-84A5BF86AB29}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{65C1CBB8-66B6-4486-A8DC-84A5BF86AB29}.Release|Any CPU.Build.0 = Release|Any CPU
+		{967D8151-CCF8-4A03-9937-73F012877267}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{967D8151-CCF8-4A03-9937-73F012877267}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{967D8151-CCF8-4A03-9937-73F012877267}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{967D8151-CCF8-4A03-9937-73F012877267}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
-		{1F5202EC-8C70-44EF-9D83-DC19D1FB4F2F} = {3420C66E-488B-49E5-95D4-992D9E1F7540}
 		{381267A7-4B2E-4538-829E-8467BD7C0C87} = {9ED8EFD0-B340-4111-9BA1-F79B205DB0D3}
 		{1563CB72-A4F9-4514-B6EF-988A7F748A58} = {9ED8EFD0-B340-4111-9BA1-F79B205DB0D3}
 		{4324B41C-C925-4D13-AF6D-C37087F8226E} = {0C32A041-EA3F-4888-A58E-2B50F0AE0E58}
 		{51B8FA0B-1EE1-4A97-A7B8-6034CA036BC8} = {3420C66E-488B-49E5-95D4-992D9E1F7540}
+		{98E127B3-2DE5-45CD-B51B-D2356375A43D} = {6F04271F-62A2-4C7F-82D9-EDBD1773C745}
+		{65C1CBB8-66B6-4486-A8DC-84A5BF86AB29} = {6F04271F-62A2-4C7F-82D9-EDBD1773C745}
+		{967D8151-CCF8-4A03-9937-73F012877267} = {6F04271F-62A2-4C7F-82D9-EDBD1773C745}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {08D6B8DF-4B58-467A-A3A8-B48669D04E47}
