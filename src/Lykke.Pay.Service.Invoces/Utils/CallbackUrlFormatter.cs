@@ -7,7 +7,7 @@ namespace Lykke.Pay.Service.Invoces.Utils
 {
     public class CallbackUrlFormatter : ICallbackUrlFormatter
     {
-        private const string ApiPath = "callback/invoice";
+        private const string ApiPath = "api/callback/invoice";
 
         private readonly IReloadingManager<string> _settings;
 
