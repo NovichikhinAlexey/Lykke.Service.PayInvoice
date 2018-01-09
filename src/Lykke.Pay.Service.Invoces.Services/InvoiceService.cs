@@ -69,6 +69,7 @@ namespace Lykke.Pay.Service.Invoces.Services
 
             draftInvoice.Status = InvoiceStatus.Draft.ToString();
             draftInvoice.InvoiceId = Guid.NewGuid().ToString("D");
+            draftInvoice.StartDate = DateTime.Now.RepoDateStr();
 
             await _invoiceRepository.InsertAsync(draftInvoice);
 
@@ -91,6 +92,7 @@ namespace Lykke.Pay.Service.Invoces.Services
             var draftInvoice = Mapper.Map<Invoice>(invoice);
 
             draftInvoice.Status = InvoiceStatus.Draft.ToString();
+            draftInvoice.StartDate = DateTime.Now.RepoDateStr();
 
             await _invoiceRepository.UpdateAsync(draftInvoice);
 
@@ -207,6 +209,12 @@ namespace Lykke.Pay.Service.Invoces.Services
         {
             IInvoice invoice = await _invoiceRepository.GetAsync(invoiceId);
 
+            if(invoice.DueDate.GetRepoDateTime() < DateTime.Now)
+                throw new InvalidOperationException("Invoice expired.");
+
+            if (invoice.Status == InvoiceStatus.Draft.ToString() || invoice.Status == InvoiceStatus.Removed.ToString())
+                throw new InvalidOperationException("Invoice status is invalid.");
+
             Core.Clients.OrderResponse response =
                 await _lykkePayServiceClient.ReCreateOrder(invoice.WalletAddress, invoice.MerchantId);
 
@@ -220,6 +228,7 @@ namespace Lykke.Pay.Service.Invoces.Services
                 Amount = response.Amount,
                 ExchangeRate = response.ExchangeRate,
                 TotalAmount = response.TotalAmount,
+                // Seconds from 01.01.1970
                 TransactionWaitingTime = response.TransactionWaitingTime
             });
         }

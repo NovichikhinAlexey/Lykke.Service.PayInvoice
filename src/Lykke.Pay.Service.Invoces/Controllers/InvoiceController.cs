@@ -71,11 +71,11 @@ namespace Lykke.Pay.Service.Invoces.Controllers
         /// <response code="200">The invoice.</response>
         /// <response code="404">Invoice not found.</response>
         [HttpGet]
-        [Route("{invoiceId}/merchant/{merchantId}")]
+        [Route("merchant/{merchantId}/{invoiceId}")]
         [SwaggerOperation("InvoiceGet")]
         [ProducesResponseType(typeof(InvoiceModel), (int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
-        public async Task<IActionResult> GetAsync(string invoiceId, string merchantId)
+        public async Task<IActionResult> GetAsync(string merchantId, string invoiceId)
         {
             IInvoice invoice = await _invoiceService.GetAsync(merchantId, invoiceId);
 
@@ -236,10 +236,10 @@ namespace Lykke.Pay.Service.Invoces.Controllers
         /// <param name="merchantId">The merchant id.</param>
         /// <response code="204">Invoice successfully deleted.</response>
         [HttpDelete]
-        [Route("{invoiceId}/merchant/{merchantId}")]
+        [Route("{merchantId}/{invoiceId}")] // TODO: merchant/{merchantId}/{invoiceId}
         [SwaggerOperation("InvoiceDelete")]
         [ProducesResponseType((int)HttpStatusCode.NoContent)]
-        public async Task<IActionResult> DeleteAsync(string invoiceId, string merchantId)
+        public async Task<IActionResult> DeleteAsync(string merchantId, string invoiceId)
         {
             await _invoiceService.DeleteAsync(merchantId, invoiceId);
 

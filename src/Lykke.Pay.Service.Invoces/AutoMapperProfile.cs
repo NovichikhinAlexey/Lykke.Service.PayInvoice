@@ -20,8 +20,7 @@ namespace Lykke.Pay.Service.Invoces
                 .ForMember(src => src.Status, opt => opt.Ignore())
                 .ForMember(src => src.WalletAddress, opt => opt.Ignore())
                 .ForMember(src => src.StartDate, opt => opt.Ignore())
-                .ForMember(src => src.Transaction, opt => opt.Ignore())
-                .ForMember(src => src.MerchantId, opt => opt.Ignore());
+                .ForMember(src => src.Transaction, opt => opt.Ignore());
 
             CreateMap<UpdateInvoiceModel, Invoice>(MemberList.Destination)
                 .ForMember(src => src.ClientId, opt => opt.Ignore())
@@ -30,8 +29,7 @@ namespace Lykke.Pay.Service.Invoces
                 .ForMember(src => src.Status, opt => opt.Ignore())
                 .ForMember(src => src.WalletAddress, opt => opt.Ignore())
                 .ForMember(src => src.StartDate, opt => opt.Ignore())
-                .ForMember(src => src.Transaction, opt => opt.Ignore())
-                .ForMember(src => src.MerchantId, opt => opt.Ignore());
+                .ForMember(src => src.Transaction, opt => opt.Ignore());
 
             CreateMap<NewDraftInvoiceModel, Invoice>(MemberList.Destination)
                 .ForMember(src => src.InvoiceId, opt => opt.Ignore())
@@ -41,8 +39,7 @@ namespace Lykke.Pay.Service.Invoces
                 .ForMember(src => src.Status, opt => opt.Ignore())
                 .ForMember(src => src.WalletAddress, opt => opt.Ignore())
                 .ForMember(src => src.StartDate, opt => opt.Ignore())
-                .ForMember(src => src.Transaction, opt => opt.Ignore())
-                .ForMember(src => src.MerchantId, opt => opt.Ignore());
+                .ForMember(src => src.Transaction, opt => opt.Ignore());
 
             CreateMap<UpdateDraftInvoiceModel, Invoice>(MemberList.Destination)
                 .ForMember(src => src.ClientId, opt => opt.Ignore())
@@ -51,8 +48,7 @@ namespace Lykke.Pay.Service.Invoces
                 .ForMember(src => src.Status, opt => opt.Ignore())
                 .ForMember(src => src.WalletAddress, opt => opt.Ignore())
                 .ForMember(src => src.StartDate, opt => opt.Ignore())
-                .ForMember(src => src.Transaction, opt => opt.Ignore())
-                .ForMember(src => src.MerchantId, opt => opt.Ignore());
+                .ForMember(src => src.Transaction, opt => opt.Ignore());
 
             CreateMap<IFileInfo, FileInfoModel>(MemberList.Source);
 
@@ -74,7 +70,7 @@ namespace Lykke.Pay.Service.Invoces
                 .ForMember(dest => dest.ClientName, opt => opt.Ignore())
                 .ForMember(dest => dest.Status, opt => opt.Ignore())
                 .ForMember(dest => dest.WalletAddress, opt => opt.Ignore())
-                .ForMember(dest => dest.TransactionTime, opt => opt.Ignore());
+                .ForMember(dest => dest.TransactionTime, opt => opt.MapFrom(src => src.TransactionWaitingTime));
         }
     }
 }
