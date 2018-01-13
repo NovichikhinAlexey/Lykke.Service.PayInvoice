@@ -3,5 +3,6 @@
     public class LykkePayServiceClientSettings
     {
         public string ServiceUrl { get; set; }
+        public string LykkePayTrastedConnectionKey { get; set; }
     }
 }

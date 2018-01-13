@@ -11,6 +11,7 @@ namespace Lykke.Pay.Service.Invoces.Clients.LykkePay
     {
         private readonly HttpClient _httpClient;
         private readonly ILykkePayApi _api;
+        private readonly LykkePayServiceClientSettings _settings;
 
         public LykkePayServiceClient(LykkePayServiceClientSettings settings)
         {
@@ -20,7 +21,9 @@ namespace Lykke.Pay.Service.Invoces.Clients.LykkePay
             if(string.IsNullOrEmpty(settings.ServiceUrl))
                 throw new ArgumentException("Service URL Required");
 
-            _httpClient = new HttpClient
+            _settings = settings;
+
+            _httpClient = new HttpClient //TODO Make the httpClient like singletone
             {
                 BaseAddress = new Uri(settings.ServiceUrl),
                 DefaultRequestHeaders =
@@ -37,12 +40,12 @@ namespace Lykke.Pay.Service.Invoces.Clients.LykkePay
 
         public async Task<OrderResponse> CreateOrder(OrderRequest orderRequest, string merchantId)
         {
-            return await RunAsync(() => _api.CreateOrder(orderRequest, merchantId));
+            return await RunAsync(() => _api.CreateOrder(orderRequest, merchantId, _settings.LykkePayTrastedConnectionKey));
         }
 
         public async Task<OrderResponse> ReCreateOrder(string address, string merchantId)
         {
-            return await RunAsync(() => _api.ReCreateOrder(address, merchantId));
+            return await RunAsync(() => _api.ReCreateOrder(address, merchantId, _settings.LykkePayTrastedConnectionKey));
         }
 
         public void Dispose()
