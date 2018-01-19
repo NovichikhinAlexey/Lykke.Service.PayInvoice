@@ -4,8 +4,9 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="AutoMapper" Version="6.2.2" />
-    <PackageReference Include="Lykke.Common" Version="4.0.0" />
-    <PackageReference Include="Lykke.Pay.Common" Version="1.0.90" />
+    <PackageReference Include="Lykke.Common" Version="4.2.0" />
+    <PackageReference Include="Lykke.Pay.Common" Version="1.0.106" />
+    <PackageReference Include="Microsoft.NETCore.App" Version="2.0.5" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Lykke.Service.PayInvoice.Core\Lykke.Service.PayInvoice.Core.csproj" />
