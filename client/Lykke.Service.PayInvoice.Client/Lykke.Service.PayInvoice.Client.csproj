@@ -6,7 +6,7 @@
     <Authors>Lykke</Authors>
     <Company>Lykke</Company>
     <Product>Lykke.Service.PayInvoice</Product>
-    <Description>Client for Lykke.Service.Assets API</Description>
+    <Description>Client for Lykke.Service.PayInvoice API</Description>
     <Copyright></Copyright>
     <PackageLicenseUrl>https://github.com/LykkeCity/Lykke.Service.PayInvoice/blob/master/LICENSE</PackageLicenseUrl>
     <PackageProjectUrl>https://github.com/LykkeCity/Lykke.Service.PayInvoice</PackageProjectUrl>
@@ -18,7 +18,7 @@
 
   <ItemGroup>
 	  <PackageReference Include="Microsoft.Extensions.PlatformAbstractions" Version="1.1.0" />
-	  <PackageReference Include="refit" Version="4.0.1" />
+	  <PackageReference Include="Refit" Version="4.0.1" />
   </ItemGroup>
 
 </Project>
