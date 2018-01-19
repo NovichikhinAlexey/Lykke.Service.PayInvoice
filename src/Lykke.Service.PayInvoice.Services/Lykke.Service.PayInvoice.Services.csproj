@@ -1,0 +1,13 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>netcoreapp2.0</TargetFramework>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="AutoMapper" Version="6.2.2" />
+    <PackageReference Include="Lykke.Common" Version="4.0.0" />
+    <PackageReference Include="Lykke.Pay.Common" Version="1.0.90" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Lykke.Service.PayInvoice.Core\Lykke.Service.PayInvoice.Core.csproj" />
+  </ItemGroup>
+</Project>
