@@ -83,11 +83,7 @@ namespace Lykke.Service.PayInvoice
                     new Repositories.AutofacModule(appSettings.Nested(o => o.PayInvoiceService.Db.DataConnectionString),
                         Log));
                 builder.RegisterModule(new Services.AutofacModule());
-                builder.RegisterModule(new AutofacModule(appSettings));
-
-                builder.RegisterInstance(Log)
-                    .As<ILog>()
-                    .SingleInstance();
+                builder.RegisterModule(new AutofacModule(appSettings, Log));
 
                 builder.Populate(services);
                 ApplicationContainer = builder.Build();
@@ -219,7 +215,7 @@ namespace Lykke.Service.PayInvoice
                 !(dbLogConnectionString.StartsWith("${") && dbLogConnectionString.EndsWith("}")))
             {
                 var persistenceManager = new LykkeLogToAzureStoragePersistenceManager(
-                    AzureTableStorage<LogEntity>.Create(dbLogConnectionStringManager, "LykkePayServiceInvocesLog",
+                    AzureTableStorage<LogEntity>.Create(dbLogConnectionStringManager, "PayInvoiceLog",
                         consoleLogger),
                     consoleLogger);
 
