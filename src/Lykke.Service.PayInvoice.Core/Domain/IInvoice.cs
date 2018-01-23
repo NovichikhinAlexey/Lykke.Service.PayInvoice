@@ -1,35 +1,80 @@
+using System;
+
 namespace Lykke.Service.PayInvoice.Core.Domain
 {
+    /// <summary>
+    /// Represents an invoice.
+    /// </summary>
     public interface IInvoice
     {
-        string InvoiceId { get; }
+        /// <summary>
+        /// The unique identified of the invoice.
+        /// </summary>
+        string Id { get; }
 
-        string InvoiceNumber { get; }
+        /// <summary>
+        /// The invoice number which provided when it created.
+        /// </summary>
+        string Number { get; }
 
-        double Amount { get; }
-
-        string Currency { get; }
-
-        string ClientId { get; }
-
+        /// <summary>
+        /// The client name.
+        /// </summary>
         string ClientName { get; }
 
-        string ClientUserId { get; }
-
+        /// <summary>
+        /// The client email address.
+        /// </summary>
         string ClientEmail { get; }
 
-        string DueDate { get; }
+        /// <summary>
+        /// The invoice amount.
+        /// </summary>
+        double Amount { get; }
 
-        string Label { get; }
+        /// <summary>
+        /// The invoice due date in UTC.
+        /// </summary>
+        DateTime DueDate { get; }
 
-        string Status { get; }
+        /// <summary>
+        /// The invoice status.
+        /// </summary>
+        InvoiceStatus Status { get; }
 
+        /// <summary>
+        /// The wallet associated with invoice. 
+        /// </summary>
         string WalletAddress { get; }
 
-        string StartDate { get; }
+        /// <summary>
+        /// The identifier of the requested asset.
+        /// </summary>
+        string AssetId { get; }
+        
+        /// <summary>
+        /// The identifier of the asset pair.
+        /// </summary>
+        string AssetPairId { get; }
 
-        string Transaction { get; }
+        /// <summary>
+        /// The identifier of the exchange asset.
+        /// </summary>
+        string ExchangeAssetId { get; }
 
+        /// <summary>
+        /// The identifier of merchant.
+        /// </summary>
         string MerchantId { get; }
+        
+        /// <summary>
+        /// The identifier of the merchant staff which created invoice.
+        /// </summary>
+        string MerchantStaffId { get; }
+        
+        /// <summary>
+        /// The date of creation in UTC.
+        /// </summary>
+        DateTime CreatedDate { get; }
     }
 }

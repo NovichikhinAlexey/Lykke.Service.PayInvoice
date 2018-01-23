@@ -2,7 +2,7 @@
   <PropertyGroup>
     <TargetFramework>netcoreapp2.0</TargetFramework>
     <AssemblyName>Lykke.Service.PayInvoice.Repositories</AssemblyName>
-    <RootNamespace>LLykke.Service.PayInvoice.Repositories</RootNamespace>
+    <RootNamespace>Lykke.Service.PayInvoice.Repositories</RootNamespace>
     <Version>1.0.0</Version>
   </PropertyGroup>
   <ItemGroup>

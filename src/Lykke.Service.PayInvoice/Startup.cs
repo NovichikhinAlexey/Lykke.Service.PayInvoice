@@ -80,7 +80,7 @@ namespace Lykke.Service.PayInvoice
                 Log = CreateLogWithSlack(services, appSettings);
 
                 builder.RegisterModule(
-                    new Repositories.AutofacModule(appSettings.Nested(o => o.InvoicesService.Db.DataConnectionString),
+                    new Repositories.AutofacModule(appSettings.Nested(o => o.PayInvoiceService.Db.DataConnectionString),
                         Log));
                 builder.RegisterModule(new Services.AutofacModule());
                 builder.RegisterModule(new AutofacModule(appSettings));
@@ -211,7 +211,7 @@ namespace Lykke.Service.PayInvoice
                 services.UseSlackNotificationsSenderViaAzureQueue(settings.CurrentValue.SlackNotifications.AzureQueue,
                     aggregateLogger);
 
-            var dbLogConnectionStringManager = settings.Nested(x => x.InvoicesService.Db.LogsConnectionString);
+            var dbLogConnectionStringManager = settings.Nested(x => x.PayInvoiceService.Db.LogsConnectionString);
             var dbLogConnectionString = dbLogConnectionStringManager.CurrentValue;
 
             // Creating azure storage logger, which logs own messages to concole log

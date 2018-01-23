@@ -1,12 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
 using AzureStorage;
 using Lykke.Service.PayInvoice.Core.Domain;
 using Lykke.Service.PayInvoice.Core.Repositories;
-using Microsoft.WindowsAzure.Storage.Table;
 
 namespace Lykke.Service.PayInvoice.Repositories
 {
@@ -19,26 +17,20 @@ namespace Lykke.Service.PayInvoice.Repositories
             _storage = storage;
         }
 
-        public async Task<IEnumerable<IInvoice>> GetAsync()
+        public async Task<IReadOnlyList<IInvoice>> GetAsync()
         {
             IList<InvoiceEntity> entities = await _storage.GetDataAsync();
 
             return Mapper.Map<List<Invoice>>(entities);
         }
 
-        // TODO: Need refactoring
-        public async Task<IInvoice> GetAsync(string invoiceId)
+        public async Task<IReadOnlyList<IInvoice>> GetAsync(string merchantId)
         {
-            string filter = TableQuery
-                .GenerateFilterCondition(nameof(InvoiceEntity.RowKey), QueryComparisons.Equal, GetRowKey(invoiceId));
+            IEnumerable<InvoiceEntity> entities = await _storage.GetDataAsync(GetPartitionKey(merchantId));
 
-            var query = new TableQuery<InvoiceEntity>().Where(filter);
-
-            IEnumerable<InvoiceEntity> entities = await _storage.WhereAsync(query);
-
-            return Mapper.Map<Invoice>(entities.FirstOrDefault());
+            return Mapper.Map<List<Invoice>>(entities);
         }
-
+        
         public async Task<IInvoice> GetAsync(string merchantId, string invoiceId)
         {
             InvoiceEntity entity = await _storage.GetDataAsync(GetPartitionKey(merchantId), GetRowKey(invoiceId));
@@ -46,52 +38,36 @@ namespace Lykke.Service.PayInvoice.Repositories
             return Mapper.Map<Invoice>(entity);
         }
 
-        public async Task<IEnumerable<IInvoice>> GetByMerchantIdAsync(string merchantId)
-        {
-            IEnumerable<InvoiceEntity> entities = await _storage.GetDataAsync(GetPartitionKey(merchantId));
-
-            return Mapper.Map<List<Invoice>>(entities);
-        }
-
-        // TODO: Need refactoring
-        public async Task<IInvoice> GetByAddressAsync(string address)
-        {
-            string filter = TableQuery
-                .GenerateFilterCondition(nameof(InvoiceEntity.WalletAddress), QueryComparisons.Equal, address);
-
-            var query = new TableQuery<InvoiceEntity>().Where(filter);
-
-            IEnumerable<InvoiceEntity> entities = await _storage.WhereAsync(query);
-
-            return Mapper.Map<Invoice>(entities.FirstOrDefault());
-        }
-
         public async Task InsertAsync(IInvoice invoice)
         {
-            var entity = new InvoiceEntity
-            {
-                PartitionKey = GetPartitionKey(invoice.MerchantId),
-                RowKey = GetRowKey(invoice.InvoiceId)
-            };
+            var entity = new InvoiceEntity(GetPartitionKey(invoice.MerchantId), CreateRowKey());
 
             Mapper.Map(invoice, entity);
 
-            await _storage.InsertOrMergeAsync(entity);
+            await _storage.InsertAsync(entity);
         }
 
-        public async Task UpdateAsync(IInvoice invoice)
+        public async Task ReplaceAsync(IInvoice invoice)
         {
-            await _storage.MergeAsync(GetPartitionKey(invoice.MerchantId), GetRowKey(invoice.InvoiceId),
-                entity =>
-                {
-                    Mapper.Map(invoice, entity);
-                    return entity;
-                });
+            var entity = new InvoiceEntity(GetPartitionKey(invoice.MerchantId), GetRowKey(invoice.Id));
+
+            Mapper.Map(invoice, entity);
+
+            await _storage.ReplaceAsync(entity);
+        }
+
+        public async Task SetStatusAsync(string merchantId, string invoiceId, InvoiceStatus status)
+        {
+            await _storage.MergeAsync(GetPartitionKey(merchantId), GetRowKey(invoiceId), entity =>
+            {
+                entity.Status = status.ToString();
+                return entity;
+            });
         }
 
         public async Task DeleteAsync(string merchantId, string invoiceId)
         {
-            await _storage.DeleteAsync(GetPartitionKey(merchantId), GetRowKey(invoiceId));
+            await _storage.DeleteAsync(GetPartitionKey(merchantId), invoiceId);
         }
 
         private static string GetPartitionKey(string merchantId)
@@ -99,5 +75,8 @@ namespace Lykke.Service.PayInvoice.Repositories
 
         private static string GetRowKey(string invoiceId)
             => invoiceId;
+        
+        private static string CreateRowKey()
+            => Guid.NewGuid().ToString("D");
     }
 }

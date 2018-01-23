@@ -7,7 +7,13 @@ namespace Lykke.Service.PayInvoice.Services
     {
         public AutoMapperProfile()
         {
-            CreateMap<IInvoice, Invoice>(MemberList.Source);
+            CreateMap<IInvoice, Invoice>(MemberList.Source)
+                .ForMember(dest => dest.Id, opt => opt.Ignore())
+                .ForMember(dest => dest.Status, opt => opt.Ignore())
+                .ForMember(dest => dest.WalletAddress, opt => opt.Ignore())
+                .ForMember(dest => dest.CreatedDate, opt => opt.Ignore());
+
+            CreateMap<IInvoice, InvoiceDetails>(MemberList.Source);
         }
     }
 }

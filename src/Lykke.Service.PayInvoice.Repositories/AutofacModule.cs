@@ -22,12 +22,17 @@ namespace Lykke.Service.PayInvoice.Repositories
 
         protected override void Load(ContainerBuilder builder)
         {
+            const string invoicesTableName = "Invoices";
+            const string invoiceFilesTableName = "InvoiceFiles";
+            
             builder.RegisterInstance<IFileRepository>(
                 new FileRepository(AzureBlobStorage.Create(_connectionString)));
             builder.RegisterInstance<IFileInfoRepository>(
-                new FileInfoRepository(CreateTable<FileInfoEntity>("FileMetaData")));
+                new FileInfoRepository(CreateTable<FileInfoEntity>(invoiceFilesTableName)));
             builder.RegisterInstance<IInvoiceRepository>(
-                new InvoiceRepository(CreateTable<InvoiceEntity>("Invoices")));
+                new InvoiceRepository(CreateTable<InvoiceEntity>(invoicesTableName)));
+            builder.RegisterInstance<IInvoiceMerchantLinkRepository>(
+                new InvoiceMerchantLinkRepository(CreateTable<InvoiceMerchantLinkEntity>(invoicesTableName)));
         }
 
         private INoSQLTableStorage<T> CreateTable<T>(string name) where T : TableEntity, new()

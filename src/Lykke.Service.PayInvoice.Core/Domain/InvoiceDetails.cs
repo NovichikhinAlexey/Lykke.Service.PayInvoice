@@ -1,8 +1,8 @@
 ﻿using System;
 
-namespace Lykke.Service.PayInvoice.Client.Models.Invoice
+namespace Lykke.Service.PayInvoice.Core.Domain
 {
-    public class InvoiceModel
+    public class InvoiceDetails : IInvoiceDetails
     {
         public string Id { get; set; }
         public string Number { get; set; }
@@ -18,5 +18,8 @@ namespace Lykke.Service.PayInvoice.Client.Models.Invoice
         public string MerchantId { get; set; }
         public string MerchantStaffId { get; set; }
         public DateTime CreatedDate { get; set; }
+        public string OrderId { get; set; }
+        public double ExchangeAmount { get; set; }
+        public DateTime OrderDueDate { get; set; }
     }
 }

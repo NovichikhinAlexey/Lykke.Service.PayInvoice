@@ -4,9 +4,18 @@ namespace Lykke.Service.PayInvoice.Repositories
 {
     public class FileInfoEntity : TableEntity
     {
+        public FileInfoEntity()
+        {
+        }
+
+        public FileInfoEntity(string partitionKey, string rowKey)
+            : base(partitionKey, rowKey)
+        {
+        }
+
         public string InvoiceId { get; set; }
-        public string FileName { get; set; }
-        public string FileMetaType { get; set; }
-        public int FileSize { get; set; }
+        public string Name { get; set; }
+        public string Type { get; set; }
+        public int Size { get; set; }
     }
 }
