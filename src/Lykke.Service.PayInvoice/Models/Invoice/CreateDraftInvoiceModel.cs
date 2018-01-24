@@ -14,17 +14,13 @@ namespace Lykke.Service.PayInvoice.Models.Invoice
         public string AssetId { get; set; }
         
         [Required]
-        public string AssetPairId { get; set; }
-        
-        [Required]
         public string ExchangeAssetId { get; set; }
         
         public string ClientName { get; set; }
         
         public string ClientEmail { get; set; }
         
-        [Required]
-        public string MerchantStaffId { get; set; }
+        public string EmployeeId { get; set; }
         
         [Required]
         public DateTime DueDate { get; set; }

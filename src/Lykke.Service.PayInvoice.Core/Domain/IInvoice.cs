@@ -51,11 +51,6 @@ namespace Lykke.Service.PayInvoice.Core.Domain
         /// The identifier of the requested asset.
         /// </summary>
         string AssetId { get; }
-        
-        /// <summary>
-        /// The identifier of the asset pair.
-        /// </summary>
-        string AssetPairId { get; }
 
         /// <summary>
         /// The identifier of the exchange asset.
@@ -68,9 +63,9 @@ namespace Lykke.Service.PayInvoice.Core.Domain
         string MerchantId { get; }
         
         /// <summary>
-        /// The identifier of the merchant staff which created invoice.
+        /// The identifier of the merchant employee which created invoice.
         /// </summary>
-        string MerchantStaffId { get; }
+        string EmployeeId { get; }
         
         /// <summary>
         /// The date of creation in UTC.

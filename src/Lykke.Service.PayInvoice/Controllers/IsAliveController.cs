@@ -1,11 +1,11 @@
 ﻿using System.Linq;
 using System.Net;
+using Lykke.Common.Api.Contract.Responses;
 using Lykke.Service.PayInvoice.Core.Services;
-using Lykke.Service.PayInvoice.Models;
-using Lykke.Service.PayInvoice.Models.IsAlive;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.PlatformAbstractions;
 using Swashbuckle.AspNetCore.SwaggerGen;
+using IsAliveResponse = Lykke.Service.PayInvoice.Models.IsAlive.IsAliveResponse;
 
 
 namespace Lykke.Service.PayInvoice.Controllers

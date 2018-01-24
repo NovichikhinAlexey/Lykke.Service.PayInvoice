@@ -11,13 +11,13 @@ using Lykke.Service.PayInvoice.Core.Exceptions;
 using Lykke.Service.PayInvoice.Core.Repositories;
 using Lykke.Service.PayInvoice.Core.Services;
 using Lykke.Service.PayInvoice.Core.Utils;
+using Lykke.Service.PayInvoice.Services.Extensions;
 
 namespace Lykke.Service.PayInvoice.Services
 {
     public class InvoiceService : IInvoiceService
     {
         private readonly IInvoiceRepository _invoiceRepository;
-        private readonly IInvoiceMerchantLinkRepository _invoiceMerchantLinkRepository;
         private readonly IFileInfoRepository _fileInfoRepository;
         private readonly IFileRepository _fileRepository;
         private readonly IPayInternalClient _payInternalClient;
@@ -25,14 +25,12 @@ namespace Lykke.Service.PayInvoice.Services
 
         public InvoiceService(
             IInvoiceRepository invoiceRepository,
-            IInvoiceMerchantLinkRepository invoiceMerchantLinkRepository,
             IFileInfoRepository fileInfoRepository,
             IFileRepository fileRepository,
             IPayInternalClient payInternalClient,
             ILog log)
         {
             _invoiceRepository = invoiceRepository;
-            _invoiceMerchantLinkRepository = invoiceMerchantLinkRepository;
             _fileInfoRepository = fileInfoRepository;
             _fileRepository = fileRepository;
             _payInternalClient = payInternalClient;
@@ -64,10 +62,8 @@ namespace Lykke.Service.PayInvoice.Services
 
             await _invoiceRepository.InsertAsync(draftInvoice);
 
-            await _invoiceMerchantLinkRepository.InsertAsync(invoice.MerchantId, invoice.Id);
-            
             await _log.WriteInfoAsync(nameof(InvoiceService), nameof(CreateDraftAsync),
-                ToContext(invoice), "Invoice draft created");
+                invoice.ToContext().ToJson(), "Invoice draft created");
 
             return draftInvoice;
         }
@@ -87,7 +83,7 @@ namespace Lykke.Service.PayInvoice.Services
             await _invoiceRepository.ReplaceAsync(draftInvoice);
 
             await _log.WriteInfoAsync(nameof(InvoiceService), nameof(UpdateDraftAsync),
-                ToContext(invoice), "Invoice draft updated");
+                invoice.ToContext().ToJson(), "Invoice draft updated");
         }
 
         public async Task<IInvoice> CreateAsync(IInvoice invoice)
@@ -98,10 +94,9 @@ namespace Lykke.Service.PayInvoice.Services
             createdInvoice.CreatedDate = DateTime.UtcNow;
 
             await _invoiceRepository.InsertAsync(createdInvoice);
-            await _invoiceMerchantLinkRepository.InsertAsync(invoice.MerchantId, invoice.Id);
             
             await _log.WriteInfoAsync(nameof(InvoiceService), nameof(CreateAsync),
-                ToContext(invoice), "Invoice created");
+                invoice.ToContext().ToJson(), "Invoice created");
 
             return createdInvoice;
         }
@@ -126,21 +121,19 @@ namespace Lykke.Service.PayInvoice.Services
             await _invoiceRepository.ReplaceAsync(draftInvoice);
 
             await _log.WriteInfoAsync(nameof(InvoiceService), nameof(CreateFromDraftAsync),
-                ToContext(invoice), "Invoice created from draft");
+                invoice.ToContext().ToJson(), "Invoice created from draft");
 
             return draftInvoice;
         }
 
         public async Task SetStatus(string invoiceId, InvoiceStatus status)
         {
-            string merchantId = await _invoiceMerchantLinkRepository.GetAsync(invoiceId);
-            
-            IInvoice invoice = await _invoiceRepository.GetAsync(merchantId, invoiceId);
+            IInvoice invoice = await _invoiceRepository.FindAsync(invoiceId);
 
             if (invoice == null)
                 throw new InvoiceNotFoundException(invoiceId);
 
-            await _invoiceRepository.SetStatusAsync(merchantId, invoiceId, status);
+            await _invoiceRepository.SetStatusAsync(invoice.MerchantId, invoiceId, status);
 
             await _log.WriteInfoAsync(nameof(InvoiceService), nameof(SetStatus),
                 invoiceId.ToContext(nameof(invoiceId))
@@ -161,7 +154,6 @@ namespace Lykke.Service.PayInvoice.Services
             if (invoice.Status == InvoiceStatus.Draft)
             {
                 await _invoiceRepository.DeleteAsync(merchantId, invoiceId);
-                await _invoiceMerchantLinkRepository.DeleteAsync(invoiceId);
                 
                 IEnumerable<IFileInfo> fileInfos = await _fileInfoRepository.GetAsync(invoiceId);
 
@@ -172,30 +164,25 @@ namespace Lykke.Service.PayInvoice.Services
                 }
                 
                 await _log.WriteInfoAsync(nameof(InvoiceService), nameof(DeleteAsync),
-                    ToContext(invoice),
-                    "Invoice deleted.");
+                    invoice.ToContext().ToJson(), "Invoice deleted.");
             }
             else if (invoice.Status == InvoiceStatus.Unpaid)
             {
                 await _invoiceRepository.SetStatusAsync(merchantId, invoiceId, InvoiceStatus.Removed);
                 
                 await _log.WriteInfoAsync(nameof(InvoiceService), nameof(DeleteAsync),
-                    ToContext(invoice),
-                    "Invoice removed");
+                    invoice.ToContext().ToJson(), "Invoice removed");
             }
             else
             {
                 await _log.WriteInfoAsync(nameof(InvoiceService), nameof(DeleteAsync),
-                    ToContext(invoice),
-                    "Cannot remove invoice");
+                    invoice.ToContext().ToJson(), "Cannot remove invoice");
             }
         }
 
         public async Task<IInvoiceDetails> GetDetailsAsync(string invoiceId)
         {
-            string merchantId = await _invoiceMerchantLinkRepository.GetAsync(invoiceId);
-            
-            IInvoice invoice = await _invoiceRepository.GetAsync(merchantId, invoiceId);
+            IInvoice invoice = await _invoiceRepository.FindAsync(invoiceId);
 
             if (invoice == null)
                 throw new InvoiceNotFoundException(invoiceId);
@@ -213,12 +200,9 @@ namespace Lykke.Service.PayInvoice.Services
                 response = await _payInternalClient.CreateOrderAsync(new CreateOrderRequest
                 {
                     MerchantId = invoice.MerchantId,
-                    AssetPairId = invoice.AssetPairId,
                     InvoiceAssetId = invoice.AssetId,
                     ExchangeAssetId = invoice.ExchangeAssetId,
                     InvoiceAmount = invoice.Amount,
-                    MarkupPercent = 0,
-                    MarkupPips = 0,
                     WalletDueDate = invoice.DueDate
                 });
             }
@@ -237,13 +221,6 @@ namespace Lykke.Service.PayInvoice.Services
             invoiceDetails.OrderDueDate = response.DueDate;
 
             return invoiceDetails;
-        }
-        
-        private string ToContext(IInvoice invoice)
-        {
-            var copy = Mapper.Map<Invoice>(invoice);
-            copy.ClientEmail = copy.ClientEmail.SanitizeEmail();
-            return copy.ToJson();
         }
     }
 }

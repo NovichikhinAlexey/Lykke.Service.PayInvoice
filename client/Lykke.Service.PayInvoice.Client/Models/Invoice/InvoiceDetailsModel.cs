@@ -13,10 +13,9 @@ namespace Lykke.Service.PayInvoice.Client.Models.Invoice
         public InvoiceStatus Status { get; set; }
         public string WalletAddress { get; set; }
         public string AssetId { get; set; }
-        public string AssetPairId { get; set; }
         public string ExchangeAssetId { get; set; }
         public string MerchantId { get; set; }
-        public string MerchantStaffId { get; set; }
+        public string EmployeeId { get; set; }
         public DateTime CreatedDate { get; set; }
         public string OrderId { get; set; }
         public double ExchangeAmount { get; set; }

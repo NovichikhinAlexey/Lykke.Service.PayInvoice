@@ -6,7 +6,7 @@ using Refit;
 
 namespace Lykke.Service.PayInvoice.Client.Api
 {
-    public interface IFileApi
+    internal interface IFilesApi
     {
         [Get("/api/invoices/{invoiceId}/files")]
         Task<IEnumerable<FileInfoModel>> GetAsync(string invoiceId);

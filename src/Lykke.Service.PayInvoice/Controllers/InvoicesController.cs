@@ -5,11 +5,12 @@ using System.Threading.Tasks;
 using AutoMapper;
 using Common;
 using Common.Log;
+using Lykke.Common.Api.Contract.Responses;
 using Lykke.Service.PayInvoice.Core.Domain;
 using Lykke.Service.PayInvoice.Core.Exceptions;
 using Lykke.Service.PayInvoice.Core.Services;
 using Lykke.Service.PayInvoice.Core.Utils;
-using Lykke.Service.PayInvoice.Models;
+using Lykke.Service.PayInvoice.Extensions;
 using Lykke.Service.PayInvoice.Models.Invoice;
 using Lykke.Service.PayInvoice.Utils;
 using Microsoft.AspNetCore.Mvc;
@@ -117,6 +118,7 @@ namespace Lykke.Service.PayInvoice.Controllers
         /// <summary>
         /// Creates draft invoice.
         /// </summary>
+        /// <param name="merchantId">The merchant id.</param>
         /// <param name="model">The model that describe an invoice.</param>
         /// <response code="200">Created invoice.</response>
         /// <response code="400">Invalid model.</response>
@@ -128,7 +130,7 @@ namespace Lykke.Service.PayInvoice.Controllers
         public async Task<IActionResult> CreateDraftAsync(string merchantId, [FromBody]CreateDraftInvoiceModel model)
         {
             if (!ModelState.IsValid)
-                return BadRequest(ErrorResponse.Create("Invalid model.", ModelState));
+                return BadRequest(new ErrorResponse().AddErrors(ModelState));
 
             var invoice = Mapper.Map<Invoice>(model);
             invoice.MerchantId = merchantId;
@@ -141,6 +143,8 @@ namespace Lykke.Service.PayInvoice.Controllers
         /// <summary>
         /// Updates draft invoice.
         /// </summary>
+        /// <param name="merchantId">The merchant id.</param>
+        /// <param name="invoiceId">The invoice id.</param>
         /// <param name="model">The model that describe an invoice.</param>
         /// <response code="204">Invoice successfully updated.</response>
         /// <response code="400">Invalid model.</response>
@@ -154,7 +158,7 @@ namespace Lykke.Service.PayInvoice.Controllers
         public async Task<IActionResult> UpdateDraftAsync(string merchantId, string invoiceId, [FromBody]CreateDraftInvoiceModel model)
         {
             if (!ModelState.IsValid)
-                return BadRequest(ErrorResponse.Create("Invalid model.", ModelState));
+                return BadRequest(new ErrorResponse().AddErrors(ModelState));
 
             try
             {
@@ -181,6 +185,7 @@ namespace Lykke.Service.PayInvoice.Controllers
         /// <summary>
         /// Creates an invoice.
         /// </summary>
+        /// <param name="merchantId">The invoice id.</param>
         /// <param name="model">The model that describe an invoice.</param>
         /// <response code="200">Created invoice.</response>
         /// <response code="400">Invalid model.</response>
@@ -192,7 +197,7 @@ namespace Lykke.Service.PayInvoice.Controllers
         public async Task<IActionResult> CreateAsync(string merchantId, [FromBody]CreateInvoiceModel model)
         {
             if (!ModelState.IsValid)
-                return BadRequest(ErrorResponse.Create("Invalid model.", ModelState));
+                return BadRequest(new ErrorResponse().AddErrors(ModelState));
 
             IInvoice invoice = await _invoiceService.CreateAsync(Mapper.Map<Invoice>(model));
 
@@ -202,6 +207,8 @@ namespace Lykke.Service.PayInvoice.Controllers
         /// <summary>
         /// Updates an invoice.
         /// </summary>
+        /// <param name="merchantId">The merchant id.</param>
+        /// <param name="invoiceId">The invoice id.</param>
         /// <param name="model">The model that describe an invoice.</param>
         /// <response code="200">Created invoice.</response>
         /// <response code="400">Invalid model.</response>
@@ -215,7 +222,7 @@ namespace Lykke.Service.PayInvoice.Controllers
         public async Task<IActionResult> CreateFromDraftAsync(string merchantId, string invoiceId, [FromBody]CreateInvoiceModel model)
         {
             if (!ModelState.IsValid)
-                return BadRequest(ErrorResponse.Create("Invalid model.", ModelState));
+                return BadRequest(new ErrorResponse().AddErrors(ModelState));
 
             try
             {
@@ -242,8 +249,8 @@ namespace Lykke.Service.PayInvoice.Controllers
         /// <summary>
         /// Deletes the rule by specified id.
         /// </summary>
-        /// <param name="invoiceId">The invoice id.</param>
         /// <param name="merchantId">The merchant id.</param>
+        /// <param name="invoiceId">The invoice id.</param>
         /// <response code="204">Invoice successfully deleted.</response>
         [HttpDelete]
         [Route("merchants/{merchantId}/invoices/{invoiceId}")]
