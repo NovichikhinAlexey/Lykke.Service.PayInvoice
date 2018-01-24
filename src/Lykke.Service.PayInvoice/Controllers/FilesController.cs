@@ -23,7 +23,7 @@ namespace Lykke.Service.PayInvoice.Controllers
         }
 
         /// <summary>
-        /// Returns collection of file info for invoice.
+        /// Returns a collection of invoice files.
         /// </summary>
         /// <param name="invoiceId">The invoice id.</param>
         /// <returns>The collection of file info.</returns>
@@ -40,7 +40,7 @@ namespace Lykke.Service.PayInvoice.Controllers
         }
 
         /// <summary>
-        /// Returns file.
+        /// Returns file content.
         /// </summary>
         /// <param name="invoiceId">The invoice id.</param>
         /// <param name="fileId">The file id.</param>

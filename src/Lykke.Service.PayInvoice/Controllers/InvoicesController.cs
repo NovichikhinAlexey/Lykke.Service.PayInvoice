@@ -93,7 +93,7 @@ namespace Lykke.Service.PayInvoice.Controllers
         }
 
         /// <summary>
-        /// Returns invoice.
+        /// Returns an invoice.
         /// </summary>
         /// <returns>The invoice.</returns>
         /// <response code="200">The invoice.</response>
@@ -247,7 +247,7 @@ namespace Lykke.Service.PayInvoice.Controllers
         }
         
         /// <summary>
-        /// Deletes the rule by specified id.
+        /// Deletes an invoice by specified id.
         /// </summary>
         /// <param name="merchantId">The merchant id.</param>
         /// <param name="invoiceId">The invoice id.</param>
