@@ -12,7 +12,7 @@ using Refit;
 
 namespace Lykke.Service.PayInvoice.Client
 {
-    public class PayInvoicesServiceClient : IPayInvoicesServiceClient, IDisposable
+    public class PayInvoiceClient : IPayInvoiceClient, IDisposable
     {
         private readonly HttpClient _httpClient;
         private readonly IPayInvoicesApi _invoicesApi;
@@ -20,7 +20,7 @@ namespace Lykke.Service.PayInvoice.Client
         private readonly IEmployeesApi _employeesApi;
         private readonly ApiRunner _runner;
 
-        public PayInvoicesServiceClient(PayInvoicesServiceClientSettings settings)
+        public PayInvoiceClient(PayInvoiceServiceClientSettings settings)
         {
             if (settings == null)
                 throw new ArgumentNullException(nameof(settings));

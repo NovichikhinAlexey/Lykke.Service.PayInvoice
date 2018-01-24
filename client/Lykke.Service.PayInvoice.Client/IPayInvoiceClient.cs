@@ -5,7 +5,7 @@ using Lykke.Service.PayInvoice.Client.Models.Invoice;
 
 namespace Lykke.Service.PayInvoice.Client
 {
-    public interface IPayInvoicesServiceClient
+    public interface IPayInvoiceClient
     {
         Task<InvoiceDetailsModel> GetInvoiceDetailsAsync(string invoiceId);
         Task<InvoiceModel> GetInvoiceAsync(string merchantId, string invoiceId);
