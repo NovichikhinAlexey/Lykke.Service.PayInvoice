@@ -60,25 +60,29 @@ namespace Lykke.Service.PayInvoice.Services
             draftInvoice.Status = InvoiceStatus.Draft;
             draftInvoice.CreatedDate = DateTime.UtcNow;
 
-            await _invoiceRepository.InsertAsync(draftInvoice);
+            IInvoice createdInvoice = await _invoiceRepository.InsertAsync(draftInvoice);
 
             await _log.WriteInfoAsync(nameof(InvoiceService), nameof(CreateDraftAsync),
                 invoice.ToContext().ToJson(), "Invoice draft created");
 
-            return draftInvoice;
+            return createdInvoice;
         }
 
         public async Task UpdateDraftAsync(IInvoice invoice)
         {
-            IInvoice draftInvoice = await _invoiceRepository.GetAsync(invoice.MerchantId, invoice.Id);
+            IInvoice existingInvoice = await _invoiceRepository.GetAsync(invoice.MerchantId, invoice.Id);
 
-            if (draftInvoice == null)
+            if (existingInvoice == null)
                 throw new InvoiceNotFoundException(invoice.Id);
 
-            if (draftInvoice.Status != InvoiceStatus.Draft)
+            if (existingInvoice.Status != InvoiceStatus.Draft)
                 throw new InvalidOperationException("Invoice status is invalid.");
 
+            Invoice draftInvoice = Mapper.Map<Invoice>(existingInvoice);
             Mapper.Map(invoice, draftInvoice);
+
+            draftInvoice.Status = InvoiceStatus.Draft;
+            draftInvoice.CreatedDate = existingInvoice.CreatedDate;
 
             await _invoiceRepository.ReplaceAsync(draftInvoice);
 
@@ -88,12 +92,12 @@ namespace Lykke.Service.PayInvoice.Services
 
         public async Task<IInvoice> CreateAsync(IInvoice invoice)
         {
-            var createdInvoice = Mapper.Map<Invoice>(invoice);
+            var newInvoice = Mapper.Map<Invoice>(invoice);
 
-            createdInvoice.Status = InvoiceStatus.Unpaid;
-            createdInvoice.CreatedDate = DateTime.UtcNow;
+            newInvoice.Status = InvoiceStatus.Unpaid;
+            newInvoice.CreatedDate = DateTime.UtcNow;
 
-            await _invoiceRepository.InsertAsync(createdInvoice);
+            IInvoice createdInvoice = await _invoiceRepository.InsertAsync(newInvoice);
             
             await _log.WriteInfoAsync(nameof(InvoiceService), nameof(CreateAsync),
                 invoice.ToContext().ToJson(), "Invoice created");

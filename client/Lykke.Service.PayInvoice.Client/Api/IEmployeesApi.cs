@@ -8,16 +8,16 @@ namespace Lykke.Service.PayInvoice.Client.Api
     internal interface IEmployeesApi
     {
         [Get("/api/merchants/{merchantId}/employees")]
-        Task<IReadOnlyList<EmployeeModel>> GetAsync(string merchantId);
+        Task<IReadOnlyList<EmployeeModel>> GetAllAsync(string merchantId);
 
         [Get("/api/merchants/{merchantId}/employees/{employeeId}")]
-        Task<EmployeeModel> GetAsync(string merchantId, string employeeId);
+        Task<EmployeeModel> GetByIdAsync(string merchantId, string employeeId);
         
-        [Post("/api/merchants/{merchantId}/employees")]
-        Task<EmployeeModel> AddAsync(string merchantId, [Body]CreateEmployeeModel model);
+        //[Post("/api/merchants/{merchantId}/employees")]
+        //Task<EmployeeModel> AddAsync(string merchantId, [Body]CreateEmployeeModel model);
 
-        [Put("/api/merchants/{merchantId}/employees/{employeeId}")]
-        Task UpdateAsync(string merchantId, string employeeId, [Body] CreateEmployeeModel model);
+        //[Put("/api/merchants/{merchantId}/employees/{employeeId}")]
+        //Task UpdateAsync(string merchantId, string employeeId, [Body] CreateEmployeeModel model);
 
         [Delete("/api/merchants/{merchantId}/employees/{employeeId}")]
         Task DeleteAsync(string merchantId, string employeeId);

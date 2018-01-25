@@ -9,7 +9,7 @@ namespace Lykke.Service.PayInvoice.Client.Api
     internal interface IFilesApi
     {
         [Get("/api/invoices/{invoiceId}/files")]
-        Task<IEnumerable<FileInfoModel>> GetAsync(string invoiceId);
+        Task<IEnumerable<FileInfoModel>> GetAllAsync(string invoiceId);
 
         [Get("/api/invoices/{invoiceId}/files/{fileId}")]
         Task<HttpResponseMessage> GetAsync(string invoiceId, string fileId);

@@ -17,7 +17,6 @@ namespace Lykke.Service.PayInvoice
                 .ForMember(src => src.Status, opt => opt.Ignore())
                 .ForMember(src => src.WalletAddress, opt => opt.Ignore())
                 .ForMember(src => src.MerchantId, opt => opt.Ignore())
-                .ForMember(src => src.EmployeeId, opt => opt.Ignore())
                 .ForMember(src => src.CreatedDate, opt => opt.Ignore());
 
             CreateMap<CreateDraftInvoiceModel, Invoice>(MemberList.Destination)
@@ -25,7 +24,6 @@ namespace Lykke.Service.PayInvoice
                 .ForMember(src => src.Status, opt => opt.Ignore())
                 .ForMember(src => src.WalletAddress, opt => opt.Ignore())
                 .ForMember(src => src.MerchantId, opt => opt.Ignore())
-                .ForMember(src => src.EmployeeId, opt => opt.Ignore())
                 .ForMember(src => src.CreatedDate, opt => opt.Ignore());
 
             CreateMap<IFileInfo, FileInfoModel>(MemberList.Source)

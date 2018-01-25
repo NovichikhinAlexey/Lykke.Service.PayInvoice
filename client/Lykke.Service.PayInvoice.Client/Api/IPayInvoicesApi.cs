@@ -10,22 +10,22 @@ namespace Lykke.Service.PayInvoice.Client.Api
     internal interface IPayInvoicesApi
     {
         [Get("/api/merchants/{merchantId}/invoices")]
-        Task<IEnumerable<InvoiceModel>> GetAsync(string merchantId);
+        Task<IEnumerable<InvoiceModel>> GetAllAsync(string merchantId);
         
         [Get("/api/merchants/{merchantId}/invoices/{invoiceId}")]
-        Task<InvoiceModel> GetAsync(string merchantId, string invoiceId);
+        Task<InvoiceModel> GetByIdAsync(string merchantId, string invoiceId);
         
-        [Post("/api/merchants/{merchantId}/invoices/drafts")]
-        Task<InvoiceModel> CreateDraftAsync(string merchantId, [Body] CreateDraftInvoiceModel model);
+        //[Post("/api/merchants/{merchantId}/invoices/drafts")]
+        //Task<InvoiceModel> CreateDraftAsync(string merchantId, [Body] CreateDraftInvoiceModel model);
 
-        [Put("/api/merchants/{merchantId}/invoices/{invoiceId}")]
-        Task UpdateDraftAsync(string merchantId, string invoiceId, [Body] CreateDraftInvoiceModel model);
+        //[Put("/api/merchants/{merchantId}/invoices/{invoiceId}")]
+        //Task UpdateDraftAsync(string merchantId, string invoiceId, [Body] CreateDraftInvoiceModel model);
 
-        [Post("/api/merchants/{merchantId}/invoices")]
-        Task<InvoiceModel> CreateAsync(string merchantId, [Body] CreateInvoiceModel model);
+        //[Post("/api/merchants/{merchantId}/invoices")]
+        //Task<InvoiceModel> CreateAsync(string merchantId, [Body] CreateInvoiceModel model);
 
-        [Post("/api/merchants/{merchantId}/invoices/{invoiceId}")]
-        Task<InvoiceModel> CreateFromDraftAsync(string merchantId, string invoiceId, [Body] CreateInvoiceModel model);
+        //[Post("/api/merchants/{merchantId}/invoices/{invoiceId}")]
+        //Task<InvoiceModel> CreateFromDraftAsync(string merchantId, string invoiceId, [Body] CreateInvoiceModel model);
         
         [Delete("/api/merchants/{merchantId}/invoices/{invoiceId}")]
         Task DeleteAsync(string merchantId, string invoiceId);

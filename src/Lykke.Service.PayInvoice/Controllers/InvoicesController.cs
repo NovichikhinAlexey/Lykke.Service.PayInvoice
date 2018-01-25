@@ -162,7 +162,11 @@ namespace Lykke.Service.PayInvoice.Controllers
 
             try
             {
-                await _invoiceService.UpdateDraftAsync(Mapper.Map<Invoice>(model));
+                var invoice = Mapper.Map<Invoice>(model);
+                invoice.MerchantId = merchantId;
+                invoice.Id = invoiceId;
+
+                await _invoiceService.UpdateDraftAsync(invoice);
                 
                 return NoContent();
             }
@@ -199,9 +203,12 @@ namespace Lykke.Service.PayInvoice.Controllers
             if (!ModelState.IsValid)
                 return BadRequest(new ErrorResponse().AddErrors(ModelState));
 
-            IInvoice invoice = await _invoiceService.CreateAsync(Mapper.Map<Invoice>(model));
+            var invoice = Mapper.Map<Invoice>(model);
+            invoice.MerchantId = merchantId;
 
-            return Ok(Mapper.Map<InvoiceModel>(invoice));
+            IInvoice newInvoice = await _invoiceService.CreateAsync(invoice);
+
+            return Ok(Mapper.Map<InvoiceModel>(newInvoice));
         }
 
         /// <summary>
@@ -226,9 +233,13 @@ namespace Lykke.Service.PayInvoice.Controllers
 
             try
             {
-                IInvoice invoice = await _invoiceService.CreateFromDraftAsync(Mapper.Map<Invoice>(model));
+                var invoice = Mapper.Map<Invoice>(model);
+                invoice.MerchantId = merchantId;
+                invoice.Id = invoiceId;
+
+                IInvoice newInvoice = await _invoiceService.CreateFromDraftAsync(invoice);
                 
-                return Ok(Mapper.Map<InvoiceModel>(invoice));
+                return Ok(Mapper.Map<InvoiceModel>(newInvoice));
             }
             catch (InvoiceNotFoundException exception)
             {

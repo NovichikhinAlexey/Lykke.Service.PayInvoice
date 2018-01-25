@@ -18,6 +18,7 @@ namespace Lykke.Service.PayInvoice.Models.Invoice
         
         public string ClientName { get; set; }
         
+        [EmailAddress]
         public string ClientEmail { get; set; }
         
         public string EmployeeId { get; set; }

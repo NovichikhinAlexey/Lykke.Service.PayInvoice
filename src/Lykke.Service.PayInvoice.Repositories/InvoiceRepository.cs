@@ -58,7 +58,7 @@ namespace Lykke.Service.PayInvoice.Repositories
             return invoice;
         }
         
-        public async Task InsertAsync(IInvoice invoice)
+        public async Task<IInvoice> InsertAsync(IInvoice invoice)
         {
             var entity = new InvoiceEntity(GetPartitionKey(invoice.MerchantId), CreateRowKey());
 
@@ -66,9 +66,11 @@ namespace Lykke.Service.PayInvoice.Repositories
 
             await _storage.InsertAsync(entity);
             
-            var index = AzureIndex.Create(GetMerchantIndexPartitionKey(invoice.Id), GetMerchantIndexRowKey(), entity);
+            var index = AzureIndex.Create(GetMerchantIndexPartitionKey(entity.RowKey), GetMerchantIndexRowKey(), entity);
             
             await _indexStorage.InsertAsync(index);
+
+            return Mapper.Map<Invoice>(entity);
         }
 
         public async Task ReplaceAsync(IInvoice invoice)
@@ -76,6 +78,8 @@ namespace Lykke.Service.PayInvoice.Repositories
             var entity = new InvoiceEntity(GetPartitionKey(invoice.MerchantId), GetRowKey(invoice.Id));
 
             Mapper.Map(invoice, entity);
+
+            entity.ETag = "*";
 
             await _storage.ReplaceAsync(entity);
         }
@@ -114,6 +118,6 @@ namespace Lykke.Service.PayInvoice.Repositories
             => invoiceId;
 
         private static string GetMerchantIndexRowKey()
-            => "MerchantIndex";
+            => "InvoiceIdIndex";
     }
 }
