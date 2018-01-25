@@ -75,7 +75,7 @@ namespace Lykke.Service.PayInvoice.Controllers
             {
                 await _log.WriteWarningAsync(nameof(EmployeesController), nameof(GetAsync),
                     merchantId.ToContext(nameof(merchantId))
-                        .ToContext(employeeId, nameof(employeeId))
+                        .ToContext(nameof(employeeId), employeeId)
                         .ToJson(), exception.Message);
                 
                 return NotFound(ErrorResponse.Create(exception.Message));
@@ -84,7 +84,7 @@ namespace Lykke.Service.PayInvoice.Controllers
             {
                 await _log.WriteErrorAsync(nameof(EmployeesController), nameof(GetAsync),
                     merchantId.ToContext(nameof(merchantId))
-                        .ToContext(employeeId, nameof(employeeId))
+                        .ToContext(nameof(employeeId), employeeId)
                         .ToJson(), exception);
 
                 throw;

@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
+using Lykke.Service.PayInvoice.Client.Models.Balances;
 using Lykke.Service.PayInvoice.Client.Models.Employee;
 using Lykke.Service.PayInvoice.Client.Models.File;
 using Lykke.Service.PayInvoice.Client.Models.Invoice;
@@ -118,5 +119,13 @@ namespace Lykke.Service.PayInvoice.Client
         /// <param name="merchantId">The merchan id.</param>
         /// <param name="employeeId">The employee id.</param>
         Task DeleteEmployeeAsync(string merchantId, string employeeId);
+
+        /// <summary>
+        /// Returns merchant asset balance.
+        /// </summary>
+        /// <param name="merchantId">The merchant id.</param>
+        /// <param name="assetId">The asset id.</param>
+        /// <returns>The merchant asset balance.</returns>
+        Task<BalanceModel> GetBalanceAsync(string merchantId, string assetId);
     }
 }

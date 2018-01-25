@@ -68,7 +68,7 @@ namespace Lykke.Service.PayInvoice.Services
             
             await _log.WriteInfoAsync(nameof(EmployeeService), nameof(AddAsync),
                 merchantId.ToContext(nameof(merchantId))
-                    .ToContext(employeeId, nameof(employeeId))
+                    .ToContext(nameof(employeeId), employeeId)
                     .ToJson(), "Employee added.");
         }
     }
