@@ -6,8 +6,8 @@ namespace Lykke.Service.PayInvoice.Client.Models.Invoice
     {
         public string Number { get; set; }
         public double Amount { get; set; }
-        public string AssetId { get; set; }
-        public string ExchangeAssetId { get; set; }
+        public string SettlementAssetId { get; set; }
+        public string PaymentAssetId { get; set; }
         public string ClientName { get; set; }
         public string ClientEmail { get; set; }
         public string EmployeeId { get; set; }

@@ -2,21 +2,15 @@
 using System.Collections.Generic;
 using System.Net;
 using System.Threading.Tasks;
-using AutoMapper;
 using Common;
 using Common.Log;
-using Lykke.Common.Api.Contract.Responses;
 using Lykke.Service.Balances.AutorestClient.Models;
 using Lykke.Service.Balances.Client;
 using Lykke.Service.Balances.Client.ResponseModels;
 using Lykke.Service.PayInternal.Client;
-using Lykke.Service.PayInvoice.Core.Domain;
-using Lykke.Service.PayInvoice.Core.Exceptions;
-using Lykke.Service.PayInvoice.Core.Services;
+using Lykke.Service.PayInternal.Client.Models.Merchant;
 using Lykke.Service.PayInvoice.Core.Utils;
-using Lykke.Service.PayInvoice.Extensions;
 using Lykke.Service.PayInvoice.Models.Balances;
-using Lykke.Service.PayInvoice.Models.Employee;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.SwaggerGen;
 
@@ -54,15 +48,22 @@ namespace Lykke.Service.PayInvoice.Controllers
         {
             try
             {
-                //_payInternalClient.GetMerchant()
-                //ClientBalanceModel clientBalance = await _balancesClient.GetClientBalanceByAssetId(new ClientBalanceByAssetIdModel{});
+                var model = new BalanceModel { AssetId = assetId };
+                
+                MerchantModel merchant = await _payInternalClient.GetMerchantByIdAsync(merchantId);
+                
+                if(merchant?.LwId == null)
+                    return Ok(model);
 
-                var model = new BalanceModel
-                {
-                    AssetId = assetId,
-                    //Balance = clientBalance.Balance,
-                    //Reserved = clientBalance.Reserved
-                };
+                ClientBalanceModel clientBalance = await _balancesClient.GetClientBalanceByAssetId(
+                    new ClientBalanceByAssetIdModel
+                    {
+                        AssetId = assetId,
+                        ClientId = merchant.LwId
+                    });
+
+                model.Balance = clientBalance?.Balance;
+                model.Reserved = clientBalance?.Reserved;
 
                 return Ok(model);
             }

@@ -26,6 +26,7 @@
     <PackageReference Include="Lykke.Logs" Version="3.5.1" />
     <PackageReference Include="Lykke.RabbitMqBroker" Version="4.3.1" />
     <PackageReference Include="Lykke.Service.Balances.Client" Version="1.0.21" />
+    <PackageReference Include="Lykke.Service.PayInternal.Client" Version="1.0.10" />
     <PackageReference Include="Lykke.Service.PayInternal.Contract" Version="1.0.2" />
     <PackageReference Include="Lykke.SettingsReader" Version="1.1.4" />
     <PackageReference Include="Lykke.SlackNotification.AzureQueue" Version="2.0.1" />
@@ -35,7 +36,6 @@
     <PackageReference Include="Microsoft.AspNetCore.StaticFiles" Version="2.0.1" />
     <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="2.0.0" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="1.1.0" />
-    <PackageReference Include="Lykke.Service.PayInternal.Client" Version="1.0.7" />
   </ItemGroup>
   <ItemGroup>
     <DotNetCliToolReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Tools" Version="1.0.1" />

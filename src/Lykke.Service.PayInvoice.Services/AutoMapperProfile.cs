@@ -9,7 +9,7 @@ namespace Lykke.Service.PayInvoice.Services
         {
             CreateMap<IInvoice, Invoice>(MemberList.Source)
                 .ForMember(dest => dest.Status, opt => opt.Ignore())
-                .ForMember(dest => dest.WalletAddress, opt => opt.Ignore())
+                .ForMember(dest => dest.PaymentRequestId, opt => opt.Ignore())
                 .ForMember(dest => dest.CreatedDate, opt => opt.Ignore());
 
             CreateMap<IInvoice, InvoiceDetails>(MemberList.Source);

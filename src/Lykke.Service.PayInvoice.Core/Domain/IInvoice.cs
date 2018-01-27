@@ -43,20 +43,20 @@ namespace Lykke.Service.PayInvoice.Core.Domain
         InvoiceStatus Status { get; }
 
         /// <summary>
-        /// The wallet associated with invoice. 
+        /// Gets or sets the settlement asset id.
         /// </summary>
-        string WalletAddress { get; }
+        string SettlementAssetId { get; }
+        
+        /// <summary>
+        /// Gets or sets the payment asset id.
+        /// </summary>
+        string PaymentAssetId { get; }
 
         /// <summary>
-        /// The identifier of the requested asset.
+        /// Gets or sets the payment request id.
         /// </summary>
-        string AssetId { get; }
-
-        /// <summary>
-        /// The identifier of the exchange asset.
-        /// </summary>
-        string ExchangeAssetId { get; }
-
+        string PaymentRequestId { get; }
+        
         /// <summary>
         /// The identifier of merchant.
         /// </summary>

@@ -28,9 +28,10 @@ namespace Lykke.Service.PayInvoice.Services.Extensions
                 .ToContext(nameof(model.Amount), model.Amount.ToString(CultureInfo.InvariantCulture))
                 .ToContext(nameof(model.DueDate), model.DueDate.ToString(CultureInfo.InvariantCulture))
                 .ToContext(nameof(model.Status), model.Status.ToString())
-                .ToContext(nameof(model.WalletAddress), model.WalletAddress)
-                .ToContext(nameof(model.AssetId), model.AssetId)
-                .ToContext(nameof(model.ExchangeAssetId), model.ExchangeAssetId)
+                .ToContext(nameof(model.PaymentRequestId), model.PaymentRequestId)
+                .ToContext(nameof(model.SettlementAssetId), model.SettlementAssetId)
+                .ToContext(nameof(model.PaymentAssetId), model.PaymentAssetId)
+                .ToContext(nameof(model.MerchantId), model.MerchantId)
                 .ToContext(nameof(model.EmployeeId), model.EmployeeId)
                 .ToContext(nameof(model.CreatedDate), model.CreatedDate.ToString(CultureInfo.InvariantCulture));
         }

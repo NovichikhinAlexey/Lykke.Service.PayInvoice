@@ -5,7 +5,8 @@ using AutoMapper;
 using Common;
 using Common.Log;
 using Lykke.Service.PayInternal.Client;
-using Lykke.Service.PayInternal.Client.Models;
+using Lykke.Service.PayInternal.Client.Models.Order;
+using Lykke.Service.PayInternal.Client.Models.PaymentRequest;
 using Lykke.Service.PayInvoice.Core.Domain;
 using Lykke.Service.PayInvoice.Core.Exceptions;
 using Lykke.Service.PayInvoice.Core.Repositories;
@@ -92,11 +93,13 @@ namespace Lykke.Service.PayInvoice.Services
 
         public async Task<IInvoice> CreateAsync(IInvoice invoice)
         {
-            var newInvoice = Mapper.Map<Invoice>(invoice);
+            PaymentRequestModel paymentRequest = await CreatePaymentRequestAsync(invoice);
 
+            var newInvoice = Mapper.Map<Invoice>(invoice);
             newInvoice.Status = InvoiceStatus.Unpaid;
             newInvoice.CreatedDate = DateTime.UtcNow;
-
+            newInvoice.PaymentRequestId = paymentRequest.Id;
+            
             IInvoice createdInvoice = await _invoiceRepository.InsertAsync(newInvoice);
             
             await _log.WriteInfoAsync(nameof(InvoiceService), nameof(CreateAsync),
@@ -115,12 +118,15 @@ namespace Lykke.Service.PayInvoice.Services
             if(existingInvoice.Status != InvoiceStatus.Draft)
                 throw new InvalidOperationException("Invoice status is invalid.");
 
+            PaymentRequestModel paymentRequest = await CreatePaymentRequestAsync(invoice);
+            
             var draftInvoice = Mapper.Map<Invoice>(existingInvoice);
 
             Mapper.Map(invoice, draftInvoice);
             
             draftInvoice.Status = InvoiceStatus.Unpaid;
             draftInvoice.CreatedDate = DateTime.UtcNow;
+            draftInvoice.PaymentRequestId = paymentRequest.Id;
 
             await _invoiceRepository.ReplaceAsync(draftInvoice);
 
@@ -197,34 +203,39 @@ namespace Lykke.Service.PayInvoice.Services
             if (invoice.Status == InvoiceStatus.Draft || invoice.Status == InvoiceStatus.Removed)
                 throw new InvalidOperationException("Invoice status is invalid.");
 
-            CreateOrderResponse response;
+            PaymentRequestModel paymentRequest =
+                await _payInternalClient.GetPaymentRequestAsync(invoice.MerchantId, invoice.PaymentRequestId);
             
-            if (string.IsNullOrEmpty(invoice.WalletAddress))
-            {
-                response = await _payInternalClient.CreateOrderAsync(new CreateOrderRequest
-                {
-                    MerchantId = invoice.MerchantId,
-                    InvoiceAssetId = invoice.AssetId,
-                    ExchangeAssetId = invoice.ExchangeAssetId,
-                    InvoiceAmount = invoice.Amount,
-                    WalletDueDate = invoice.DueDate
-                });
-            }
-            else
-            {
-                response = await _payInternalClient.ReCreateOrderAsync(new ReCreateOrderRequest
-                {
-                    WalletAddress = invoice.WalletAddress
-                });
-            }
+            if (paymentRequest == null)
+                throw new InvalidOperationException("Payment request does not exist.");
 
+            OrderModel order =
+                await _payInternalClient.GetActiveOrderAsync(invoice.MerchantId, invoice.PaymentRequestId);
+            
             var invoiceDetails = Mapper.Map<InvoiceDetails>(invoice);
 
-            invoiceDetails.ExchangeAmount = response.ExchangeAmount;
-            invoiceDetails.OrderId = response.OrderId;
-            invoiceDetails.OrderDueDate = response.DueDate;
+            invoiceDetails.WalletAddress = paymentRequest.WalletAddress;
+            invoiceDetails.PaymentAmount = order.PaymentAmount;
+            invoiceDetails.OrderId = order.Id;
+            invoiceDetails.OrderDueDate = order.DueDate;
+            invoiceDetails.OrderCreatedDate = order.CreatedDate;
 
             return invoiceDetails;
+        }
+
+        private async Task<PaymentRequestModel> CreatePaymentRequestAsync(IInvoice invoice)
+        {
+            return await _payInternalClient.CreatePaymentRequestAsync(
+                new CreatePaymentRequestModel
+                {
+                    MerchantId = invoice.MerchantId,
+                    Amount = invoice.Amount,
+                    DueDate = invoice.DueDate,
+                    MarkupPercent = 0,
+                    MarkupPips = 0,
+                    PaymentAssetId = invoice.PaymentAssetId,
+                    SettlementAssetId = invoice.SettlementAssetId
+                });
         }
     }
 }

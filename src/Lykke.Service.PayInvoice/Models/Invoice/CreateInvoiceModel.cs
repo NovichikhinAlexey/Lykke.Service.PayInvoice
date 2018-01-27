@@ -12,10 +12,10 @@ namespace Lykke.Service.PayInvoice.Models.Invoice
         public double Amount { get; set; }
         
         [Required]
-        public string AssetId { get; set; }
+        public string SettlementAssetId { get; set; }
         
         [Required]
-        public string ExchangeAssetId { get; set; }
+        public string PaymentAssetId { get; set; }
         
         [Required]
         public string ClientName { get; set; }
