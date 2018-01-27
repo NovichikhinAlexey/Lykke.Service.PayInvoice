@@ -16,6 +16,7 @@ namespace Lykke.Service.PayInvoice
                 .ForMember(src => src.Id, opt => opt.Ignore())
                 .ForMember(src => src.Status, opt => opt.Ignore())
                 .ForMember(src => src.PaymentRequestId, opt => opt.Ignore())
+                .ForMember(src => src.WalletAddress, opt => opt.Ignore())
                 .ForMember(src => src.MerchantId, opt => opt.Ignore())
                 .ForMember(src => src.CreatedDate, opt => opt.Ignore());
 
@@ -23,6 +24,7 @@ namespace Lykke.Service.PayInvoice
                 .ForMember(src => src.Id, opt => opt.Ignore())
                 .ForMember(src => src.Status, opt => opt.Ignore())
                 .ForMember(src => src.PaymentRequestId, opt => opt.Ignore())
+                .ForMember(src => src.WalletAddress, opt => opt.Ignore())
                 .ForMember(src => src.MerchantId, opt => opt.Ignore())
                 .ForMember(src => src.CreatedDate, opt => opt.Ignore());
 

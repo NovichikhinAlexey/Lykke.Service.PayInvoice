@@ -23,6 +23,7 @@ namespace Lykke.Service.PayInvoice.Repositories
         public string SettlementAssetId { get; set; }
         public string PaymentAssetId { get; set; }
         public string PaymentRequestId { get; set; }
+        public string WalletAddress { get; set; }
         public string MerchantId { get; set; }
         public string EmployeeId { get; set; }
         public DateTime CreatedDate { get; set; }

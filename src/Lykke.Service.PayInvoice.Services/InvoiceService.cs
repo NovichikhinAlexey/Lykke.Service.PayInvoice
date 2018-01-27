@@ -99,6 +99,7 @@ namespace Lykke.Service.PayInvoice.Services
             newInvoice.Status = InvoiceStatus.Unpaid;
             newInvoice.CreatedDate = DateTime.UtcNow;
             newInvoice.PaymentRequestId = paymentRequest.Id;
+            newInvoice.WalletAddress = paymentRequest.WalletAddress;
             
             IInvoice createdInvoice = await _invoiceRepository.InsertAsync(newInvoice);
             
@@ -127,6 +128,7 @@ namespace Lykke.Service.PayInvoice.Services
             draftInvoice.Status = InvoiceStatus.Unpaid;
             draftInvoice.CreatedDate = DateTime.UtcNow;
             draftInvoice.PaymentRequestId = paymentRequest.Id;
+            draftInvoice.WalletAddress = paymentRequest.WalletAddress;
 
             await _invoiceRepository.ReplaceAsync(draftInvoice);
 
