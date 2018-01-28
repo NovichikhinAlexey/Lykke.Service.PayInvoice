@@ -10,6 +10,13 @@ namespace Lykke.Service.PayInvoice.Client
     public interface IPayInvoiceClient
     {
         /// <summary>
+        /// Returns invoice by id.
+        /// </summary>
+        /// <param name="invoiceId">The invoice id.</param>
+        /// <returns>The invoice.</returns>
+        Task<InvoiceModel> GetInvoiceAsync(string invoiceId);
+        
+        /// <summary>
         /// Returns checkout invoice details.
         /// </summary>
         /// <returns>The invoice details.</returns>

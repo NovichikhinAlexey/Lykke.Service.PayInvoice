@@ -51,6 +51,11 @@ namespace Lykke.Service.PayInvoice.Client
             _runner = new ApiRunner();
         }
 
+        public async Task<InvoiceModel> GetInvoiceAsync(string invoiceId)
+        {
+            return await _runner.RunAsync(() => _invoicesApi.GetAsync(invoiceId));
+        }
+
         public async Task<InvoiceDetailsModel> CheckoutInvoiceAsync(string invoiceId)
         {
             return await _runner.RunAsync(() => _invoicesApi.CheckoutAsync(invoiceId));

@@ -37,12 +37,6 @@ namespace Lykke.Service.PayInvoice.Services
             _log = log;
         }
 
-
-        public async Task<IReadOnlyList<IInvoice>> GetAsync()
-        {
-            return await _invoiceRepository.GetAsync();
-        }
-
         public async Task<IReadOnlyList<IInvoice>> GetAsync(string merchantId)
         {
             return await _invoiceRepository.GetAsync(merchantId);
@@ -53,6 +47,11 @@ namespace Lykke.Service.PayInvoice.Services
             return await _invoiceRepository.GetAsync(merchantId, invoiceId);
         }
 
+        public async Task<IInvoice> GetByIdAsync(string invoiceId)
+        {
+            return await _invoiceRepository.FindByIdAsync(invoiceId);
+        }
+        
         public async Task<IInvoice> CreateDraftAsync(IInvoice invoice)
         {
             var draftInvoice = Mapper.Map<Invoice>(invoice);

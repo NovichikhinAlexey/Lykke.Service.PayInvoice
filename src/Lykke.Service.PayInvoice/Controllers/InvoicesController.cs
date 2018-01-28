@@ -31,6 +31,25 @@ namespace Lykke.Service.PayInvoice.Controllers
         }
 
         /// <summary>
+        /// Returns invoice by id.
+        /// </summary>
+        /// <param name="invoiceId">The invoice id.</param>
+        /// <returns>The invoice.</returns>
+        /// <response code="200">The invoice.</response>
+        [HttpGet]
+        [Route("invoices/{invoiceId}")]
+        [SwaggerOperation("InvoicesGet")]
+        [ProducesResponseType(typeof(InvoiceModel), (int)HttpStatusCode.OK)]
+        public async Task<IActionResult> GetAsync(string invoiceId)
+        {
+            IInvoice invoice = await _invoiceService.GetByIdAsync(invoiceId);
+
+            var model = Mapper.Map<InvoiceModel>(invoice);
+
+            return Ok(model);
+        }
+        
+        /// <summary>
         /// Returns checkout invoice details.
         /// </summary>
         /// <returns>The invoice details.</returns>
@@ -100,7 +119,7 @@ namespace Lykke.Service.PayInvoice.Controllers
         /// <response code="404">Invoice not found.</response>
         [HttpGet]
         [Route("merchants/{merchantId}/invoices/{invoiceId}")]
-        [SwaggerOperation("InvoicesGet")]
+        [SwaggerOperation("InvoicesGetById")]
         [ProducesResponseType(typeof(InvoiceModel), (int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
         public async Task<IActionResult> GetAsync(string merchantId, string invoiceId)
