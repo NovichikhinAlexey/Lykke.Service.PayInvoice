@@ -17,7 +17,6 @@ namespace Lykke.Service.PayInvoice.Client.Models.Invoice
         public string MerchantId { get; set; }
         public string EmployeeId { get; set; }
         public DateTime CreatedDate { get; set; }
-        public string OrderId { get; set; }
         public string WalletAddress { get; set; }
         public decimal PaymentAmount { get; set; }
         public DateTime OrderDueDate { get; set; }

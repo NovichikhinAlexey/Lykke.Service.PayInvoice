@@ -13,8 +13,8 @@ namespace Lykke.Service.PayInvoice.Core.Services
         Task UpdateDraftAsync(IInvoice invoice);
         Task<IInvoice> CreateAsync(IInvoice invoice);
         Task<IInvoice> CreateFromDraftAsync(IInvoice invoice);
-        Task SetStatus(string invoiceId, InvoiceStatus status);
-        Task<IInvoiceDetails> GetDetailsAsync(string invoiceId);
+        Task SetStatusAsync(string paymentRequestId, string paymentRequestStatus);
+        Task<IInvoiceDetails> CheckoutAsync(string invoiceId);
         Task DeleteAsync(string merchantId, string invoiceId);
     }
 }

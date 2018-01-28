@@ -34,7 +34,7 @@ namespace Lykke.Service.PayInvoice
                 .As<IBalancesClient>()
                 .SingleInstance();
             
-            builder.RegisterType<TransactionUpdatesSubscriber>()
+            builder.RegisterType<PaymentRequestSubscriber>()
                 .AsSelf()
                 .As<IStartable>()
                 .As<IStopable>()

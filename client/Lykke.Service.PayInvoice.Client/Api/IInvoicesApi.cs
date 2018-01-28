@@ -7,7 +7,7 @@ using Refit;
 
 namespace Lykke.Service.PayInvoice.Client.Api
 {
-    internal interface IPayInvoicesApi
+    internal interface IInvoicesApi
     {
         [Get("/api/merchants/{merchantId}/invoices")]
         Task<IEnumerable<InvoiceModel>> GetAllAsync(string merchantId);
@@ -30,7 +30,7 @@ namespace Lykke.Service.PayInvoice.Client.Api
         [Delete("/api/merchants/{merchantId}/invoices/{invoiceId}")]
         Task DeleteAsync(string merchantId, string invoiceId);
 
-        [Get("/api/invoices/{invoiceId}/details")]
-        Task<InvoiceDetailsModel> GetDetailsAsync(string invoiceId);
+        [Post("/api/invoices/{invoiceId}")]
+        Task<InvoiceDetailsModel> CheckoutAsync(string invoiceId);
     }
 }

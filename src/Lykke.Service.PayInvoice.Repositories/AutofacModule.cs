@@ -33,6 +33,7 @@ namespace Lykke.Service.PayInvoice.Repositories
                 new FileInfoRepository(CreateTable<FileInfoEntity>(invoiceFilesTableName)));
             builder.RegisterInstance<IInvoiceRepository>(
                 new InvoiceRepository(CreateTable<InvoiceEntity>(invoicesTableName),
+                    CreateTable<AzureIndex>(invoicesTableName),
                     CreateTable<AzureIndex>(invoicesTableName)));
             builder.RegisterInstance<IEmployeeRepository>(
                 new EmployeeRepository(CreateTable<EmployeeEntity>(employeesTableName),

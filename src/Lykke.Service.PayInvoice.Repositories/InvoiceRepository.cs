@@ -12,14 +12,17 @@ namespace Lykke.Service.PayInvoice.Repositories
     public class InvoiceRepository : IInvoiceRepository
     {
         private readonly INoSQLTableStorage<InvoiceEntity> _storage;
-        private readonly INoSQLTableStorage<AzureIndex> _indexStorage;
+        private readonly INoSQLTableStorage<AzureIndex> _invoiceIdIndexStorage;
+        private readonly INoSQLTableStorage<AzureIndex> _paymentRequestIdIndexStorage;
 
         public InvoiceRepository(
             INoSQLTableStorage<InvoiceEntity> storage,
-            INoSQLTableStorage<AzureIndex> indexStorage)
+            INoSQLTableStorage<AzureIndex> invoiceIdIndexStorage,
+            INoSQLTableStorage<AzureIndex> paymentRequestIdIndexStorage)
         {
             _storage = storage;
-            _indexStorage = indexStorage;
+            _invoiceIdIndexStorage = invoiceIdIndexStorage;
+            _paymentRequestIdIndexStorage = paymentRequestIdIndexStorage;
         }
 
         public async Task<IReadOnlyList<IInvoice>> GetAsync()
@@ -43,10 +46,25 @@ namespace Lykke.Service.PayInvoice.Repositories
             return Mapper.Map<Invoice>(entity);
         }
 
-        public async Task<IInvoice> FindAsync(string invoiceId)
+        public async Task<IInvoice> FindByIdAsync(string invoiceId)
         {
             AzureIndex index =
-                await _indexStorage.GetDataAsync(GetMerchantIndexPartitionKey(invoiceId), GetMerchantIndexRowKey());
+                await _invoiceIdIndexStorage.GetDataAsync(GetMerchantIndexPartitionKey(invoiceId), GetMerchantIndexRowKey());
+
+            if (index == null)
+                return null;
+
+            InvoiceEntity entity = await _storage.GetDataAsync(index);
+            
+            var invoice = Mapper.Map<Invoice>(entity);
+
+            return invoice;
+        }
+        
+        public async Task<IInvoice> FindByPaymentRequestIdAsync(string paymentRequestId)
+        {
+            AzureIndex index =
+                await _paymentRequestIdIndexStorage.GetDataAsync(GetMerchantIndexPartitionKey(paymentRequestId), GetMerchantIndexRowKey());
 
             if (index == null)
                 return null;
@@ -65,10 +83,9 @@ namespace Lykke.Service.PayInvoice.Repositories
             Mapper.Map(invoice, entity);
 
             await _storage.InsertAsync(entity);
-            
-            var index = AzureIndex.Create(GetMerchantIndexPartitionKey(entity.RowKey), GetMerchantIndexRowKey(), entity);
-            
-            await _indexStorage.InsertAsync(index);
+
+            await InsertInvoiceIdIndexAsync(entity);
+            await InsertPaymentRequestIdIndexAsync(entity);
 
             return Mapper.Map<Invoice>(entity);
         }
@@ -82,6 +99,8 @@ namespace Lykke.Service.PayInvoice.Repositories
             entity.ETag = "*";
 
             await _storage.ReplaceAsync(entity);
+            
+            await InsertPaymentRequestIdIndexAsync(entity);
         }
 
         public async Task SetStatusAsync(string merchantId, string invoiceId, InvoiceStatus status)
@@ -102,9 +121,40 @@ namespace Lykke.Service.PayInvoice.Repositories
 
             await _storage.DeleteAsync(entity);
 
-            await _indexStorage.DeleteAsync(GetMerchantIndexPartitionKey(invoiceId), GetMerchantIndexRowKey());
+            await DeleteInvoiceIdIndexAsync(entity);
+            await DeletePaymentRequestIdIndexAsync(entity);
         }
 
+        private async Task InsertInvoiceIdIndexAsync(InvoiceEntity entity)
+        {
+            var index = AzureIndex.Create(GetMerchantIndexPartitionKey(entity.RowKey), GetMerchantIndexRowKey(), entity);
+            
+            await _invoiceIdIndexStorage.InsertOrReplaceAsync(index);
+        }
+        
+        private async Task InsertPaymentRequestIdIndexAsync(InvoiceEntity entity)
+        {
+            if (string.IsNullOrEmpty(entity.PaymentRequestId))
+                return;
+            
+            var index = AzureIndex.Create(GetPaymentRequestIndexPartitionKey(entity.PaymentRequestId), GetPaymentRequestIndexRowKey(), entity);
+            
+            await _paymentRequestIdIndexStorage.InsertOrReplaceAsync(index);
+        }
+
+        private async Task DeleteInvoiceIdIndexAsync(InvoiceEntity entity)
+        {
+            await _invoiceIdIndexStorage.DeleteAsync(GetMerchantIndexPartitionKey(entity.RowKey), GetMerchantIndexRowKey());
+        }
+
+        private async Task DeletePaymentRequestIdIndexAsync(InvoiceEntity entity)
+        {
+            if (string.IsNullOrEmpty(entity.PaymentRequestId))
+                return;
+            
+            await _paymentRequestIdIndexStorage.DeleteAsync(GetMerchantIndexPartitionKey(entity.PaymentRequestId), GetMerchantIndexRowKey());
+        }
+        
         private static string GetPartitionKey(string merchantId)
             => merchantId;
 
@@ -119,5 +169,11 @@ namespace Lykke.Service.PayInvoice.Repositories
 
         private static string GetMerchantIndexRowKey()
             => "InvoiceIdIndex";
+        
+        private static string GetPaymentRequestIndexPartitionKey(string paymentRequestId)
+            => paymentRequestId;
+
+        private static string GetPaymentRequestIndexRowKey()
+            => "PaymentRequestIdIndex";
     }
 }

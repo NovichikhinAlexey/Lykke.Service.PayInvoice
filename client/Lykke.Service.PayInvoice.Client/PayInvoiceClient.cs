@@ -18,7 +18,7 @@ namespace Lykke.Service.PayInvoice.Client
     public class PayInvoiceClient : IPayInvoiceClient, IDisposable
     {
         private readonly HttpClient _httpClient;
-        private readonly IPayInvoicesApi _invoicesApi;
+        private readonly IInvoicesApi _invoicesApi;
         private readonly IFilesApi _filesApi;
         private readonly IEmployeesApi _employeesApi;
         private readonly IBalancesApi _balancesApi;
@@ -44,16 +44,16 @@ namespace Lykke.Service.PayInvoice.Client
                 }
             };
 
-            _invoicesApi = RestService.For<IPayInvoicesApi>(_httpClient);
+            _invoicesApi = RestService.For<IInvoicesApi>(_httpClient);
             _filesApi = RestService.For<IFilesApi>(_httpClient);
             _employeesApi = RestService.For<IEmployeesApi>(_httpClient);
             _balancesApi = RestService.For<IBalancesApi>(_httpClient);
             _runner = new ApiRunner();
         }
 
-        public async Task<InvoiceDetailsModel> GetInvoiceDetailsAsync(string invoiceId)
+        public async Task<InvoiceDetailsModel> CheckoutInvoiceAsync(string invoiceId)
         {
-            return await _runner.RunAsync(() => _invoicesApi.GetDetailsAsync(invoiceId));
+            return await _runner.RunAsync(() => _invoicesApi.CheckoutAsync(invoiceId));
         }
 
         public async Task<IEnumerable<InvoiceModel>> GetInvoicesAsync(string merchantId)

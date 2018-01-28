@@ -31,21 +31,21 @@ namespace Lykke.Service.PayInvoice.Controllers
         }
 
         /// <summary>
-        /// Returns invoice details.
+        /// Returns checkout invoice details.
         /// </summary>
         /// <returns>The invoice details.</returns>
         /// <response code="200">The invoice details.</response>
         /// <response code="404">Invoice not found.</response>
-        [HttpGet]
-        [Route("invoices/{invoiceId}/details")]
+        [HttpPost]
+        [Route("invoices/{invoiceId}")]
         [SwaggerOperation("InvoicesGetDetails")]
         [ProducesResponseType(typeof(InvoiceModel), (int)HttpStatusCode.OK)]
         [ProducesResponseType(typeof(ErrorResponse), (int)HttpStatusCode.NotFound)]
-        public async Task<IActionResult> GetDetailsAsync(string invoiceId)
+        public async Task<IActionResult> CheckoutAsync(string invoiceId)
         {
             try
             {
-                IInvoiceDetails invoiceDetails = await _invoiceService.GetDetailsAsync(invoiceId);
+                IInvoiceDetails invoiceDetails = await _invoiceService.CheckoutAsync(invoiceId);
 
                 var model = Mapper.Map<InvoiceDetailsModel>(invoiceDetails);
                 
@@ -53,21 +53,21 @@ namespace Lykke.Service.PayInvoice.Controllers
             }
             catch (InvoiceNotFoundException exception)
             {
-                await _log.WriteErrorAsync(nameof(InvoicesController), nameof(GetDetailsAsync),
+                await _log.WriteErrorAsync(nameof(InvoicesController), nameof(CheckoutAsync),
                     invoiceId.ToContext(nameof(invoiceId)).ToJson(), exception);
                 
                 return NotFound(ErrorResponse.Create(exception.Message));
             }
             catch (InvalidOperationException exception)
             {
-                await _log.WriteErrorAsync(nameof(InvoicesController), nameof(GetDetailsAsync),
+                await _log.WriteErrorAsync(nameof(InvoicesController), nameof(CheckoutAsync),
                     invoiceId.ToContext(nameof(invoiceId)).ToJson(), exception);
                 
                 return BadRequest(ErrorResponse.Create(exception.Message));
             }
             catch (Exception exception)
             {
-                await _log.WriteErrorAsync(nameof(InvoicesController), nameof(GetDetailsAsync),
+                await _log.WriteErrorAsync(nameof(InvoicesController), nameof(CheckoutAsync),
                     invoiceId.ToContext(nameof(invoiceId)).ToJson(), exception);
 
                 throw;

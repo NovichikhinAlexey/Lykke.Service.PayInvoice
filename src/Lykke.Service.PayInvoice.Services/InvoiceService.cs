@@ -5,7 +5,6 @@ using AutoMapper;
 using Common;
 using Common.Log;
 using Lykke.Service.PayInternal.Client;
-using Lykke.Service.PayInternal.Client.Models.Order;
 using Lykke.Service.PayInternal.Client.Models.PaymentRequest;
 using Lykke.Service.PayInvoice.Core.Domain;
 using Lykke.Service.PayInvoice.Core.Exceptions;
@@ -43,7 +42,7 @@ namespace Lykke.Service.PayInvoice.Services
         {
             return await _invoiceRepository.GetAsync();
         }
-        
+
         public async Task<IReadOnlyList<IInvoice>> GetAsync(string merchantId)
         {
             return await _invoiceRepository.GetAsync(merchantId);
@@ -100,9 +99,9 @@ namespace Lykke.Service.PayInvoice.Services
             newInvoice.CreatedDate = DateTime.UtcNow;
             newInvoice.PaymentRequestId = paymentRequest.Id;
             newInvoice.WalletAddress = paymentRequest.WalletAddress;
-            
+
             IInvoice createdInvoice = await _invoiceRepository.InsertAsync(newInvoice);
-            
+
             await _log.WriteInfoAsync(nameof(InvoiceService), nameof(CreateAsync),
                 invoice.ToContext().ToJson(), "Invoice created");
 
@@ -113,18 +112,18 @@ namespace Lykke.Service.PayInvoice.Services
         {
             IInvoice existingInvoice = await _invoiceRepository.GetAsync(invoice.MerchantId, invoice.Id);
 
-            if(existingInvoice == null)
+            if (existingInvoice == null)
                 throw new InvoiceNotFoundException(invoice.Id);
 
-            if(existingInvoice.Status != InvoiceStatus.Draft)
+            if (existingInvoice.Status != InvoiceStatus.Draft)
                 throw new InvalidOperationException("Invoice status is invalid.");
 
             PaymentRequestModel paymentRequest = await CreatePaymentRequestAsync(invoice);
-            
+
             var draftInvoice = Mapper.Map<Invoice>(existingInvoice);
 
             Mapper.Map(invoice, draftInvoice);
-            
+
             draftInvoice.Status = InvoiceStatus.Unpaid;
             draftInvoice.CreatedDate = DateTime.UtcNow;
             draftInvoice.PaymentRequestId = paymentRequest.Id;
@@ -138,20 +137,25 @@ namespace Lykke.Service.PayInvoice.Services
             return draftInvoice;
         }
 
-        public async Task SetStatus(string invoiceId, InvoiceStatus status)
+        public async Task SetStatusAsync(string paymentRequestId, string paymentRequestStatus)
         {
-            IInvoice invoice = await _invoiceRepository.FindAsync(invoiceId);
+            IInvoice invoice = await _invoiceRepository.FindByPaymentRequestIdAsync(paymentRequestId);
 
             if (invoice == null)
-                throw new InvoiceNotFoundException(invoiceId);
+                throw new InvoiceNotFoundException();
 
-            await _invoiceRepository.SetStatusAsync(invoice.MerchantId, invoiceId, status);
+            InvoiceStatus invoiceStatus = GetStatus(paymentRequestStatus);
 
-            await _log.WriteInfoAsync(nameof(InvoiceService), nameof(SetStatus),
-                invoiceId.ToContext(nameof(invoiceId))
-                    .ToContext(nameof(status), status)
-                    .ToJson(),
-                "Status updated.");
+            if (invoice.Status != invoiceStatus)
+            {
+                await _invoiceRepository.SetStatusAsync(invoice.MerchantId, invoice.Id, invoiceStatus);
+                
+                await _log.WriteInfoAsync(nameof(InvoiceService), nameof(SetStatusAsync),
+                    invoice.Id.ToContext(nameof(invoice.Id))
+                        .ToContext(nameof(invoiceStatus), invoiceStatus)
+                        .ToJson(),
+                    "Status updated.");
+            }
         }
 
         public async Task DeleteAsync(string merchantId, string invoiceId)
@@ -166,7 +170,7 @@ namespace Lykke.Service.PayInvoice.Services
             if (invoice.Status == InvoiceStatus.Draft)
             {
                 await _invoiceRepository.DeleteAsync(merchantId, invoiceId);
-                
+
                 IEnumerable<IFileInfo> fileInfos = await _fileInfoRepository.GetAsync(invoiceId);
 
                 foreach (IFileInfo fileInfo in fileInfos)
@@ -174,14 +178,14 @@ namespace Lykke.Service.PayInvoice.Services
                     await _fileInfoRepository.DeleteAsync(invoiceId, fileInfo.Id);
                     await _fileRepository.DeleteAsync(fileInfo.Id);
                 }
-                
+
                 await _log.WriteInfoAsync(nameof(InvoiceService), nameof(DeleteAsync),
                     invoice.ToContext().ToJson(), "Invoice deleted.");
             }
             else if (invoice.Status == InvoiceStatus.Unpaid)
             {
                 await _invoiceRepository.SetStatusAsync(merchantId, invoiceId, InvoiceStatus.Removed);
-                
+
                 await _log.WriteInfoAsync(nameof(InvoiceService), nameof(DeleteAsync),
                     invoice.ToContext().ToJson(), "Invoice removed");
             }
@@ -192,14 +196,14 @@ namespace Lykke.Service.PayInvoice.Services
             }
         }
 
-        public async Task<IInvoiceDetails> GetDetailsAsync(string invoiceId)
+        public async Task<IInvoiceDetails> CheckoutAsync(string invoiceId)
         {
-            IInvoice invoice = await _invoiceRepository.FindAsync(invoiceId);
+            IInvoice invoice = await _invoiceRepository.FindByIdAsync(invoiceId);
 
             if (invoice == null)
                 throw new InvoiceNotFoundException(invoiceId);
-            
-            if(invoice.DueDate < DateTime.UtcNow)
+
+            if (invoice.DueDate < DateTime.UtcNow)
                 throw new InvalidOperationException("Invoice expired.");
 
             if (invoice.Status == InvoiceStatus.Draft || invoice.Status == InvoiceStatus.Removed)
@@ -207,20 +211,28 @@ namespace Lykke.Service.PayInvoice.Services
 
             PaymentRequestModel paymentRequest =
                 await _payInternalClient.GetPaymentRequestAsync(invoice.MerchantId, invoice.PaymentRequestId);
-            
+
             if (paymentRequest == null)
                 throw new InvalidOperationException("Payment request does not exist.");
 
-            OrderModel order =
-                await _payInternalClient.GetActiveOrderAsync(invoice.MerchantId, invoice.PaymentRequestId);
-            
+            PaymentRequestDetailsModel paymentRequestDetails =
+                await _payInternalClient.ChechoutAsync(invoice.MerchantId, invoice.PaymentRequestId);
+
+            InvoiceStatus invoiceStatus = GetStatus(paymentRequestDetails.Status.ToString());
+
+            if (invoice.Status != invoiceStatus)
+            {
+                await _invoiceRepository.SetStatusAsync(invoice.MerchantId, invoiceId, invoiceStatus);
+
+                invoice = await _invoiceRepository.GetAsync(invoice.MerchantId, invoice.Id);
+            }
+
             var invoiceDetails = Mapper.Map<InvoiceDetails>(invoice);
 
             invoiceDetails.WalletAddress = paymentRequest.WalletAddress;
-            invoiceDetails.PaymentAmount = order.PaymentAmount;
-            invoiceDetails.OrderId = order.Id;
-            invoiceDetails.OrderDueDate = order.DueDate;
-            invoiceDetails.OrderCreatedDate = order.CreatedDate;
+            invoiceDetails.PaymentAmount = paymentRequestDetails.Order.Amount;
+            invoiceDetails.OrderDueDate = paymentRequestDetails.Order.DueDate;
+            invoiceDetails.OrderCreatedDate = paymentRequestDetails.Order.CreatedDate;
 
             return invoiceDetails;
         }
@@ -231,13 +243,31 @@ namespace Lykke.Service.PayInvoice.Services
                 new CreatePaymentRequestModel
                 {
                     MerchantId = invoice.MerchantId,
-                    Amount = (double)invoice.Amount,
+                    Amount = (double) invoice.Amount,
                     DueDate = invoice.DueDate,
                     MarkupPercent = 0,
                     MarkupPips = 0,
                     PaymentAssetId = invoice.PaymentAssetId,
                     SettlementAssetId = invoice.SettlementAssetId
                 });
+        }
+
+        // TODO: Rewrite
+        private InvoiceStatus GetStatus(string status)
+        {
+            switch (status)
+            {
+                case "New":
+                    return InvoiceStatus.Unpaid;
+                case "InProcess":
+                    return InvoiceStatus.InProgress;
+                case "Confirmed":
+                    return InvoiceStatus.Paid;
+                case "Error":
+                    return InvoiceStatus.LatePaid;
+                default:
+                    throw new Exception($"Unknown payment request status '{status}'");
+            }
         }
     }
 }
