@@ -49,7 +49,7 @@ namespace Lykke.Service.PayInvoice.Repositories
         public async Task<IInvoice> FindByIdAsync(string invoiceId)
         {
             AzureIndex index =
-                await _invoiceIdIndexStorage.GetDataAsync(GetMerchantIndexPartitionKey(invoiceId), GetMerchantIndexRowKey());
+                await _invoiceIdIndexStorage.GetDataAsync(GetInvoiceIdIndexPartitionKey(invoiceId), GetInvoiceIdIndexRowKey());
 
             if (index == null)
                 return null;
@@ -64,7 +64,7 @@ namespace Lykke.Service.PayInvoice.Repositories
         public async Task<IInvoice> FindByPaymentRequestIdAsync(string paymentRequestId)
         {
             AzureIndex index =
-                await _paymentRequestIdIndexStorage.GetDataAsync(GetMerchantIndexPartitionKey(paymentRequestId), GetMerchantIndexRowKey());
+                await _paymentRequestIdIndexStorage.GetDataAsync(GetPaymentRequestIndexPartitionKey(paymentRequestId), GetPaymentRequestIndexRowKey());
 
             if (index == null)
                 return null;
@@ -127,7 +127,7 @@ namespace Lykke.Service.PayInvoice.Repositories
 
         private async Task InsertInvoiceIdIndexAsync(InvoiceEntity entity)
         {
-            var index = AzureIndex.Create(GetMerchantIndexPartitionKey(entity.RowKey), GetMerchantIndexRowKey(), entity);
+            var index = AzureIndex.Create(GetInvoiceIdIndexPartitionKey(entity.RowKey), GetInvoiceIdIndexRowKey(), entity);
             
             await _invoiceIdIndexStorage.InsertOrReplaceAsync(index);
         }
@@ -144,7 +144,7 @@ namespace Lykke.Service.PayInvoice.Repositories
 
         private async Task DeleteInvoiceIdIndexAsync(InvoiceEntity entity)
         {
-            await _invoiceIdIndexStorage.DeleteAsync(GetMerchantIndexPartitionKey(entity.RowKey), GetMerchantIndexRowKey());
+            await _invoiceIdIndexStorage.DeleteAsync(GetInvoiceIdIndexPartitionKey(entity.RowKey), GetInvoiceIdIndexRowKey());
         }
 
         private async Task DeletePaymentRequestIdIndexAsync(InvoiceEntity entity)
@@ -152,7 +152,7 @@ namespace Lykke.Service.PayInvoice.Repositories
             if (string.IsNullOrEmpty(entity.PaymentRequestId))
                 return;
             
-            await _paymentRequestIdIndexStorage.DeleteAsync(GetMerchantIndexPartitionKey(entity.PaymentRequestId), GetMerchantIndexRowKey());
+            await _paymentRequestIdIndexStorage.DeleteAsync(GetPaymentRequestIndexPartitionKey(entity.PaymentRequestId), GetPaymentRequestIndexRowKey());
         }
         
         private static string GetPartitionKey(string merchantId)
@@ -164,10 +164,10 @@ namespace Lykke.Service.PayInvoice.Repositories
         private static string CreateRowKey()
             => Guid.NewGuid().ToString("D");
         
-        private static string GetMerchantIndexPartitionKey(string invoiceId)
+        private static string GetInvoiceIdIndexPartitionKey(string invoiceId)
             => invoiceId;
 
-        private static string GetMerchantIndexRowKey()
+        private static string GetInvoiceIdIndexRowKey()
             => "InvoiceIdIndex";
         
         private static string GetPaymentRequestIndexPartitionKey(string paymentRequestId)

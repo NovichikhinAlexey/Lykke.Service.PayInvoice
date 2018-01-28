@@ -5,6 +5,8 @@ using Autofac.Extensions.DependencyInjection;
 using AutoMapper;
 using AzureStorage.Tables;
 using Common.Log;
+using Lykke.AzureStorage.Tables.Entity.Metamodel;
+using Lykke.AzureStorage.Tables.Entity.Metamodel.Providers;
 using Lykke.Common.ApiLibrary.Middleware;
 using Lykke.Common.ApiLibrary.Swagger;
 using Lykke.Logs;
@@ -65,6 +67,8 @@ namespace Lykke.Service.PayInvoice
 
                     options.OperationFilter<FileUploadOperation>();
                 });
+
+                EntityMetamodel.Configure(new AnnotationsBasedMetamodelProvider());
 
                 Mapper.Initialize(cfg =>
                 {
