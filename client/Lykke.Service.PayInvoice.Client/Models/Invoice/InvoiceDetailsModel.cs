@@ -8,7 +8,7 @@ namespace Lykke.Service.PayInvoice.Client.Models.Invoice
         public string Number { get; set; }
         public string ClientName { get; set; }
         public string ClientEmail { get; set; }
-        public double Amount { get; set; }
+        public decimal Amount { get; set; }
         public DateTime DueDate { get; set; }
         public InvoiceStatus Status { get; set; }
         public string SettlementAssetId { get; set; }
@@ -19,7 +19,7 @@ namespace Lykke.Service.PayInvoice.Client.Models.Invoice
         public DateTime CreatedDate { get; set; }
         public string OrderId { get; set; }
         public string WalletAddress { get; set; }
-        public double PaymentAmount { get; set; }
+        public decimal PaymentAmount { get; set; }
         public DateTime OrderDueDate { get; set; }
         public DateTime OrderCreatedDate { get; set; }
     }

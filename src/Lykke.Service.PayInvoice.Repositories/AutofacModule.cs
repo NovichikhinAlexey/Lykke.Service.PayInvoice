@@ -39,7 +39,7 @@ namespace Lykke.Service.PayInvoice.Repositories
                     CreateTable<AzureIndex>(employeesTableName)));
         }
 
-        private INoSQLTableStorage<T> CreateTable<T>(string name) where T : TableEntity, new()
+        private INoSQLTableStorage<T> CreateTable<T>(string name) where T : class, ITableEntity, new()
         {
             return AzureTableStorage<T>.Create(_connectionString, name, _log);
         }

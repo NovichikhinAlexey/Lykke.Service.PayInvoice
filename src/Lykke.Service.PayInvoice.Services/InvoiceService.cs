@@ -231,7 +231,7 @@ namespace Lykke.Service.PayInvoice.Services
                 new CreatePaymentRequestModel
                 {
                     MerchantId = invoice.MerchantId,
-                    Amount = invoice.Amount,
+                    Amount = (double)invoice.Amount,
                     DueDate = invoice.DueDate,
                     MarkupPercent = 0,
                     MarkupPips = 0,

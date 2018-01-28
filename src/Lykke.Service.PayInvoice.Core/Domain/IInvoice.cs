@@ -30,7 +30,7 @@ namespace Lykke.Service.PayInvoice.Core.Domain
         /// <summary>
         /// The invoice amount.
         /// </summary>
-        double Amount { get; }
+        decimal Amount { get; }
 
         /// <summary>
         /// The invoice due date in UTC.

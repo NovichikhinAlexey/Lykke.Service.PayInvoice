@@ -1,23 +1,24 @@
 using System;
-using Microsoft.WindowsAzure.Storage.Table;
+using Lykke.AzureStorage.Tables;
 
 namespace Lykke.Service.PayInvoice.Repositories
 {
-    public class InvoiceEntity : TableEntity
+    public class InvoiceEntity : AzureTableEntity
     {
         public InvoiceEntity()
         {
         }
 
         public InvoiceEntity(string partitionKey, string rowKey)
-            : base(partitionKey, rowKey)
         {
+            PartitionKey = partitionKey;
+            RowKey = rowKey;
         }
 
         public string Number { get; set; }
         public string ClientName { get; set; }
         public string ClientEmail { get; set; }
-        public double Amount { get; set; }
+        public decimal Amount { get; set; }
         public DateTime DueDate { get; set; }
         public string Status { get; set; }
         public string SettlementAssetId { get; set; }

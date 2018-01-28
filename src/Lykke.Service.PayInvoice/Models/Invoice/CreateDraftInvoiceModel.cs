@@ -8,7 +8,7 @@ namespace Lykke.Service.PayInvoice.Models.Invoice
         public string Number { get; set; }
         
         [Required]
-        public double Amount { get; set; }
+        public decimal Amount { get; set; }
         
         [Required]
         public string SettlementAssetId { get; set; }
