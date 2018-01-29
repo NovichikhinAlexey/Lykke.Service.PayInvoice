@@ -136,14 +136,14 @@ namespace Lykke.Service.PayInvoice.Services
             return draftInvoice;
         }
 
-        public async Task SetStatusAsync(string paymentRequestId, string paymentRequestStatus)
+        public async Task SetStatusAsync(string paymentRequestId, string paymentRequestStatus, string error)
         {
             IInvoice invoice = await _invoiceRepository.FindByPaymentRequestIdAsync(paymentRequestId);
 
             if (invoice == null)
                 throw new InvoiceNotFoundException();
 
-            InvoiceStatus invoiceStatus = GetStatus(paymentRequestStatus);
+            InvoiceStatus invoiceStatus = GetStatus(paymentRequestStatus, error);
 
             if (invoice.Status != invoiceStatus)
             {
@@ -217,7 +217,7 @@ namespace Lykke.Service.PayInvoice.Services
             PaymentRequestDetailsModel paymentRequestDetails =
                 await _payInternalClient.ChechoutAsync(invoice.MerchantId, invoice.PaymentRequestId);
 
-            InvoiceStatus invoiceStatus = GetStatus(paymentRequestDetails.Status.ToString());
+            InvoiceStatus invoiceStatus = GetStatus(paymentRequestDetails.Status.ToString(), paymentRequest.Error);
 
             if (invoice.Status != invoiceStatus)
             {
@@ -252,7 +252,7 @@ namespace Lykke.Service.PayInvoice.Services
         }
 
         // TODO: Rewrite
-        private InvoiceStatus GetStatus(string status)
+        private InvoiceStatus GetStatus(string status, string error)
         {
             switch (status)
             {
@@ -263,7 +263,16 @@ namespace Lykke.Service.PayInvoice.Services
                 case "Confirmed":
                     return InvoiceStatus.Paid;
                 case "Error":
-                    return InvoiceStatus.LatePaid;
+                    switch (error)
+                    {
+                        case "EXPIRED":
+                            return InvoiceStatus.LatePaid;
+                        case "AMOUNT BELOW":
+                            return InvoiceStatus.Underpaid;
+                        case "AMOUNT ABOVE":
+                            return InvoiceStatus.Overpaid;
+                    }
+                    return InvoiceStatus.Unpaid;
                 default:
                     throw new Exception($"Unknown payment request status '{status}'");
             }

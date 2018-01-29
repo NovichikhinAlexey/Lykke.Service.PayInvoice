@@ -5,7 +5,6 @@ using Common.Log;
 using Lykke.RabbitMqBroker;
 using Lykke.RabbitMqBroker.Subscriber;
 using System.Threading.Tasks;
-using Lykke.Service.PayInternal.Contract;
 using Lykke.Service.PayInternal.Contract.PaymentRequest;
 using Lykke.Service.PayInvoice.Core.Services;
 using Lykke.Service.PayInvoice.Settings.ServiceSettings.Rabbit;
@@ -62,7 +61,7 @@ namespace Lykke.Service.PayInvoice.Rabbit.Subscribers
         {
             try
             {
-                await _invoiceService.SetStatusAsync(message.Id, message.Status.ToString());
+                await _invoiceService.SetStatusAsync(message.Id, message.Status.ToString(), message.Error);
 
                 await _log.WriteInfoAsync(nameof(PaymentRequestSubscriber), nameof(ProcessMessageAsync),
                     message.ToJson(), "Transaction updated message processed");
