@@ -1,7 +1,7 @@
 ﻿namespace Lykke.Service.PayInvoice.Client.Models.Employee
 {
     /// <summary>
-    /// Merchant employee details.
+    /// Merchant employee creation details.
     /// </summary>
     public class CreateEmployeeModel
     {

@@ -84,12 +84,14 @@ namespace Lykke.Service.PayInvoice.Client
         /// <param name="invoiceId">The invoice id.</param>
         /// <param name="fileId">The file id.</param>
         Task<byte[]> GetFileAsync(string invoiceId, string fileId);
-        
+
         /// <summary>
         /// Saves file.
         /// </summary>
         /// <param name="invoiceId">The invoice id.</param>
-        /// <param name="file">The file.</param>
+        /// <param name="content">The file content.</param>
+        /// <param name="fileName">The file name with extension.</param>
+        /// <param name="contentType">The file mime type.</param>
         Task UploadFileAsync(string invoiceId, byte[] content, string fileName, string contentType);
 
         /// <summary>
