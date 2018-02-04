@@ -159,12 +159,10 @@ namespace Lykke.Service.PayInvoice.Services
 
         public async Task DeleteAsync(string merchantId, string invoiceId)
         {
-            IInvoice entity = await _invoiceRepository.GetAsync(merchantId, invoiceId);
+            IInvoice invoice = await _invoiceRepository.GetAsync(merchantId, invoiceId);
 
-            if (entity == null)
+            if (invoice == null)
                 return;
-
-            var invoice = Mapper.Map<Invoice>(entity);
 
             if (invoice.Status == InvoiceStatus.Draft)
             {
