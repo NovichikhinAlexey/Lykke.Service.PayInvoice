@@ -4,8 +4,7 @@ namespace Lykke.Service.PayInvoice.Core.Domain
 {
     public interface IInvoiceDetails : IInvoice
     {
-        string WalletAddress { get; }
-        double PaymentAmount { get; }
+        decimal PaymentAmount { get; }
         DateTime OrderDueDate { get; }
         DateTime OrderCreatedDate { get; }
     }

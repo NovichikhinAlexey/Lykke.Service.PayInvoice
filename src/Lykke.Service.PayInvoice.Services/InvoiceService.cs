@@ -227,7 +227,7 @@ namespace Lykke.Service.PayInvoice.Services
             var invoiceDetails = Mapper.Map<InvoiceDetails>(invoice);
 
             invoiceDetails.WalletAddress = paymentRequest.WalletAddress;
-            invoiceDetails.PaymentAmount = paymentRequestDetails.Order.Amount;
+            invoiceDetails.PaymentAmount = paymentRequestDetails.Order.PaymentAmount;
             invoiceDetails.OrderDueDate = paymentRequestDetails.Order.DueDate;
             invoiceDetails.OrderCreatedDate = paymentRequestDetails.Order.CreatedDate;
 
@@ -240,7 +240,7 @@ namespace Lykke.Service.PayInvoice.Services
                 new CreatePaymentRequestModel
                 {
                     MerchantId = invoice.MerchantId,
-                    Amount = (double) invoice.Amount,
+                    Amount = invoice.Amount,
                     DueDate = invoice.DueDate,
                     MarkupPercent = 0,
                     MarkupPips = 0,
