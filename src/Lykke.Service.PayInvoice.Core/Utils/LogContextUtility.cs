@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using Lykke.Service.PayInvoice.Core.Domain;
 
 namespace Lykke.Service.PayInvoice.Core.Utils
 {
@@ -9,9 +10,9 @@ namespace Lykke.Service.PayInvoice.Core.Utils
             return new Dictionary<string, string> {{key, value}};
         }
 
-        public static IDictionary<string, object> ToContext(this Dictionary<string, object> context, string key, object value)
+        public static IDictionary<string, string> ToContext(this IDictionary<string, string> context, string key, object value)
         {
-            context[key] = value;
+            context[key] = value?.ToString();
             return context;
         }
     }

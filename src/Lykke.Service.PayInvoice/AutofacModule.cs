@@ -1,31 +1,46 @@
 ﻿using Autofac;
-using Lykke.Service.PayInvoice.Clients.LykkePay;
-using Lykke.Service.PayInvoice.Core.Clients;
-using Lykke.Service.PayInvoice.Core.Utils;
+using Common;
+using Common.Log;
+using Lykke.Service.Balances.Client;
+using Lykke.Service.PayInternal.Client;
+using Lykke.Service.PayInvoice.Rabbit.Subscribers;
 using Lykke.Service.PayInvoice.Settings;
-using Lykke.Service.PayInvoice.Utils;
 using Lykke.SettingsReader;
 
 namespace Lykke.Service.PayInvoice
 {
     public class AutofacModule : Module
     {
-        private readonly IReloadingManager<AppSettings> _setting;
+        private readonly IReloadingManager<AppSettings> _settings;
+        private readonly ILog _log;
 
-        public AutofacModule(IReloadingManager<AppSettings> setting)
+        public AutofacModule(IReloadingManager<AppSettings> settings, ILog log)
         {
-            _setting = setting;
+            _settings = settings;
+            _log = log;
         }
 
         protected override void Load(ContainerBuilder builder)
         {
-            builder.RegisterInstance(new LykkePayServiceClient(_setting.CurrentValue.LykkePayServiceClient))
-                .As<ILykkePayServiceClient>()
+            builder.RegisterInstance(_log)
+                .As<ILog>()
                 .SingleInstance();
-
-            builder.RegisterInstance(new CallbackUrlFormatter(_setting.Nested(o => o.InvoicesService.CallbackHostUrl)))
-                .As<ICallbackUrlFormatter>()
+            
+            builder.RegisterInstance(new PayInternalClient(_settings.CurrentValue.PayInternalServiceClient))
+                .As<IPayInternalClient>()
                 .SingleInstance();
+            
+            builder.RegisterInstance(new BalancesClient(_settings.CurrentValue.BalancesServiceClient.ServiceUrl, _log))
+                .As<IBalancesClient>()
+                .SingleInstance();
+            
+            builder.RegisterType<PaymentRequestSubscriber>()
+                .AsSelf()
+                .As<IStartable>()
+                .As<IStopable>()
+                .AutoActivate()
+                .SingleInstance()
+                .WithParameter(TypedParameter.From(_settings.CurrentValue.PayInvoiceService.Rabbit));
         }
     }
 }

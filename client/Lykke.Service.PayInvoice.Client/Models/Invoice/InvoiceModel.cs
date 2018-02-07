@@ -1,21 +1,77 @@
-﻿namespace Lykke.Service.PayInvoice.Client.Models.Invoice
+﻿using System;
+
+namespace Lykke.Service.PayInvoice.Client.Models.Invoice
 {
     public class InvoiceModel
     {
-        public string InvoiceId { get; set; }
-        public string InvoiceNumber { get; set; }
-        public double Amount { get; set; }
-        public string Currency { get; set; }
-        public string ClientId { get; set; }
+        /// <summary>
+        /// Gets or sets invoice id.
+        /// </summary>
+        public string Id { get; set; }
+
+        /// <summary>
+        /// Gets or sets invoice number.
+        /// </summary>
+        public string Number { get; set; }
+
+        /// <summary>
+        /// Gets or sets client name.
+        /// </summary>
         public string ClientName { get; set; }
-        public string ClientUserId { get; set; }
+
+        /// <summary>
+        /// Gets or sets client email.
+        /// </summary>
         public string ClientEmail { get; set; }
-        public string DueDate { get; set; }
-        public string Label { get; set; }
-        public string Status { get; set; }
+
+        /// <summary>
+        /// Gets or sets invoice amount.
+        /// </summary>
+        public decimal Amount { get; set; }
+
+        /// <summary>
+        /// Gets or sets invoice due date.
+        /// </summary>
+        public DateTime DueDate { get; set; }
+
+        /// <summary>
+        /// Gets or sets invoice status.
+        /// </summary>
+        public InvoiceStatus Status { get; set; }
+
+        /// <summary>
+        /// Gets or sets invoice settlement asset id.
+        /// </summary>
+        public string SettlementAssetId { get; set; }
+
+        /// <summary>
+        /// Gets or sets invoice payment asset id.
+        /// </summary>
+        public string PaymentAssetId { get; set; }
+
+        /// <summary>
+        /// Gets or sets invoice payment request id.
+        /// </summary>
+        public string PaymentRequestId { get; set; }
+
+        /// <summary>
+        /// Gets or sets payment request wallet address.
+        /// </summary>
         public string WalletAddress { get; set; }
-        public string StartDate { get; set; }
-        public string Transaction { get; set; }
+
+        /// <summary>
+        /// Gets or sets merchant id.
+        /// </summary>
         public string MerchantId { get; set; }
+
+        /// <summary>
+        /// Gets or sets employee id created invoice.
+        /// </summary>
+        public string EmployeeId { get; set; }
+
+        /// <summary>
+        /// Gets or sets created date.
+        /// </summary>
+        public DateTime CreatedDate { get; set; }
     }
 }

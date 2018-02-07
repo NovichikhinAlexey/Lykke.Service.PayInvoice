@@ -22,6 +22,9 @@ namespace Lykke.Service.PayInvoice.Services
 
             builder.RegisterType<FileService>()
                 .As<IFileService>();
+            
+            builder.RegisterType<EmployeeService>()
+                .As<IEmployeeService>();
         }
     }
 }

@@ -2,6 +2,7 @@
 using AzureStorage;
 using AzureStorage.Blob;
 using AzureStorage.Tables;
+using AzureStorage.Tables.Templates.Index;
 using Common.Log;
 using Lykke.Service.PayInvoice.Core.Repositories;
 using Lykke.SettingsReader;
@@ -22,15 +23,24 @@ namespace Lykke.Service.PayInvoice.Repositories
 
         protected override void Load(ContainerBuilder builder)
         {
+            const string invoicesTableName = "Invoices";
+            const string invoiceFilesTableName = "InvoiceFiles";
+            const string employeesTableName = "Employees";
+            
             builder.RegisterInstance<IFileRepository>(
                 new FileRepository(AzureBlobStorage.Create(_connectionString)));
             builder.RegisterInstance<IFileInfoRepository>(
-                new FileInfoRepository(CreateTable<FileInfoEntity>("FileMetaData")));
+                new FileInfoRepository(CreateTable<FileInfoEntity>(invoiceFilesTableName)));
             builder.RegisterInstance<IInvoiceRepository>(
-                new InvoiceRepository(CreateTable<InvoiceEntity>("Invoices")));
+                new InvoiceRepository(CreateTable<InvoiceEntity>(invoicesTableName),
+                    CreateTable<AzureIndex>(invoicesTableName),
+                    CreateTable<AzureIndex>(invoicesTableName)));
+            builder.RegisterInstance<IEmployeeRepository>(
+                new EmployeeRepository(CreateTable<EmployeeEntity>(employeesTableName),
+                    CreateTable<AzureIndex>(employeesTableName)));
         }
 
-        private INoSQLTableStorage<T> CreateTable<T>(string name) where T : TableEntity, new()
+        private INoSQLTableStorage<T> CreateTable<T>(string name) where T : class, ITableEntity, new()
         {
             return AzureTableStorage<T>.Create(_connectionString, name, _log);
         }

@@ -6,18 +6,18 @@ namespace Lykke.Service.PayInvoice.Utils
 {
     public static class LogContextExtensions
     {
-        public static string ToContext(this UpdateInvoiceModel model)
+        public static string ToContext(this CreateInvoiceModel model)
         {
-            var context = Mapper.Map<UpdateInvoiceModel>(model);
-            context.ClientEmail = context.ClientEmail.SanitizeEmail();
+            var context = Mapper.Map<CreateInvoiceModel>(model);
+            context.ClientEmail = context.ClientEmail?.SanitizeEmail();
 
             return context.ToJson();
         }
 
-        public static string ToContext(this UpdateDraftInvoiceModel model)
+        public static string ToContext(this CreateDraftInvoiceModel model)
         {
-            var context = Mapper.Map<UpdateDraftInvoiceModel>(model);
-            context.ClientEmail = context.ClientEmail.SanitizeEmail();
+            var context = Mapper.Map<CreateDraftInvoiceModel>(model);
+            context.ClientEmail = context.ClientEmail?.SanitizeEmail();
 
             return context.ToJson();
         }

@@ -5,6 +5,8 @@ using Autofac.Extensions.DependencyInjection;
 using AutoMapper;
 using AzureStorage.Tables;
 using Common.Log;
+using Lykke.AzureStorage.Tables.Entity.Metamodel;
+using Lykke.AzureStorage.Tables.Entity.Metamodel.Providers;
 using Lykke.Common.ApiLibrary.Middleware;
 using Lykke.Common.ApiLibrary.Swagger;
 using Lykke.Logs;
@@ -66,6 +68,8 @@ namespace Lykke.Service.PayInvoice
                     options.OperationFilter<FileUploadOperation>();
                 });
 
+                EntityMetamodel.Configure(new AnnotationsBasedMetamodelProvider());
+
                 Mapper.Initialize(cfg =>
                 {
                     cfg.AddProfiles(typeof(AutoMapperProfile));
@@ -80,14 +84,10 @@ namespace Lykke.Service.PayInvoice
                 Log = CreateLogWithSlack(services, appSettings);
 
                 builder.RegisterModule(
-                    new Repositories.AutofacModule(appSettings.Nested(o => o.InvoicesService.Db.DataConnectionString),
+                    new Repositories.AutofacModule(appSettings.Nested(o => o.PayInvoiceService.Db.DataConnectionString),
                         Log));
                 builder.RegisterModule(new Services.AutofacModule());
-                builder.RegisterModule(new AutofacModule(appSettings));
-
-                builder.RegisterInstance(Log)
-                    .As<ILog>()
-                    .SingleInstance();
+                builder.RegisterModule(new AutofacModule(appSettings, Log));
 
                 builder.Populate(services);
                 ApplicationContainer = builder.Build();
@@ -211,7 +211,7 @@ namespace Lykke.Service.PayInvoice
                 services.UseSlackNotificationsSenderViaAzureQueue(settings.CurrentValue.SlackNotifications.AzureQueue,
                     aggregateLogger);
 
-            var dbLogConnectionStringManager = settings.Nested(x => x.InvoicesService.Db.LogsConnectionString);
+            var dbLogConnectionStringManager = settings.Nested(x => x.PayInvoiceService.Db.LogsConnectionString);
             var dbLogConnectionString = dbLogConnectionStringManager.CurrentValue;
 
             // Creating azure storage logger, which logs own messages to concole log
@@ -219,7 +219,7 @@ namespace Lykke.Service.PayInvoice
                 !(dbLogConnectionString.StartsWith("${") && dbLogConnectionString.EndsWith("}")))
             {
                 var persistenceManager = new LykkeLogToAzureStoragePersistenceManager(
-                    AzureTableStorage<LogEntity>.Create(dbLogConnectionStringManager, "LykkePayServiceInvocesLog",
+                    AzureTableStorage<LogEntity>.Create(dbLogConnectionStringManager, "PayInvoiceLog",
                         consoleLogger),
                     consoleLogger);
 

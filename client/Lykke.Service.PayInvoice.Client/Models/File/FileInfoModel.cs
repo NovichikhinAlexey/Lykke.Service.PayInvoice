@@ -1,11 +1,28 @@
 ﻿namespace Lykke.Service.PayInvoice.Client.Models.File
 {
+    /// <summary>
+    /// Represent a file details.
+    /// </summary>
     public class FileInfoModel
     {
-        public string FileId { get; set; }
-        public string InvoiceId { get; set; }
-        public string FileName { get; set; }
-        public string FileMetaType { get; set; }
-        public int FileSize { get; set; }
+        /// <summary>
+        /// Gets or sets a file id.
+        /// </summary>
+        public string Id { get; set; }
+
+        /// <summary>
+        /// Gets or sets a file name.
+        /// </summary>
+        public string Name { get; set; }
+
+        /// <summary>
+        /// Gets or sets a file mine type.
+        /// </summary>
+        public string Type { get; set; }
+
+        /// <summary>
+        /// Gets or sets a file size in bytes.
+        /// </summary>
+        public int Size { get; set; }
     }
 }

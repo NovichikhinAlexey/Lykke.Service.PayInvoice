@@ -1,38 +1,26 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System;
+using Lykke.Service.PayInvoice.Core.Domain;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 
 namespace Lykke.Service.PayInvoice.Models.Invoice
 {
     public class InvoiceModel
     {
-        [Required]
-        public string InvoiceId { get; set; }
-        [Required]
-        public string InvoiceNumber { get; set; }
-        [Required]
-        public double Amount { get; set; }
-        [Required]
-        public string Currency { get; set; }
-        [Required]
-        public string ClientId { get; set; }
-        [Required]
+        public string Id { get; set; }
+        public string Number { get; set; }
         public string ClientName { get; set; }
-        [Required]
-        public string ClientUserId { get; set; }
-        [Required]
         public string ClientEmail { get; set; }
-        [Required]
-        public string DueDate { get; set; }
-        [Required]
-        public string Label { get; set; }
-        [Required]
-        public string Status { get; set; }
-        [Required]
+        public decimal Amount { get; set; }
+        public DateTime DueDate { get; set; }
+        [JsonConverter(typeof(StringEnumConverter))]
+        public InvoiceStatus Status { get; set; }
+        public string SettlementAssetId { get; set; }
+        public string PaymentAssetId { get; set; }
+        public string PaymentRequestId { get; set; }
         public string WalletAddress { get; set; }
-        [Required]
-        public string StartDate { get; set; }
-        [Required]
-        public string Transaction { get; set; }
-        [Required]
         public string MerchantId { get; set; }
+        public string EmployeeId { get; set; }
+        public DateTime CreatedDate { get; set; }
     }
 }

@@ -2,12 +2,12 @@
   <PropertyGroup>
     <TargetFramework>netcoreapp2.0</TargetFramework>
     <AssemblyName>Lykke.Service.PayInvoice.Repositories</AssemblyName>
-    <RootNamespace>LLykke.Service.PayInvoice.Repositories</RootNamespace>
+    <RootNamespace>Lykke.Service.PayInvoice.Repositories</RootNamespace>
     <Version>1.0.0</Version>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="AutoMapper" Version="6.2.2" />
-    <PackageReference Include="Lykke.AzureStorage" Version="5.0.0" />
+    <PackageReference Include="Lykke.AzureStorage" Version="5.0.1" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Lykke.Service.PayInvoice.Core\Lykke.Service.PayInvoice.Core.csproj" />
