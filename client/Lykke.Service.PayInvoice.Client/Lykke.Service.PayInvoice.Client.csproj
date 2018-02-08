@@ -18,6 +18,6 @@
   <ItemGroup>
     <PackageReference Include="Lykke.Common" Version="4.4.2" />
     <PackageReference Include="Microsoft.Extensions.PlatformAbstractions" Version="1.1.0" />
-    <PackageReference Include="Refit" Version="4.0.1" />
+    <PackageReference Include="Refit" Version="4.2.0" />
   </ItemGroup>
 </Project>
