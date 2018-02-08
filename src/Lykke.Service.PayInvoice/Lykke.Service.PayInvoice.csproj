@@ -26,7 +26,7 @@
     <PackageReference Include="Lykke.Logs" Version="3.6.0" />
     <PackageReference Include="Lykke.RabbitMqBroker" Version="6.0.0" />
     <PackageReference Include="Lykke.Service.Balances.Client" Version="1.0.21" />
-    <PackageReference Include="Lykke.Service.PayInternal.Client" Version="1.0.20" />
+    <PackageReference Include="Lykke.Service.PayInternal.Client" Version="1.0.22" />
     <PackageReference Include="Lykke.Service.PayInternal.Contract" Version="1.0.5" />
     <PackageReference Include="Lykke.SettingsReader" Version="1.1.4" />
     <PackageReference Include="Lykke.SlackNotification.AzureQueue" Version="2.0.1" />
