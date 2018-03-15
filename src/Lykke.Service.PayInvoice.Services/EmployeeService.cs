@@ -24,24 +24,24 @@ namespace Lykke.Service.PayInvoice.Services
             _log = log;
         }
         
-        public async Task<IReadOnlyList<IEmployee>> GetAsync(string merchantId)
+        public async Task<IReadOnlyList<Employee>> GetAsync(string merchantId)
         {
             return await _employeeRepository.GetAsync(merchantId);
         }
 
-        public async Task<IEmployee> GetAsync(string merchantId, string employeeId)
+        public async Task<Employee> GetAsync(string merchantId, string employeeId)
         {
             return await _employeeRepository.GetAsync(merchantId, employeeId);
         }
 
-        public async Task<IEmployee> AddAsync(IEmployee employee)
+        public async Task<Employee> AddAsync(Employee employee)
         {
-            IEmployee existingEmployee = await _employeeRepository.FindAsync(employee.Email);
+            Employee existingEmployee = await _employeeRepository.FindAsync(employee.Email);
             
             if(existingEmployee != null)
                 throw new EmployeeExistException();
                 
-            IEmployee createdEmployee = await _employeeRepository.InsertAsync(employee);
+            Employee createdEmployee = await _employeeRepository.InsertAsync(employee);
 
             await _log.WriteInfoAsync(nameof(EmployeeService), nameof(AddAsync),
                 employee.ToContext().ToJson(), "Employee added.");
@@ -49,14 +49,14 @@ namespace Lykke.Service.PayInvoice.Services
             return createdEmployee;
         }
 
-        public async Task UpdateAsync(IEmployee employee)
+        public async Task UpdateAsync(Employee employee)
         {
-            IEmployee existingEmployee = await _employeeRepository.GetAsync(employee.MerchantId, employee.Id);
+            Employee existingEmployee = await _employeeRepository.GetAsync(employee.MerchantId, employee.Id);
             
             if(existingEmployee == null)
                 throw new EmployeeNotFoundException();
                 
-            await _employeeRepository.MergeAsync(employee);
+            await _employeeRepository.UpdateAsync(employee);
             
             await _log.WriteInfoAsync(nameof(EmployeeService), nameof(AddAsync),
                 employee.ToContext().ToJson(), "Employee updated.");
@@ -69,7 +69,7 @@ namespace Lykke.Service.PayInvoice.Services
             await _log.WriteInfoAsync(nameof(EmployeeService), nameof(AddAsync),
                 merchantId.ToContext(nameof(merchantId))
                     .ToContext(nameof(employeeId), employeeId)
-                    .ToJson(), "Employee added.");
+                    .ToJson(), "Employee deleted.");
         }
     }
 }

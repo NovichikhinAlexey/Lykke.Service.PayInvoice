@@ -36,8 +36,8 @@ namespace Lykke.Service.PayInvoice.Controllers
             List<AssetModel> model = response.Assets
                 .Select(o => new AssetModel
                 {
-                    Id = o.Id,
-                    Name = o.Name
+                    Id = o,
+                    Name = o
                 })
                 .ToList();
 
@@ -61,8 +61,8 @@ namespace Lykke.Service.PayInvoice.Controllers
             List<AssetModel> model = response.Assets
                 .Select(o => new AssetModel
                 {
-                    Id = o.Id,
-                    Name = o.Name
+                    Id = o,
+                    Name = o
                 })
                 .ToList();
 

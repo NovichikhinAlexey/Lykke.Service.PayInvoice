@@ -10,7 +10,7 @@ namespace Lykke.Service.PayInvoice
     {
         public AutoMapperProfile()
         {
-            CreateMap<IInvoice, InvoiceModel>(MemberList.Source);
+            CreateMap<Invoice, InvoiceModel>(MemberList.Source);
 
             CreateMap<CreateInvoiceModel, Invoice>(MemberList.Destination)
                 .ForMember(src => src.Id, opt => opt.Ignore())
@@ -28,12 +28,12 @@ namespace Lykke.Service.PayInvoice
                 .ForMember(src => src.MerchantId, opt => opt.Ignore())
                 .ForMember(src => src.CreatedDate, opt => opt.Ignore());
 
-            CreateMap<IFileInfo, FileInfoModel>(MemberList.Source)
+            CreateMap<FileInfo, FileInfoModel>(MemberList.Source)
                 .ForSourceMember(src => src.InvoiceId, opt => opt.Ignore());
 
-            CreateMap<IInvoiceDetails, InvoiceDetailsModel>(MemberList.Source);
+            CreateMap<InvoiceDetails, InvoiceDetailsModel>(MemberList.Source);
 
-            CreateMap<IEmployee, EmployeeModel>(MemberList.Source);
+            CreateMap<Employee, EmployeeModel>(MemberList.Source);
 
             CreateMap<CreateEmployeeModel, Employee>(MemberList.Destination)
                 .ForMember(dest => dest.Id, opt => opt.Ignore())

@@ -6,14 +6,22 @@ namespace Lykke.Service.PayInvoice.Core.Repositories
 {
     public interface IInvoiceRepository
     {
-        Task<IReadOnlyList<IInvoice>> GetAsync();
-        Task<IReadOnlyList<IInvoice>> GetAsync(string merchantId);
-        Task<IInvoice> GetAsync(string merchantId, string invoiceId);
-        Task<IInvoice> FindByIdAsync(string invoiceId);
-        Task<IInvoice> FindByPaymentRequestIdAsync(string paymentRequestId);
-        Task<IInvoice> InsertAsync(IInvoice invoice);
-        Task ReplaceAsync(IInvoice invoice);
+        Task<IReadOnlyList<Invoice>> GetAsync();
+
+        Task<IReadOnlyList<Invoice>> GetAsync(string merchantId);
+
+        Task<Invoice> GetAsync(string merchantId, string invoiceId);
+
+        Task<Invoice> FindByIdAsync(string invoiceId);
+
+        Task<Invoice> FindByPaymentRequestIdAsync(string paymentRequestId);
+
+        Task<Invoice> InsertAsync(Invoice invoice);
+
+        Task UpdateAsync(Invoice invoice);
+
         Task SetStatusAsync(string merchantId, string invoiceId, InvoiceStatus status);
+
         Task DeleteAsync(string merchantId, string invoiceId);
     }
 }

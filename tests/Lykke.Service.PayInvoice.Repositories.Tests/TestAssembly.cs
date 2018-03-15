@@ -1,5 +1,4 @@
 ﻿using AutoMapper;
-using Lykke.Service.PayInvoice.Repositories;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Lykke.Service.PayInvoice.Repositories.Tests
@@ -12,6 +11,12 @@ namespace Lykke.Service.PayInvoice.Repositories.Tests
         {
             Mapper.Initialize(cfg => cfg.AddProfile<AutoMapperProfile>());
             Mapper.AssertConfigurationIsValid();
+        }
+
+        [TestMethod]
+        public void AutoMapper_OK()
+        {
+            Assert.IsTrue(true);
         }
     }
 }

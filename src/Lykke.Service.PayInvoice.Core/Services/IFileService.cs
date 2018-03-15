@@ -6,9 +6,12 @@ namespace Lykke.Service.PayInvoice.Core.Services
 {
     public interface IFileService
     {
-        Task<IEnumerable<IFileInfo>> GetInfoAsync(string invoiceId);
-        Task<IFileInfo> GetInfoAsync(string invoiceId, string fileId);
+        Task<IEnumerable<FileInfo>> GetInfoAsync(string invoiceId);
+
+        Task<FileInfo> GetInfoAsync(string invoiceId, string fileId);
+
         Task<byte[]> GetFileAsync(string fileId);
-        Task SaveAsync(IFileInfo fileInfo, byte[] content);
+
+        Task SaveAsync(FileInfo fileInfo, byte[] content);
     }
 }

@@ -17,21 +17,21 @@ namespace Lykke.Service.PayInvoice.Repositories
             _storage = storage;
         }
 
-        public async Task<IReadOnlyList<IFileInfo>> GetAsync(string invoiceId)
+        public async Task<IReadOnlyList<FileInfo>> GetAsync(string invoiceId)
         {
             IEnumerable<FileInfoEntity> entities = await _storage.GetDataAsync(GetPartitionKey(invoiceId));
 
             return Mapper.Map<List<FileInfo>>(entities);
         }
 
-        public async Task<IFileInfo> GetAsync(string invoiceId, string fileId)
+        public async Task<FileInfo> GetAsync(string invoiceId, string fileId)
         {
             FileInfoEntity entity = await _storage.GetDataAsync(GetPartitionKey(invoiceId), fileId);
 
             return Mapper.Map<FileInfo>(entity);
         }
 
-        public async Task<string> InsertAsync(IFileInfo fileInfo)
+        public async Task<string> InsertAsync(FileInfo fileInfo)
         {
             var entity = new FileInfoEntity(GetPartitionKey(fileInfo.InvoiceId), GetRowKey());
 
@@ -42,7 +42,7 @@ namespace Lykke.Service.PayInvoice.Repositories
             return entity.RowKey;
         }
 
-        public async Task ReplaceAsync(IFileInfo fileInfo)
+        public async Task UpdateAsync(FileInfo fileInfo)
         {
             var entity = new FileInfoEntity(GetPartitionKey(fileInfo.InvoiceId), fileInfo.Id);
 
