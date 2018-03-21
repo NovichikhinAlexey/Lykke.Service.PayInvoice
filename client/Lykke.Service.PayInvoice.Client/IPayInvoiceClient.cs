@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
-using Lykke.Service.PayInvoice.Client.Models.Assets;
 using Lykke.Service.PayInvoice.Client.Models.Balances;
 using Lykke.Service.PayInvoice.Client.Models.Employee;
 using Lykke.Service.PayInvoice.Client.Models.File;
@@ -141,13 +140,15 @@ namespace Lykke.Service.PayInvoice.Client
         /// <summary>
         /// Returns a collection of assets allowed for settlement.
         /// </summary>
+        /// <param name="merchantId">The merchant id.</param>
         /// <returns>A collection of assets.</returns>
-        Task<IReadOnlyList<AssetModel>> GetSettlementAssetsAsync();
+        Task<IReadOnlyList<string>> GetSettlementAssetsAsync(string merchantId);
 
         /// <summary>
         /// Returns a collection of assets allowed for payment.
         /// </summary>
+        /// <param name="merchantId">The merchant id.</param>
         /// <returns>A collection of assets.</returns>
-        Task<IReadOnlyList<AssetModel>> GetPaymentAssetsAsync();
+        Task<IReadOnlyList<string>> GetPaymentAssetsAsync(string merchantId);
     }
 }
