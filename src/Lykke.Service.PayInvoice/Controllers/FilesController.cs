@@ -106,7 +106,7 @@ namespace Lykke.Service.PayInvoice.Controllers
         /// <param name="invoiceId">The invoice id.</param>
         /// <param name="fileId">The file id.</param>
         /// <response code="200">File successfully deleted.</response>
-        [HttpGet]
+        [HttpDelete]
         [Route("invoices/{invoiceId}/files/{fileId}")]
         [SwaggerOperation("FileDelete")]
         [ProducesResponseType(typeof(FileStreamResult), (int)HttpStatusCode.OK)]

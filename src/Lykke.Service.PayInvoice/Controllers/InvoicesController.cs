@@ -58,7 +58,7 @@ namespace Lykke.Service.PayInvoice.Controllers
         [HttpPost]
         [Route("invoices/{invoiceId}")]
         [SwaggerOperation("InvoicesGetDetails")]
-        [ProducesResponseType(typeof(InvoiceModel), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(InvoiceDetailsModel), (int)HttpStatusCode.OK)]
         [ProducesResponseType(typeof(ErrorResponse), (int)HttpStatusCode.NotFound)]
         public async Task<IActionResult> CheckoutAsync(string invoiceId)
         {
