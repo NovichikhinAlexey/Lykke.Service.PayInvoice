@@ -73,6 +73,11 @@ namespace Lykke.Service.PayInvoice.Core.Domain
         public string EmployeeId { get; set; }
 
         /// <summary>
+        /// The additional information.
+        /// </summary>
+        public string Note { get; set; }
+
+        /// <summary>
         /// The date of creation in UTC.
         /// </summary>
         public DateTime CreatedDate { get; set; }

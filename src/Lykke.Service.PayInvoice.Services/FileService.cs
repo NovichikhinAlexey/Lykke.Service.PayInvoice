@@ -39,5 +39,11 @@ namespace Lykke.Service.PayInvoice.Services
             string fileId = await _fileInfoRepository.InsertAsync(fileInfo);
             await _fileRepository.InsertAsync(content, fileId);
         }
+
+        public async Task DeleteAsync(string invoiceId, string fileId)
+        {
+            await _fileInfoRepository.DeleteAsync(invoiceId, fileId);
+            await _fileRepository.DeleteAsync(fileId);
+        }
     }
 }

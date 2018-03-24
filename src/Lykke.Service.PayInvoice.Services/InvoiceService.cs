@@ -5,6 +5,7 @@ using AutoMapper;
 using Common;
 using Common.Log;
 using Lykke.Service.PayInternal.Client;
+using Lykke.Service.PayInternal.Client.Models.Merchant;
 using Lykke.Service.PayInternal.Client.Models.PaymentRequest;
 using Lykke.Service.PayInternal.Contract.PaymentRequest;
 using Lykke.Service.PayInvoice.Core.Domain;
@@ -207,6 +208,9 @@ namespace Lykke.Service.PayInvoice.Services
             PaymentRequestDetailsModel paymentRequestDetails =
                 await _payInternalClient.ChechoutAsync(invoice.MerchantId, invoice.PaymentRequestId);
 
+            MerchantModel merchant =
+                await _payInternalClient.GetMerchantByIdAsync(invoice.MerchantId);
+
             InvoiceStatus invoiceStatus = StatusConverter.Convert(paymentRequestDetails.Status, paymentRequestDetails.Error);
 
             if (invoice.Status != invoiceStatus)
@@ -222,6 +226,9 @@ namespace Lykke.Service.PayInvoice.Services
             invoiceDetails.PaymentAmount = paymentRequestDetails.Order.PaymentAmount;
             invoiceDetails.OrderDueDate = paymentRequestDetails.Order.DueDate;
             invoiceDetails.OrderCreatedDate = paymentRequestDetails.Order.CreatedDate;
+            invoiceDetails.DeltaSpread = merchant.DeltaSpread;
+            invoiceDetails.MarkupPercent = paymentRequestDetails.MarkupPercent;
+            invoiceDetails.ExchangeRate = paymentRequestDetails.Order.ExchangeRate;
 
             return invoiceDetails;
         }

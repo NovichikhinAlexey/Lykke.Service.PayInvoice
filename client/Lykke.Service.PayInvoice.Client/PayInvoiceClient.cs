@@ -154,6 +154,11 @@ namespace Lykke.Service.PayInvoice.Client
             await _runner.RunAsync(() => _filesApi.UploadAsync(invoiceId, streamPart));
         }
 
+        public async Task DeleteFileAsync(string invoiceId, string fileId)
+        {
+            await _runner.RunAsync(() => _filesApi.DeleteAsync(invoiceId, fileId));
+        }
+
         public async Task<IReadOnlyList<EmployeeModel>> GetEmployeesAsync(string merchantId)
         {
             return await _runner.RunAsync(() => _employeesApi.GetAllAsync(merchantId));

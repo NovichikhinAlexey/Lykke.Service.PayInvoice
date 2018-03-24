@@ -21,5 +21,20 @@ namespace Lykke.Service.PayInvoice.Core.Domain
         /// The order create date.
         /// </summary>
         public DateTime OrderCreatedDate { get; set; }
+
+        /// <summary>
+        /// The order delta spread percent.
+        /// </summary>
+        public double DeltaSpread { get; set; }
+
+        /// <summary>
+        /// The order markup percent.
+        /// </summary>
+        public double MarkupPercent { get; set; }
+
+        /// <summary>
+        /// The order exchange rate.
+        /// </summary>
+        public decimal ExchangeRate { get; set; }
     }
 }

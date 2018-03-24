@@ -95,6 +95,13 @@ namespace Lykke.Service.PayInvoice.Client
         Task UploadFileAsync(string invoiceId, byte[] content, string fileName, string contentType);
 
         /// <summary>
+        /// Deletes file.
+        /// </summary>
+        /// <param name="invoiceId">The invoice id.</param>
+        /// <param name="fileId">The file id.</param>
+        Task DeleteFileAsync(string invoiceId, string fileId);
+
+        /// <summary>
         /// Returns merchant employees.
         /// </summary>
         /// <param name="merchantId">The merchant id.</param>

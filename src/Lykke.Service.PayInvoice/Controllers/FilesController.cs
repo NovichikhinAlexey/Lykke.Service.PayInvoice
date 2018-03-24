@@ -99,5 +99,22 @@ namespace Lykke.Service.PayInvoice.Controllers
 
             return NoContent();
         }
+
+        /// <summary>
+        /// Deletes file.
+        /// </summary>
+        /// <param name="invoiceId">The invoice id.</param>
+        /// <param name="fileId">The file id.</param>
+        /// <response code="200">File successfully deleted.</response>
+        [HttpGet]
+        [Route("invoices/{invoiceId}/files/{fileId}")]
+        [SwaggerOperation("FileDelete")]
+        [ProducesResponseType(typeof(FileStreamResult), (int)HttpStatusCode.OK)]
+        public async Task<IActionResult> DeleteAsync(string invoiceId, string fileId)
+        {
+            await _fileService.DeleteAsync(invoiceId, fileId);
+            
+            return NoContent();
+        }
     }
 }

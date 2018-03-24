@@ -13,5 +13,7 @@ namespace Lykke.Service.PayInvoice.Core.Services
         Task<byte[]> GetFileAsync(string fileId);
 
         Task SaveAsync(FileInfo fileInfo, byte[] content);
+
+        Task DeleteAsync(string invoiceId, string fileId);
     }
 }
