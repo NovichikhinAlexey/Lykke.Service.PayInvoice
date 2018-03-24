@@ -143,19 +143,5 @@ namespace Lykke.Service.PayInvoice.Client
         /// <param name="assetId">The asset id.</param>
         /// <returns>The merchant asset balance.</returns>
         Task<BalanceModel> GetBalanceAsync(string merchantId, string assetId);
-
-        /// <summary>
-        /// Returns a collection of assets allowed for settlement.
-        /// </summary>
-        /// <param name="merchantId">The merchant id.</param>
-        /// <returns>A collection of assets.</returns>
-        Task<IReadOnlyList<string>> GetSettlementAssetsAsync(string merchantId);
-
-        /// <summary>
-        /// Returns a collection of assets allowed for payment.
-        /// </summary>
-        /// <param name="merchantId">The merchant id.</param>
-        /// <returns>A collection of assets.</returns>
-        Task<IReadOnlyList<string>> GetPaymentAssetsAsync(string merchantId);
     }
 }

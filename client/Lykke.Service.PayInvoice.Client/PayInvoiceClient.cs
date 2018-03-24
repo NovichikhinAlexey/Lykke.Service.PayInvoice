@@ -22,7 +22,6 @@ namespace Lykke.Service.PayInvoice.Client
         private readonly IFilesApi _filesApi;
         private readonly IEmployeesApi _employeesApi;
         private readonly IBalancesApi _balancesApi;
-        private readonly IMerchantsApi _assetsApi;
         private readonly ApiRunner _runner;
 
         public PayInvoiceClient(PayInvoiceServiceClientSettings settings)
@@ -49,7 +48,6 @@ namespace Lykke.Service.PayInvoice.Client
             _filesApi = RestService.For<IFilesApi>(_httpClient);
             _employeesApi = RestService.For<IEmployeesApi>(_httpClient);
             _balancesApi = RestService.For<IBalancesApi>(_httpClient);
-            _assetsApi = RestService.For<IMerchantsApi>(_httpClient);
             _runner = new ApiRunner();
         }
 
@@ -202,16 +200,6 @@ namespace Lykke.Service.PayInvoice.Client
         public async Task<BalanceModel> GetBalanceAsync(string merchantId, string assetId)
         {
             return await _runner.RunAsync(() => _balancesApi.GetAsync(merchantId, assetId));
-        }
-
-        public async Task<IReadOnlyList<string>> GetSettlementAssetsAsync(string merchantId)
-        {
-            return await _runner.RunAsync(() => _assetsApi.GetSettlementAssetsAsync(merchantId));
-        }
-
-        public async Task<IReadOnlyList<string>> GetPaymentAssetsAsync(string merchantId)
-        {
-            return await _runner.RunAsync(() => _assetsApi.GetPaymentAssetsAsync(merchantId));
         }
 
         public void Dispose()
