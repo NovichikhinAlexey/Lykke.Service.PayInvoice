@@ -51,5 +51,9 @@ namespace Lykke.Service.PayInvoice.Models.Invoice
         public double MarkupPercent { get; set; }
 
         public decimal ExchangeRate { get; set; }
+        
+        public DateTime? PaidDate { get; set; }
+        
+        public decimal PaidAmount { get; set; }
     }
 }

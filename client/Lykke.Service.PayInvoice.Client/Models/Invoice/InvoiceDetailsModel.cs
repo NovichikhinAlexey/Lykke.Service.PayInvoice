@@ -108,5 +108,15 @@ namespace Lykke.Service.PayInvoice.Client.Models.Invoice
         /// The order exchange rate.
         /// </summary>
         public decimal ExchangeRate { get; set; }
+
+        /// <summary>
+        /// The paid date.
+        /// </summary>
+        public DateTime? PaidDate { get; set; }
+
+        /// <summary>
+        /// The paid amount.
+        /// </summary>
+        public decimal PaidAmount { get; set; }
     }
 }

@@ -229,6 +229,8 @@ namespace Lykke.Service.PayInvoice.Services
             invoiceDetails.DeltaSpread = merchant.DeltaSpread;
             invoiceDetails.MarkupPercent = paymentRequestDetails.MarkupPercent;
             invoiceDetails.ExchangeRate = paymentRequestDetails.Order.ExchangeRate;
+            invoiceDetails.PaidAmount = (decimal)paymentRequestDetails.PaidAmount;
+            invoiceDetails.PaidDate = paymentRequestDetails.PaidDate;
 
             return invoiceDetails;
         }
