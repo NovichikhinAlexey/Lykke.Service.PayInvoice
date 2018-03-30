@@ -109,7 +109,7 @@ namespace Lykke.Service.PayInvoice.Controllers
         [HttpDelete]
         [Route("invoices/{invoiceId}/files/{fileId}")]
         [SwaggerOperation("FileDelete")]
-        [ProducesResponseType(typeof(FileStreamResult), (int)HttpStatusCode.OK)]
+        [ProducesResponseType((int)HttpStatusCode.NoContent)]
         public async Task<IActionResult> DeleteAsync(string invoiceId, string fileId)
         {
             await _fileService.DeleteAsync(invoiceId, fileId);
