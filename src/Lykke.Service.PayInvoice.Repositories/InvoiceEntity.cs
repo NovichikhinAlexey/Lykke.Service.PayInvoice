@@ -59,7 +59,9 @@ namespace Lykke.Service.PayInvoice.Repositories
         public string MerchantId { get; set; }
         
         public string EmployeeId { get; set; }
-        
+
+        public string Note { get; set; }
+
         public DateTime CreatedDate
         {
             get => _createdDate;

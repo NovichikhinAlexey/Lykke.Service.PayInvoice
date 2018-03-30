@@ -63,6 +63,11 @@ namespace Lykke.Service.PayInvoice.Client.Models.Invoice
         /// Gets or sets employee id created invoice.
         /// </summary>
         public string EmployeeId { get; set; }
+        
+        /// <summary>
+        /// The additional information.
+        /// </summary>
+        public string Note { get; set; }
 
         /// <summary>
         /// Gets or sets created date.
@@ -88,5 +93,30 @@ namespace Lykke.Service.PayInvoice.Client.Models.Invoice
         /// Gets or sets order created date.
         /// </summary>
         public DateTime OrderCreatedDate { get; set; }
+
+        /// <summary>
+        /// The order delta spread percent.
+        /// </summary>
+        public double DeltaSpread { get; set; }
+
+        /// <summary>
+        /// The order markup percent.
+        /// </summary>
+        public double MarkupPercent { get; set; }
+
+        /// <summary>
+        /// The order exchange rate.
+        /// </summary>
+        public decimal ExchangeRate { get; set; }
+
+        /// <summary>
+        /// The paid date.
+        /// </summary>
+        public DateTime? PaidDate { get; set; }
+
+        /// <summary>
+        /// The paid amount.
+        /// </summary>
+        public decimal PaidAmount { get; set; }
     }
 }

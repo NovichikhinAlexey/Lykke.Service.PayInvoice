@@ -6,13 +6,13 @@ namespace Lykke.Service.PayInvoice.Core.Services
 {
     public interface IEmployeeService
     {
-        Task<IReadOnlyList<IEmployee>> GetAsync(string merchantId);
+        Task<IReadOnlyList<Employee>> GetAsync(string merchantId);
 
-        Task<IEmployee> GetAsync(string merchantId, string employeeId);
+        Task<Employee> GetAsync(string merchantId, string employeeId);
         
-        Task<IEmployee> AddAsync(IEmployee employee);
+        Task<Employee> AddAsync(Employee employee);
         
-        Task UpdateAsync(IEmployee employee);
+        Task UpdateAsync(Employee employee);
 
         Task DeleteAsync(string merchantId, string employeeId);
     }

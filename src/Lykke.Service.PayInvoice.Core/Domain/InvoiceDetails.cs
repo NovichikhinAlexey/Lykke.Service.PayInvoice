@@ -2,24 +2,49 @@
 
 namespace Lykke.Service.PayInvoice.Core.Domain
 {
-    public class InvoiceDetails : IInvoiceDetails
+    /// <summary>
+    /// Invoice extended information included payment request order details.
+    /// </summary>
+    public class InvoiceDetails : Invoice
     {
-        public string Id { get; set; }
-        public string Number { get; set; }
-        public string ClientName { get; set; }
-        public string ClientEmail { get; set; }
-        public decimal Amount { get; set; }
-        public DateTime DueDate { get; set; }
-        public InvoiceStatus Status { get; set; }
-        public string SettlementAssetId { get; set; }
-        public string PaymentAssetId { get; set; }
-        public string PaymentRequestId { get; set; }
-        public string MerchantId { get; set; }
-        public string EmployeeId { get; set; }
-        public DateTime CreatedDate { get; set; }
-        public string WalletAddress { get; set; }
+        /// <summary>
+        /// The amount which includes all fees and fixed while order is not expired.
+        /// </summary>
         public decimal PaymentAmount { get; set; }
+
+        /// <summary>
+        /// The order due date.
+        /// </summary>
         public DateTime OrderDueDate { get; set; }
+
+        /// <summary>
+        /// The order create date.
+        /// </summary>
         public DateTime OrderCreatedDate { get; set; }
+
+        /// <summary>
+        /// The order delta spread percent.
+        /// </summary>
+        public double DeltaSpread { get; set; }
+
+        /// <summary>
+        /// The order markup percent.
+        /// </summary>
+        public double MarkupPercent { get; set; }
+
+        /// <summary>
+        /// The order exchange rate.
+        /// </summary>
+        public decimal ExchangeRate { get; set; }
+
+        /// <summary>
+        /// The paid date.
+        /// </summary>
+        public DateTime? PaidDate { get; set; }
+        
+        /// <summary>
+        /// The paid amount.
+        /// </summary>
+        public decimal PaidAmount { get; set; }
     }
 }

@@ -11,7 +11,7 @@ namespace Lykke.Service.PayInvoice.Repositories
             CreateMap<FileInfoEntity, FileInfo>(MemberList.Destination)
                 .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.RowKey));
 
-            CreateMap<IFileInfo, FileInfoEntity>(MemberList.Source)
+            CreateMap<FileInfo, FileInfoEntity>(MemberList.Source)
                 .ForSourceMember(src => src.Id, opt => opt.Ignore());
 
             CreateMap<InvoiceEntity, Invoice>(MemberList.Destination)
@@ -19,13 +19,13 @@ namespace Lykke.Service.PayInvoice.Repositories
                 .ForMember(dest => dest.Status,
                     opt => opt.MapFrom(src => (InvoiceStatus) Enum.Parse(typeof(InvoiceStatus), src.Status)));
 
-            CreateMap<IInvoice, InvoiceEntity>(MemberList.Source)
+            CreateMap<Invoice, InvoiceEntity>(MemberList.Source)
                 .ForSourceMember(src => src.Id, opt => opt.Ignore());
 
             CreateMap<EmployeeEntity, Employee>(MemberList.Destination)
                 .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.RowKey));
 
-            CreateMap<IEmployee, EmployeeEntity>(MemberList.Source)
+            CreateMap<Employee, EmployeeEntity>(MemberList.Source)
                 .ForSourceMember(src => src.Id, opt => opt.Ignore());
         }
     }

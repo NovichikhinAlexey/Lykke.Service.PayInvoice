@@ -8,7 +8,7 @@ namespace Lykke.Service.PayInvoice.Services.Extensions
 {
     public static class LogContextExtensions
     {
-        public static IDictionary<string, string> ToContext(this IEmployee model)
+        public static IDictionary<string, string> ToContext(this Employee model)
         {
             return new Dictionary<string, string>()
                 .ToContext(nameof(model.Id), model.Id)
@@ -18,7 +18,7 @@ namespace Lykke.Service.PayInvoice.Services.Extensions
                 .ToContext(nameof(model.LastName), model.LastName);
         }
         
-        public static IDictionary<string, string> ToContext(this IInvoice model)
+        public static IDictionary<string, string> ToContext(this Invoice model)
         {
             return new Dictionary<string, string>()
                 .ToContext(nameof(model.Id), model.Id)

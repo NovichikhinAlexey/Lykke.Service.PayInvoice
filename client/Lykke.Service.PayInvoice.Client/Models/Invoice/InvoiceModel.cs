@@ -70,6 +70,11 @@ namespace Lykke.Service.PayInvoice.Client.Models.Invoice
         public string EmployeeId { get; set; }
 
         /// <summary>
+        /// The additional information.
+        /// </summary>
+        public string Note { get; set; }
+
+        /// <summary>
         /// Gets or sets created date.
         /// </summary>
         public DateTime CreatedDate { get; set; }

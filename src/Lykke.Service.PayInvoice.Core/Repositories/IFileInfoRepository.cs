@@ -6,11 +6,16 @@ namespace Lykke.Service.PayInvoice.Core.Repositories
 {
     public interface IFileInfoRepository
     {
-        Task<IReadOnlyList<IFileInfo>> GetAsync(string invoiceId);
-        Task<IFileInfo> GetAsync(string invoiceId, string fileId);
-        Task<string> InsertAsync(IFileInfo fileInfo);
-        Task ReplaceAsync(IFileInfo fileInfo);
+        Task<IReadOnlyList<FileInfo>> GetAsync(string invoiceId);
+
+        Task<FileInfo> GetAsync(string invoiceId, string fileId);
+
+        Task<string> InsertAsync(FileInfo fileInfo);
+
+        Task UpdateAsync(FileInfo fileInfo);
+
         Task DeleteAsync(string invoiceId);
+
         Task DeleteAsync(string invoiceId, string fileId);
     }
 }

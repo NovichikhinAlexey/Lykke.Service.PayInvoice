@@ -43,7 +43,7 @@ namespace Lykke.Service.PayInvoice.Controllers
         [ProducesResponseType(typeof(List<EmployeeModel>), (int)HttpStatusCode.OK)]
         public async Task<IActionResult> GetAsync(string merchantId)
         {
-            IEnumerable<IEmployee> employees = await _employeeService.GetAsync(merchantId);
+            IEnumerable<Employee> employees = await _employeeService.GetAsync(merchantId);
 
             var model = Mapper.Map<List<EmployeeModel>>(employees);
 
@@ -65,7 +65,7 @@ namespace Lykke.Service.PayInvoice.Controllers
         {
             try
             {
-                IEmployee employee = await _employeeService.GetAsync(merchantId, employeeId);
+                Employee employee = await _employeeService.GetAsync(merchantId, employeeId);
 
                 var model = Mapper.Map<EmployeeModel>(employee);
                 
@@ -113,7 +113,7 @@ namespace Lykke.Service.PayInvoice.Controllers
                 var employee = Mapper.Map<Employee>(model);
                 employee.MerchantId = merchantId;
 
-                IEmployee createdEmployee = await _employeeService.AddAsync(employee);
+                Employee createdEmployee = await _employeeService.AddAsync(employee);
 
                 var employeeModel = Mapper.Map<EmployeeModel>(createdEmployee);
                 

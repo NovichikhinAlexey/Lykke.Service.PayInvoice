@@ -46,5 +46,10 @@ namespace Lykke.Service.PayInvoice.Client.Models.Invoice
         /// Gets or sets invoice due date.
         /// </summary>
         public DateTime DueDate { get; set; }
+
+        /// <summary>
+        /// The additional information.
+        /// </summary>
+        public string Note { get; set; }
     }
 }

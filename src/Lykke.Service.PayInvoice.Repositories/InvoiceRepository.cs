@@ -25,28 +25,28 @@ namespace Lykke.Service.PayInvoice.Repositories
             _paymentRequestIdIndexStorage = paymentRequestIdIndexStorage;
         }
 
-        public async Task<IReadOnlyList<IInvoice>> GetAsync()
+        public async Task<IReadOnlyList<Invoice>> GetAsync()
         {
             IList<InvoiceEntity> entities = await _storage.GetDataAsync();
 
             return Mapper.Map<List<Invoice>>(entities);
         }
 
-        public async Task<IReadOnlyList<IInvoice>> GetAsync(string merchantId)
+        public async Task<IReadOnlyList<Invoice>> GetAsync(string merchantId)
         {
             IEnumerable<InvoiceEntity> entities = await _storage.GetDataAsync(GetPartitionKey(merchantId));
 
             return Mapper.Map<List<Invoice>>(entities);
         }
         
-        public async Task<IInvoice> GetAsync(string merchantId, string invoiceId)
+        public async Task<Invoice> GetAsync(string merchantId, string invoiceId)
         {
             InvoiceEntity entity = await _storage.GetDataAsync(GetPartitionKey(merchantId), GetRowKey(invoiceId));
 
             return Mapper.Map<Invoice>(entity);
         }
 
-        public async Task<IInvoice> FindByIdAsync(string invoiceId)
+        public async Task<Invoice> FindByIdAsync(string invoiceId)
         {
             AzureIndex index =
                 await _invoiceIdIndexStorage.GetDataAsync(GetInvoiceIdIndexPartitionKey(invoiceId), GetInvoiceIdIndexRowKey());
@@ -61,7 +61,7 @@ namespace Lykke.Service.PayInvoice.Repositories
             return invoice;
         }
         
-        public async Task<IInvoice> FindByPaymentRequestIdAsync(string paymentRequestId)
+        public async Task<Invoice> FindByPaymentRequestIdAsync(string paymentRequestId)
         {
             AzureIndex index =
                 await _paymentRequestIdIndexStorage.GetDataAsync(GetPaymentRequestIndexPartitionKey(paymentRequestId), GetPaymentRequestIndexRowKey());
@@ -76,7 +76,7 @@ namespace Lykke.Service.PayInvoice.Repositories
             return invoice;
         }
         
-        public async Task<IInvoice> InsertAsync(IInvoice invoice)
+        public async Task<Invoice> InsertAsync(Invoice invoice)
         {
             var entity = new InvoiceEntity(GetPartitionKey(invoice.MerchantId), CreateRowKey());
 
@@ -90,7 +90,7 @@ namespace Lykke.Service.PayInvoice.Repositories
             return Mapper.Map<Invoice>(entity);
         }
 
-        public async Task ReplaceAsync(IInvoice invoice)
+        public async Task UpdateAsync(Invoice invoice)
         {
             var entity = new InvoiceEntity(GetPartitionKey(invoice.MerchantId), GetRowKey(invoice.Id));
 

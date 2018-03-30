@@ -61,10 +61,7 @@ namespace Lykke.Service.PayInvoice.Rabbit.Subscribers
         {
             try
             {
-                await _invoiceService.SetStatusAsync(message.Id, message.Status.ToString(), message.Error);
-
-                await _log.WriteInfoAsync(nameof(PaymentRequestSubscriber), nameof(ProcessMessageAsync),
-                    message.ToJson(), "Transaction updated message processed");
+                await _invoiceService.UpdateAsync(message);
             }
             catch (Exception exception)
             {

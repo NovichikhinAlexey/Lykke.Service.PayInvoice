@@ -22,7 +22,7 @@ namespace Lykke.Service.PayInvoice.Repositories
             _indexStorage = indexStorage;
         }
         
-        public async Task<IReadOnlyList<IEmployee>> GetAsync(string merchantId)
+        public async Task<IReadOnlyList<Employee>> GetAsync(string merchantId)
         {
             IEnumerable<EmployeeEntity> entities = await _storage.GetDataAsync(GetPartitionKey(merchantId));
 
@@ -31,7 +31,7 @@ namespace Lykke.Service.PayInvoice.Repositories
             return employees;
         }
 
-        public async Task<IEmployee> GetAsync(string merchantId, string employeeId)
+        public async Task<Employee> GetAsync(string merchantId, string employeeId)
         {
             EmployeeEntity entity = await _storage.GetDataAsync(GetPartitionKey(merchantId), GetRowKey(employeeId));
 
@@ -40,7 +40,7 @@ namespace Lykke.Service.PayInvoice.Repositories
             return employee;
         }
 
-        public async Task<IEmployee> FindAsync(string email)
+        public async Task<Employee> FindAsync(string email)
         {
             AzureIndex index =
                 await _indexStorage.GetDataAsync(GetEmailIndexPartitionKey(), GetEmailIndexRowKey(email));
@@ -55,7 +55,7 @@ namespace Lykke.Service.PayInvoice.Repositories
             return employee;
         }
 
-        public async Task<IEmployee> InsertAsync(IEmployee employee)
+        public async Task<Employee> InsertAsync(Employee employee)
         {
             var entity = new EmployeeEntity(GetPartitionKey(employee.MerchantId), CreateRowKey());
             
@@ -70,7 +70,7 @@ namespace Lykke.Service.PayInvoice.Repositories
             return await GetAsync(entity.MerchantId, entity.RowKey);
         }
 
-        public async Task MergeAsync(IEmployee employee)
+        public async Task UpdateAsync(Employee employee)
         {
             await _storage.MergeAsync(GetPartitionKey(employee.MerchantId), GetRowKey(employee.Id), entity =>
             {

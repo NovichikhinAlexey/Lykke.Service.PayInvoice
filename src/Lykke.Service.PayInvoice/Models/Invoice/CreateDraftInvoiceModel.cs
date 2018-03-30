@@ -25,5 +25,7 @@ namespace Lykke.Service.PayInvoice.Models.Invoice
         
         [Required]
         public DateTime DueDate { get; set; }
+
+        public string Note { get; set; }
     }
 }

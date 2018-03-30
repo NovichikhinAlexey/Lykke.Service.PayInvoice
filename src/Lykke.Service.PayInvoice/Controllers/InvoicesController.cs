@@ -42,7 +42,7 @@ namespace Lykke.Service.PayInvoice.Controllers
         [ProducesResponseType(typeof(InvoiceModel), (int)HttpStatusCode.OK)]
         public async Task<IActionResult> GetAsync(string invoiceId)
         {
-            IInvoice invoice = await _invoiceService.GetByIdAsync(invoiceId);
+            Invoice invoice = await _invoiceService.GetByIdAsync(invoiceId);
 
             var model = Mapper.Map<InvoiceModel>(invoice);
 
@@ -58,13 +58,13 @@ namespace Lykke.Service.PayInvoice.Controllers
         [HttpPost]
         [Route("invoices/{invoiceId}")]
         [SwaggerOperation("InvoicesGetDetails")]
-        [ProducesResponseType(typeof(InvoiceModel), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(InvoiceDetailsModel), (int)HttpStatusCode.OK)]
         [ProducesResponseType(typeof(ErrorResponse), (int)HttpStatusCode.NotFound)]
         public async Task<IActionResult> CheckoutAsync(string invoiceId)
         {
             try
             {
-                IInvoiceDetails invoiceDetails = await _invoiceService.CheckoutAsync(invoiceId);
+                InvoiceDetails invoiceDetails = await _invoiceService.CheckoutAsync(invoiceId);
 
                 var model = Mapper.Map<InvoiceDetailsModel>(invoiceDetails);
                 
@@ -104,7 +104,7 @@ namespace Lykke.Service.PayInvoice.Controllers
         [ProducesResponseType(typeof(IEnumerable<InvoiceModel>), (int)HttpStatusCode.OK)]
         public async Task<IActionResult> GetByMerchantIdAsync(string merchantId)
         {
-            IEnumerable<IInvoice> invoices = await _invoiceService.GetAsync(merchantId);
+            IEnumerable<Invoice> invoices = await _invoiceService.GetAsync(merchantId);
 
             var model = Mapper.Map<List<InvoiceModel>>(invoices);
 
@@ -124,7 +124,7 @@ namespace Lykke.Service.PayInvoice.Controllers
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
         public async Task<IActionResult> GetAsync(string merchantId, string invoiceId)
         {
-            IInvoice invoice = await _invoiceService.GetAsync(merchantId, invoiceId);
+            Invoice invoice = await _invoiceService.GetAsync(merchantId, invoiceId);
 
             if (invoice == null)
                 return NotFound();
@@ -154,7 +154,7 @@ namespace Lykke.Service.PayInvoice.Controllers
             var invoice = Mapper.Map<Invoice>(model);
             invoice.MerchantId = merchantId;
 
-            IInvoice newInvoice = await _invoiceService.CreateDraftAsync(invoice);
+            Invoice newInvoice = await _invoiceService.CreateDraftAsync(invoice);
 
             return Ok(Mapper.Map<InvoiceModel>(newInvoice));
         }
@@ -225,7 +225,7 @@ namespace Lykke.Service.PayInvoice.Controllers
             var invoice = Mapper.Map<Invoice>(model);
             invoice.MerchantId = merchantId;
 
-            IInvoice newInvoice = await _invoiceService.CreateAsync(invoice);
+            Invoice newInvoice = await _invoiceService.CreateAsync(invoice);
 
             return Ok(Mapper.Map<InvoiceModel>(newInvoice));
         }
@@ -256,7 +256,7 @@ namespace Lykke.Service.PayInvoice.Controllers
                 invoice.MerchantId = merchantId;
                 invoice.Id = invoiceId;
 
-                IInvoice newInvoice = await _invoiceService.CreateFromDraftAsync(invoice);
+                Invoice newInvoice = await _invoiceService.CreateFromDraftAsync(invoice);
                 
                 return Ok(Mapper.Map<InvoiceModel>(newInvoice));
             }
