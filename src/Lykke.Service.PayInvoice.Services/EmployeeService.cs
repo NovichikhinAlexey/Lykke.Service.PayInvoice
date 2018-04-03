@@ -23,15 +23,20 @@ namespace Lykke.Service.PayInvoice.Services
             _employeeRepository = employeeRepository;
             _log = log;
         }
-        
-        public async Task<IReadOnlyList<Employee>> GetAsync(string merchantId)
+
+        public Task<IReadOnlyList<Employee>> GetAllAsync()
         {
-            return await _employeeRepository.GetAsync(merchantId);
+            return _employeeRepository.GetAsync();
         }
 
-        public async Task<Employee> GetAsync(string merchantId, string employeeId)
+        public Task<Employee> GetByIdAsync(string employeeId)
         {
-            return await _employeeRepository.GetAsync(merchantId, employeeId);
+            return _employeeRepository.GetByIdAsync(employeeId);
+        }
+
+        public Task<IReadOnlyList<Employee>> GetByMerchantIdAsync(string merchantId)
+        {
+            return _employeeRepository.GetByMerchantIdAsync(merchantId);
         }
 
         public async Task<Employee> AddAsync(Employee employee)
@@ -51,7 +56,7 @@ namespace Lykke.Service.PayInvoice.Services
 
         public async Task UpdateAsync(Employee employee)
         {
-            Employee existingEmployee = await _employeeRepository.GetAsync(employee.MerchantId, employee.Id);
+            Employee existingEmployee = await _employeeRepository.GetByIdAsync(employee.Id);
             
             if(existingEmployee == null)
                 throw new EmployeeNotFoundException();
@@ -62,13 +67,12 @@ namespace Lykke.Service.PayInvoice.Services
                 employee.ToContext().ToJson(), "Employee updated.");
         }
 
-        public async Task DeleteAsync(string merchantId, string employeeId)
+        public async Task DeleteAsync(string employeeId)
         {
-            await _employeeRepository.DeleteAsync(merchantId, employeeId);
+            await _employeeRepository.DeleteAsync(employeeId);
             
             await _log.WriteInfoAsync(nameof(EmployeeService), nameof(AddAsync),
-                merchantId.ToContext(nameof(merchantId))
-                    .ToContext(nameof(employeeId), employeeId)
+                employeeId.ToContext(nameof(employeeId))
                     .ToJson(), "Employee deleted.");
         }
     }

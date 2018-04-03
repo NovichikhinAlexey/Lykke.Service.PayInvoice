@@ -36,8 +36,7 @@ namespace Lykke.Service.PayInvoice
             CreateMap<Employee, EmployeeModel>(MemberList.Source);
 
             CreateMap<CreateEmployeeModel, Employee>(MemberList.Destination)
-                .ForMember(dest => dest.Id, opt => opt.Ignore())
-                .ForMember(dest => dest.MerchantId, opt => opt.Ignore());
+                .ForMember(dest => dest.Id, opt => opt.Ignore());
         }
     }
 }

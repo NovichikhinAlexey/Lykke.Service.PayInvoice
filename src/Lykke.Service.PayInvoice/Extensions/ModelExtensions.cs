@@ -12,7 +12,18 @@ namespace Lykke.Service.PayInvoice.Extensions
             return new Dictionary<string, string>()
                 .ToContext(nameof(model.Email), model.Email.SanitizeEmail())
                 .ToContext(nameof(model.FirstName), model.FirstName)
-                .ToContext(nameof(model.LastName), model.LastName);
+                .ToContext(nameof(model.FirstName), model.LastName)
+                .ToContext(nameof(model.LastName), model.MerchantId);
+        }
+
+        public static IDictionary<string, string> ToContext(this UpdateEmployeeModel model)
+        {
+            return new Dictionary<string, string>()
+                .ToContext(nameof(model.FirstName), model.EmployeeId)
+                .ToContext(nameof(model.Email), model.Email.SanitizeEmail())
+                .ToContext(nameof(model.FirstName), model.FirstName)
+                .ToContext(nameof(model.LastName), model.LastName)
+                .ToContext(nameof(model.LastName), model.MerchantId);
         }
     }
 }
