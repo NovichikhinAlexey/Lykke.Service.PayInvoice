@@ -8,12 +8,12 @@ namespace Lykke.Service.PayInvoice.Services
     {
         public static InvoiceStatus Convert(
             PayInternal.Contract.PaymentRequest.PaymentRequestStatus status,
-            PayInternal.Contract.PaymentRequest.PaymentRequestErrorType error)
+            PayInternal.Contract.PaymentRequest.PaymentRequestProcessingError error)
         {
-            return Convert((PaymentRequestStatus) status, (PaymentRequestErrorType) error);
+            return Convert((PaymentRequestStatus) status, (PaymentRequestProcessingError) error);
         }
         
-        public static InvoiceStatus Convert(PaymentRequestStatus status, PaymentRequestErrorType error)
+        public static InvoiceStatus Convert(PaymentRequestStatus status, PaymentRequestProcessingError error)
         {
             switch (status)
             {
@@ -44,18 +44,19 @@ namespace Lykke.Service.PayInvoice.Services
                 case PaymentRequestStatus.Error:
                     switch (error)
                     {
-                        case PaymentRequestErrorType.PaymentExpired:
+                        case PaymentRequestProcessingError.PaymentExpired:
                             return InvoiceStatus.LatePaid;
-                        case PaymentRequestErrorType.PaymentAmountBelow:
+                        case PaymentRequestProcessingError.PaymentAmountBelow:
                             return InvoiceStatus.Underpaid;
-                        case PaymentRequestErrorType.PaymentAmountAbove:
+                        case PaymentRequestProcessingError.PaymentAmountAbove:
                             return InvoiceStatus.Overpaid;
-                        case PaymentRequestErrorType.RefundNotConfirmed:
+                        case PaymentRequestProcessingError.RefundNotConfirmed:
                             return InvoiceStatus.NotConfirmed;
                         //case PaymentRequestErrorType.InvalidAddress:
                         //    return InvoiceStatus.InvalidAddress;
-                        //case PaymentRequestErrorType.InternalError:
-                        //    return InvoiceStatus.InternalError;
+                        case PaymentRequestProcessingError.UnknownPayment:
+                        case PaymentRequestProcessingError.UnknownRefund:
+                            return InvoiceStatus.InternalError;
                         default:
                             throw new Exception($"Unknown payment request error '{error}'");
                     }

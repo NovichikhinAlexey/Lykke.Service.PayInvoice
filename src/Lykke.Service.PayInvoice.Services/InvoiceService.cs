@@ -172,7 +172,7 @@ namespace Lykke.Service.PayInvoice.Services
             if (invoice == null)
                 throw new InvoiceNotFoundException();
 
-            InvoiceStatus status = StatusConverter.Convert(message.Status, message.Error);
+            InvoiceStatus status = StatusConverter.Convert(message.Status, message.ProcessingError);
 
             if (invoice.Status != status)
             {
@@ -211,7 +211,7 @@ namespace Lykke.Service.PayInvoice.Services
             MerchantModel merchant =
                 await _payInternalClient.GetMerchantByIdAsync(invoice.MerchantId);
 
-            InvoiceStatus invoiceStatus = StatusConverter.Convert(paymentRequestDetails.Status, paymentRequestDetails.Error);
+            InvoiceStatus invoiceStatus = StatusConverter.Convert(paymentRequestDetails.Status, paymentRequestDetails.ProcessingError);
 
             if (invoice.Status != invoiceStatus)
             {

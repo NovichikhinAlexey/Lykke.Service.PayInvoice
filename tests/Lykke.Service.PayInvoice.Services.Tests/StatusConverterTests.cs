@@ -12,7 +12,7 @@ namespace Lykke.Service.PayInvoice.Services.Tests
         public void Convert_PaymentRequest_Contract_Status_To_PaymentRequest_Model_Status_OK()
         {
             // arrange
-            var error = PaymentRequestErrorType.PaymentExpired;
+            var error = PaymentRequestProcessingError.PaymentExpired;
 
             var values = Enum.GetValues(typeof(PaymentRequestStatus))
                 .Cast<PaymentRequestStatus>()
