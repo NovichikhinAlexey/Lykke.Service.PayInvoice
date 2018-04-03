@@ -54,8 +54,9 @@ namespace Lykke.Service.PayInvoice.Services
                             return InvoiceStatus.NotConfirmed;
                         //case PaymentRequestErrorType.InvalidAddress:
                         //    return InvoiceStatus.InvalidAddress;
-                        //case PaymentRequestErrorType.InternalError:
-                        //    return InvoiceStatus.InternalError;
+                        case PaymentRequestProcessingError.UnknownPayment:
+                        case PaymentRequestProcessingError.UnknownRefund:
+                            return InvoiceStatus.InternalError;
                         default:
                             throw new Exception($"Unknown payment request error '{error}'");
                     }
