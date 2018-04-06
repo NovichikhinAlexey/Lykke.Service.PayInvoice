@@ -292,5 +292,24 @@ namespace Lykke.Service.PayInvoice.Controllers
 
             return NoContent();
         }
+
+        /// <summary>
+        /// Returns invoice history.
+        /// </summary>
+        /// <param name="invoiceId">The invoice id.</param>
+        /// <returns>A collection of invoice history items.</returns>
+        /// <response code="200">A collection of invoice history items.</response>
+        [HttpGet]
+        [Route("invoices/{invoiceId}/history")]
+        [SwaggerOperation("InvoicesGetHistory")]
+        [ProducesResponseType(typeof(IEnumerable<HistoryItemModel>), (int)HttpStatusCode.OK)]
+        public async Task<IActionResult> GetHistoryAsync(string invoiceId)
+        {
+            IReadOnlyList<HistoryItem> history = await _invoiceService.GetHistoryAsync(invoiceId);
+
+            var model = Mapper.Map<List<HistoryItemModel>>(history);
+
+            return Ok(model);
+        }
     }
 }

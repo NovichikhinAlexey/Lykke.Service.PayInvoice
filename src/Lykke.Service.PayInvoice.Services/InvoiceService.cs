@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
 using Common;
@@ -22,6 +23,7 @@ namespace Lykke.Service.PayInvoice.Services
         private readonly IInvoiceRepository _invoiceRepository;
         private readonly IFileInfoRepository _fileInfoRepository;
         private readonly IFileRepository _fileRepository;
+        private readonly IHistoryRepository _historyRepository;
         private readonly IPayInternalClient _payInternalClient;
         private readonly ILog _log;
 
@@ -29,12 +31,14 @@ namespace Lykke.Service.PayInvoice.Services
             IInvoiceRepository invoiceRepository,
             IFileInfoRepository fileInfoRepository,
             IFileRepository fileRepository,
+            IHistoryRepository historyRepository,
             IPayInternalClient payInternalClient,
             ILog log)
         {
             _invoiceRepository = invoiceRepository;
             _fileInfoRepository = fileInfoRepository;
             _fileRepository = fileRepository;
+            _historyRepository = historyRepository;
             _payInternalClient = payInternalClient;
             _log = log;
         }
@@ -53,7 +57,12 @@ namespace Lykke.Service.PayInvoice.Services
         {
             return await _invoiceRepository.FindByIdAsync(invoiceId);
         }
-        
+
+        public Task<IReadOnlyList<HistoryItem>> GetHistoryAsync(string invoiceId)
+        {
+            return _historyRepository.GetByInvoiceIdAsync(invoiceId);
+        }
+
         public async Task<Invoice> CreateDraftAsync(Invoice invoice)
         {
             invoice.Status = InvoiceStatus.Draft;
@@ -63,6 +72,8 @@ namespace Lykke.Service.PayInvoice.Services
 
             await _log.WriteInfoAsync(nameof(InvoiceService), nameof(CreateDraftAsync),
                 invoice.ToContext().ToJson(), "Invoice draft created");
+
+            await WriteHistory(createdInvoice, "Invoice draft created");
 
             return createdInvoice;
         }
@@ -84,6 +95,8 @@ namespace Lykke.Service.PayInvoice.Services
 
             await _log.WriteInfoAsync(nameof(InvoiceService), nameof(UpdateDraftAsync),
                 invoice.ToContext().ToJson(), "Invoice draft updated");
+
+            await WriteHistory(invoice, "Invoice draft updated");
         }
 
         public async Task<Invoice> CreateAsync(Invoice invoice)
@@ -93,12 +106,13 @@ namespace Lykke.Service.PayInvoice.Services
             invoice.Status = InvoiceStatus.Unpaid;
             invoice.CreatedDate = DateTime.UtcNow;
             invoice.PaymentRequestId = paymentRequest.Id;
-            invoice.WalletAddress = paymentRequest.WalletAddress;
 
             Invoice createdInvoice = await _invoiceRepository.InsertAsync(invoice);
 
             await _log.WriteInfoAsync(nameof(InvoiceService), nameof(CreateAsync),
                 invoice.ToContext().ToJson(), "Invoice created");
+
+            await WriteHistory(createdInvoice, "Invoice created");
 
             return createdInvoice;
         }
@@ -118,13 +132,14 @@ namespace Lykke.Service.PayInvoice.Services
             invoice.Status = InvoiceStatus.Unpaid;
             invoice.CreatedDate = DateTime.UtcNow;
             invoice.PaymentRequestId = paymentRequest.Id;
-            invoice.WalletAddress = paymentRequest.WalletAddress;
             invoice.CreatedDate = sourceInvoice.CreatedDate;
 
             await _invoiceRepository.UpdateAsync(invoice);
 
             await _log.WriteInfoAsync(nameof(InvoiceService), nameof(CreateFromDraftAsync),
                 invoice.ToContext().ToJson(), "Invoice created from draft");
+
+            await WriteHistory(invoice, "Invoice created from draft");
 
             return invoice;
         }
@@ -150,6 +165,8 @@ namespace Lykke.Service.PayInvoice.Services
 
                 await _log.WriteInfoAsync(nameof(InvoiceService), nameof(DeleteAsync),
                     invoice.ToContext().ToJson(), "Invoice deleted.");
+
+                await _historyRepository.DeleteAsync(invoiceId);
             }
             else if (invoice.Status == InvoiceStatus.Unpaid)
             {
@@ -157,6 +174,10 @@ namespace Lykke.Service.PayInvoice.Services
 
                 await _log.WriteInfoAsync(nameof(InvoiceService), nameof(DeleteAsync),
                     invoice.ToContext().ToJson(), "Invoice removed");
+
+                invoice.Status = InvoiceStatus.Removed;
+
+                await WriteHistory(invoice, "Invoice removed");
             }
             else
             {
@@ -174,16 +195,30 @@ namespace Lykke.Service.PayInvoice.Services
 
             InvoiceStatus status = StatusConverter.Convert(message.Status, message.ProcessingError);
 
-            if (invoice.Status != status)
-            {
-                await _invoiceRepository.SetStatusAsync(invoice.MerchantId, invoice.Id, status);
+            if (invoice.Status == status)
+                return;
 
-                await _log.WriteInfoAsync(nameof(InvoiceService), nameof(UpdateAsync),
-                    invoice.Id.ToContext(nameof(invoice.Id))
-                        .ToContext(nameof(status), status)
-                        .ToJson(),
-                    "Status updated.");
-            }
+            await _invoiceRepository.SetStatusAsync(invoice.MerchantId, invoice.Id, status);
+
+            await _log.WriteInfoAsync(nameof(InvoiceService), nameof(UpdateAsync),
+                invoice.Id.ToContext(nameof(invoice.Id))
+                    .ToContext(nameof(status), status)
+                    .ToJson(), "Status updated.");
+
+            invoice.Status = status;
+
+            var history = Mapper.Map<HistoryItem>(invoice);
+            history.PaidAmount = message.PaidAmount;
+            history.ExchangeRate = message.Order.ExchangeRate;
+            history.SourceWalletAddresses = message.Transactions
+                .SelectMany(o => o.SourceWalletAddresses)
+                .Distinct()
+                .ToList();
+            history.PaidDate = message.PaidDate;
+            history.Reason = "Payment request updated";
+            history.Date = DateTime.UtcNow;
+
+            await _historyRepository.InsertAsync(history);
         }
 
         public async Task<InvoiceDetails> CheckoutAsync(string invoiceId)
@@ -222,7 +257,6 @@ namespace Lykke.Service.PayInvoice.Services
 
             var invoiceDetails = Mapper.Map<InvoiceDetails>(invoice);
 
-            invoiceDetails.WalletAddress = paymentRequest.WalletAddress;
             invoiceDetails.PaymentAmount = paymentRequestDetails.Order.PaymentAmount;
             invoiceDetails.OrderDueDate = paymentRequestDetails.Order.DueDate;
             invoiceDetails.OrderCreatedDate = paymentRequestDetails.Order.CreatedDate;
@@ -248,6 +282,15 @@ namespace Lykke.Service.PayInvoice.Services
                     PaymentAssetId = invoice.PaymentAssetId,
                     SettlementAssetId = invoice.SettlementAssetId
                 });
+        }
+
+        private async Task WriteHistory(Invoice invoice, string reason)
+        {
+            var history = Mapper.Map<HistoryItem>(invoice);
+            history.Reason = reason;
+            history.Date = DateTime.UtcNow;
+            
+            await _historyRepository.InsertAsync(history);
         }
     }
 }

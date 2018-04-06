@@ -133,6 +133,11 @@ namespace Lykke.Service.PayInvoice.Client
             await _runner.RunAsync(() => _invoicesApi.DeleteAsync(merchantId, invoiceId));
         }
 
+        public async Task<HistoryItemModel> GetInvoiceHistoryAsync(string invoiceId)
+        {
+            return await _runner.RunAsync(() => _invoicesApi.GetHistoryAsync(invoiceId));
+        }
+
         public async Task<IEnumerable<FileInfoModel>> GetFilesAsync(string invoiceId)
         {
             return await _runner.RunAsync(() => _filesApi.GetAllAsync(invoiceId));

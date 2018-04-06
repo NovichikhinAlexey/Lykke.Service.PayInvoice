@@ -58,11 +58,6 @@ namespace Lykke.Service.PayInvoice.Core.Domain
         public string PaymentRequestId { get; set; }
 
         /// <summary>
-        /// Gets or sets the wallet address.
-        /// </summary>
-        public string WalletAddress { get; set; }
-
-        /// <summary>
         /// The identifier of merchant.
         /// </summary>
         public string MerchantId { get; set; }

@@ -70,7 +70,14 @@ namespace Lykke.Service.PayInvoice.Client
         /// <param name="merchantId">The merchant id.</param>
         /// <param name="invoiceId">The invoice id.</param>
         Task DeleteInvoiceAsync(string merchantId, string invoiceId);
-        
+
+        /// <summary>
+        /// Returns invoice history.
+        /// </summary>
+        /// <param name="invoiceId">The invoice id.</param>
+        /// <returns>A collection of invoice history items.</returns>
+        Task<HistoryItemModel> GetInvoiceHistoryAsync(string invoiceId);
+
         /// <summary>
         /// Returns a collection of invoice files.
         /// </summary>

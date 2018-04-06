@@ -13,6 +13,8 @@ namespace Lykke.Service.PayInvoice.Core.Services
 
         Task<Invoice> GetByIdAsync(string invoiceId);
 
+        Task<IReadOnlyList<HistoryItem>> GetHistoryAsync(string invoiceId);
+
         Task<Invoice> CreateDraftAsync(Invoice invoice);
 
         Task UpdateDraftAsync(Invoice invoice);

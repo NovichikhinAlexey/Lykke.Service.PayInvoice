@@ -33,5 +33,8 @@ namespace Lykke.Service.PayInvoice.Client.Api
         
         [Post("/api/invoices/{invoiceId}")]
         Task<InvoiceDetailsModel> CheckoutAsync(string invoiceId);
+
+        [Post("/api/invoices/{invoiceId}/history")]
+        Task<HistoryItemModel> GetHistoryAsync(string invoiceId);
     }
 }
