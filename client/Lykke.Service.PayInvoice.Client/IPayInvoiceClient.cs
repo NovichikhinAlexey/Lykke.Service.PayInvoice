@@ -76,7 +76,7 @@ namespace Lykke.Service.PayInvoice.Client
         /// </summary>
         /// <param name="invoiceId">The invoice id.</param>
         /// <returns>A collection of invoice history items.</returns>
-        Task<HistoryItemModel> GetInvoiceHistoryAsync(string invoiceId);
+        Task<IReadOnlyList<HistoryItemModel>> GetInvoiceHistoryAsync(string invoiceId);
 
         /// <summary>
         /// Returns a collection of invoice files.
