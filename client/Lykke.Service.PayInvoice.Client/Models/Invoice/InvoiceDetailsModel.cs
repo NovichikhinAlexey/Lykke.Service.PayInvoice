@@ -75,11 +75,6 @@ namespace Lykke.Service.PayInvoice.Client.Models.Invoice
         public DateTime CreatedDate { get; set; }
 
         /// <summary>
-        /// Gets or sets payment request wallet address.
-        /// </summary>
-        public string WalletAddress { get; set; }
-
-        /// <summary>
         /// Gets or sets payment amount.
         /// </summary>
         public decimal PaymentAmount { get; set; }
