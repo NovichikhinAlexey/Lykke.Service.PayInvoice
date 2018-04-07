@@ -15,61 +15,6 @@ namespace Lykke.Service.PayInvoice.Client
         /// <param name="invoiceId">The invoice id.</param>
         /// <returns>The invoice.</returns>
         Task<InvoiceModel> GetInvoiceAsync(string invoiceId);
-        
-        /// <summary>
-        /// Returns checkout invoice details.
-        /// </summary>
-        /// <returns>The invoice details.</returns>
-        Task<InvoiceDetailsModel> CheckoutInvoiceAsync(string invoiceId);
-        
-        /// <summary>
-        /// Returns an invoice.
-        /// </summary>
-        /// <returns>The invoice.</returns>
-        Task<InvoiceModel> GetInvoiceAsync(string merchantId, string invoiceId);
-        
-        /// <summary>
-        /// Returns invoices by merchant id.
-        /// </summary>
-        /// <returns>The collection of invoices.</returns>
-        Task<IEnumerable<InvoiceModel>> GetInvoicesAsync(string merchantId);
-        
-        /// <summary>
-        /// Creates draft invoice.
-        /// </summary>
-        /// <param name="merchantId">The merchant id.</param>
-        /// <param name="model">The model that describe an invoice.</param>
-        Task<InvoiceModel> CreateDraftInvoiceAsync(string merchantId, CreateDraftInvoiceModel model);
-        
-        /// <summary>
-        /// Updates draft invoice.
-        /// </summary>
-        /// <param name="merchantId">The merchant id.</param>
-        /// <param name="invoiceId">The invoice id.</param>
-        /// <param name="model">The model that describe an invoice.</param>
-        Task UpdateDraftInvoiceAsync(string merchantId, string invoiceId, CreateDraftInvoiceModel model);
-        
-        /// <summary>
-        /// Creates an invoice.
-        /// </summary>
-        /// <param name="merchantId">The invoice id.</param>
-        /// <param name="model">The model that describe an invoice.</param>
-        Task<InvoiceModel> CreateInvoiceAsync(string merchantId, CreateInvoiceModel model);
-        
-        /// <summary>
-        /// Updates an invoice.
-        /// </summary>
-        /// <param name="merchantId">The merchant id.</param>
-        /// <param name="invoiceId">The invoice id.</param>
-        /// <param name="model">The model that describe an invoice.</param>
-        Task<InvoiceModel> CreateInvoiceFromDraftAsync(string merchantId, string invoiceId, CreateInvoiceModel model);
-        
-        /// <summary>
-        /// Deletes an invoice by specified id.
-        /// </summary>
-        /// <param name="merchantId">The merchant id.</param>
-        /// <param name="invoiceId">The invoice id.</param>
-        Task DeleteInvoiceAsync(string merchantId, string invoiceId);
 
         /// <summary>
         /// Returns invoice history.
@@ -77,6 +22,45 @@ namespace Lykke.Service.PayInvoice.Client
         /// <param name="invoiceId">The invoice id.</param>
         /// <returns>A collection of invoice history items.</returns>
         Task<IReadOnlyList<HistoryItemModel>> GetInvoiceHistoryAsync(string invoiceId);
+
+        /// <summary>
+        /// Creates an invoice.
+        /// </summary>
+        /// <param name="model">The model that describe an invoice.</param>
+        /// <returns>Created invoice.</returns>
+        Task<InvoiceModel> CreateInvoiceAsync(CreateInvoiceModel model);
+
+        /// <summary>
+        /// Updates an invoice from draft.
+        /// </summary>
+        /// <param name="invoiceId">The invoice id.</param>
+        /// <returns>Created invoice.</returns>
+        Task<InvoiceModel> CreateInvoiceAsync(string invoiceId);
+        
+        /// <summary>
+        /// Deletes an invoice by specified id.
+        /// </summary>
+        /// <param name="invoiceId">The invoice id.</param>
+        Task DeleteInvoiceAsync(string invoiceId);
+
+        /// <summary>
+        /// Returns invoices by merchant id.
+        /// </summary>
+        /// <returns>The collection of invoices.</returns>
+        Task<IEnumerable<InvoiceModel>> GetMerchantInvoicesAsync(string merchantId);
+
+        /// <summary>
+        /// Creates draft invoice.
+        /// </summary>
+        /// <param name="model">The model that describe an invoice.</param>
+        /// <returns>Created draft invoice.</returns>
+        Task<InvoiceModel> CreateDraftInvoiceAsync(CreateInvoiceModel model);
+
+        /// <summary>
+        /// Updates draft invoice.
+        /// </summary>
+        /// <param name="model">The model that describe an invoice.</param>
+        Task UpdateDraftInvoiceAsync(UpdateInvoiceModel model);
 
         /// <summary>
         /// Returns a collection of invoice files.

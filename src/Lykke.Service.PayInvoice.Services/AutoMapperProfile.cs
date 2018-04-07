@@ -7,8 +7,6 @@ namespace Lykke.Service.PayInvoice.Services
     {
         public AutoMapperProfile()
         {
-            CreateMap<Invoice, InvoiceDetails>(MemberList.Source);
-
             CreateMap<Invoice, HistoryItem>(MemberList.Source)
                 .ForMember(dest => dest.InvoiceId, opt => opt.MapFrom(src => src.Id))
                 .ForMember(dest => dest.SettlementAmount, opt => opt.MapFrom(src => src.Amount))

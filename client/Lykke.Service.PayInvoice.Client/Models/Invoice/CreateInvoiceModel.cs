@@ -43,6 +43,11 @@ namespace Lykke.Service.PayInvoice.Client.Models.Invoice
         public string EmployeeId { get; set; }
 
         /// <summary>
+        /// Gets or sets merchant id.
+        /// </summary>
+        public string MerchantId { get; set; }
+
+        /// <summary>
         /// Gets or sets invoice due date.
         /// </summary>
         public DateTime DueDate { get; set; }

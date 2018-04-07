@@ -21,12 +21,10 @@ namespace Lykke.Service.PayInvoice.Core.Services
 
         Task<Invoice> CreateAsync(Invoice invoice);
 
-        Task<Invoice> CreateFromDraftAsync(Invoice invoice);
+        Task<Invoice> CreateFromDraftAsync(string invoiceId);
 
         Task UpdateAsync(PaymentRequestDetailsMessage message);
 
-        Task<InvoiceDetails> CheckoutAsync(string invoiceId);
-
-        Task DeleteAsync(string merchantId, string invoiceId);
+        Task DeleteAsync(string invoiceId);
     }
 }

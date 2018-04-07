@@ -41,6 +41,9 @@
     <ProjectReference Include="..\Lykke.Service.PayInvoice.Services\Lykke.Service.PayInvoice.Services.csproj" />
   </ItemGroup>
   <ItemGroup>
+    <None Update="appsettings.Development.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="Dockerfile">
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
     </None>

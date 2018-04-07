@@ -6,7 +6,6 @@ using AutoMapper;
 using Common;
 using Common.Log;
 using Lykke.Service.PayInternal.Client;
-using Lykke.Service.PayInternal.Client.Models.Merchant;
 using Lykke.Service.PayInternal.Client.Models.PaymentRequest;
 using Lykke.Service.PayInternal.Contract.PaymentRequest;
 using Lykke.Service.PayInvoice.Core.Domain;
@@ -117,23 +116,21 @@ namespace Lykke.Service.PayInvoice.Services
             return createdInvoice;
         }
 
-        public async Task<Invoice> CreateFromDraftAsync(Invoice invoice)
+        public async Task<Invoice> CreateFromDraftAsync(string invoiceId)
         {
-            Invoice sourceInvoice = await _invoiceRepository.GetAsync(invoice.MerchantId, invoice.Id);
+            Invoice invoice = await _invoiceRepository.FindByIdAsync(invoiceId);
 
-            if (sourceInvoice == null)
-                throw new InvoiceNotFoundException(invoice.Id);
+            if (invoice == null)
+                throw new InvoiceNotFoundException(invoiceId);
 
-            if (sourceInvoice.Status != InvoiceStatus.Draft)
+            if (invoice.Status != InvoiceStatus.Draft)
                 throw new InvalidOperationException("Invoice status is invalid.");
 
             PaymentRequestModel paymentRequest = await CreatePaymentRequestAsync(invoice);
 
             invoice.Status = InvoiceStatus.Unpaid;
-            invoice.CreatedDate = DateTime.UtcNow;
             invoice.PaymentRequestId = paymentRequest.Id;
-            invoice.CreatedDate = sourceInvoice.CreatedDate;
-
+            
             await _invoiceRepository.UpdateAsync(invoice);
 
             await _log.WriteInfoAsync(nameof(InvoiceService), nameof(CreateFromDraftAsync),
@@ -144,16 +141,16 @@ namespace Lykke.Service.PayInvoice.Services
             return invoice;
         }
 
-        public async Task DeleteAsync(string merchantId, string invoiceId)
+        public async Task DeleteAsync(string invoiceId)
         {
-            Invoice invoice = await _invoiceRepository.GetAsync(merchantId, invoiceId);
+            Invoice invoice = await _invoiceRepository.FindByIdAsync(invoiceId);
 
             if (invoice == null)
                 return;
 
             if (invoice.Status == InvoiceStatus.Draft)
             {
-                await _invoiceRepository.DeleteAsync(merchantId, invoiceId);
+                await _invoiceRepository.DeleteAsync(invoice.MerchantId, invoice.Id);
 
                 IEnumerable<FileInfo> fileInfos = await _fileInfoRepository.GetAsync(invoiceId);
 
@@ -170,7 +167,7 @@ namespace Lykke.Service.PayInvoice.Services
             }
             else if (invoice.Status == InvoiceStatus.Unpaid)
             {
-                await _invoiceRepository.SetStatusAsync(merchantId, invoiceId, InvoiceStatus.Removed);
+                await _invoiceRepository.SetStatusAsync(invoice.MerchantId, invoice.Id, InvoiceStatus.Removed);
 
                 await _log.WriteInfoAsync(nameof(InvoiceService), nameof(DeleteAsync),
                     invoice.ToContext().ToJson(), "Invoice removed");
@@ -219,54 +216,6 @@ namespace Lykke.Service.PayInvoice.Services
             history.Date = DateTime.UtcNow;
 
             await _historyRepository.InsertAsync(history);
-        }
-
-        public async Task<InvoiceDetails> CheckoutAsync(string invoiceId)
-        {
-            Invoice invoice = await _invoiceRepository.FindByIdAsync(invoiceId);
-
-            if (invoice == null)
-                throw new InvoiceNotFoundException(invoiceId);
-
-            if (invoice.DueDate < DateTime.UtcNow)
-                throw new InvalidOperationException("Invoice expired.");
-
-            if (invoice.Status == InvoiceStatus.Draft || invoice.Status == InvoiceStatus.Removed)
-                throw new InvalidOperationException("Invoice status is invalid.");
-
-            PaymentRequestModel paymentRequest =
-                await _payInternalClient.GetPaymentRequestAsync(invoice.MerchantId, invoice.PaymentRequestId);
-
-            if (paymentRequest == null)
-                throw new InvalidOperationException("Payment request does not exist.");
-
-            PaymentRequestDetailsModel paymentRequestDetails =
-                await _payInternalClient.ChechoutAsync(invoice.MerchantId, invoice.PaymentRequestId);
-
-            MerchantModel merchant =
-                await _payInternalClient.GetMerchantByIdAsync(invoice.MerchantId);
-
-            InvoiceStatus invoiceStatus = StatusConverter.Convert(paymentRequestDetails.Status, paymentRequestDetails.ProcessingError);
-
-            if (invoice.Status != invoiceStatus)
-            {
-                await _invoiceRepository.SetStatusAsync(invoice.MerchantId, invoiceId, invoiceStatus);
-
-                invoice = await _invoiceRepository.GetAsync(invoice.MerchantId, invoice.Id);
-            }
-
-            var invoiceDetails = Mapper.Map<InvoiceDetails>(invoice);
-
-            invoiceDetails.PaymentAmount = paymentRequestDetails.Order.PaymentAmount;
-            invoiceDetails.OrderDueDate = paymentRequestDetails.Order.DueDate;
-            invoiceDetails.OrderCreatedDate = paymentRequestDetails.Order.CreatedDate;
-            invoiceDetails.DeltaSpread = merchant.DeltaSpread;
-            invoiceDetails.MarkupPercent = paymentRequestDetails.MarkupPercent;
-            invoiceDetails.ExchangeRate = paymentRequestDetails.Order.ExchangeRate;
-            invoiceDetails.PaidAmount = (decimal)paymentRequestDetails.PaidAmount;
-            invoiceDetails.PaidDate = paymentRequestDetails.PaidDate;
-
-            return invoiceDetails;
         }
 
         private async Task<PaymentRequestModel> CreatePaymentRequestAsync(Invoice invoice)

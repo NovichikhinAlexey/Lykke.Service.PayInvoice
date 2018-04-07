@@ -24,7 +24,10 @@ namespace Lykke.Service.PayInvoice.Models.Invoice
         public string ClientEmail { get; set; }
         
         public string EmployeeId { get; set; }
-        
+
+        [Required]
+        public string MerchantId { get; set; }
+
         [Required]
         public DateTime DueDate { get; set; }
 

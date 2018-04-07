@@ -3,10 +3,15 @@
 namespace Lykke.Service.PayInvoice.Client.Models.Invoice
 {
     /// <summary>
-    /// Represents a draft invoice creation details.
+    /// Represents an invoice update details.
     /// </summary>
-    public class CreateDraftInvoiceModel
+    public class UpdateInvoiceModel
     {
+        /// <summary>
+        /// Gets or sets invoice id.
+        /// </summary>
+        public string Id { get; set; }
+
         /// <summary>
         /// Gets or sets invoice number.
         /// </summary>
@@ -41,6 +46,11 @@ namespace Lykke.Service.PayInvoice.Client.Models.Invoice
         /// Gets or sets employee id created invoice.
         /// </summary>
         public string EmployeeId { get; set; }
+
+        /// <summary>
+        /// Gets or sets merchant id.
+        /// </summary>
+        public string MerchantId { get; set; }
 
         /// <summary>
         /// Gets or sets invoice due date.

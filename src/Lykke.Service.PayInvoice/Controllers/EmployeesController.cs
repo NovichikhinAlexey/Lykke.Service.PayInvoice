@@ -122,18 +122,14 @@ namespace Lykke.Service.PayInvoice.Controllers
             catch (EmployeeExistException exception)
             {
                 await _log.WriteWarningAsync(nameof(EmployeesController), nameof(AddAsync),
-                    model.ToContext()
-                        .ToContext(nameof(merchantId), merchantId)
-                        .ToJson(), exception.Message);
+                    model.ToContext(), exception.Message);
                 
                 return BadRequest(ErrorResponse.Create(exception.Message));
             }
             catch (Exception exception)
             {
                 await _log.WriteErrorAsync(nameof(EmployeesController), nameof(AddAsync),
-                    model.ToContext()
-                        .ToContext(nameof(merchantId), merchantId)
-                        .ToJson(), exception);
+                    model.ToContext(), exception);
 
                 throw;
             }
@@ -170,19 +166,14 @@ namespace Lykke.Service.PayInvoice.Controllers
             catch (EmployeeNotFoundException exception)
             {
                 await _log.WriteWarningAsync(nameof(EmployeesController), nameof(UpdateAsync),
-                    model.ToContext()
-                        .ToContext(nameof(merchantId), merchantId)
-                        .ToJson(), exception.Message);
+                    model.ToContext(), exception.Message);
                 
                 return BadRequest(ErrorResponse.Create(exception.Message));
             }
             catch (Exception exception)
             {
                 await _log.WriteErrorAsync(nameof(EmployeesController), nameof(UpdateAsync),
-                    model.ToContext()
-                        .ToContext(nameof(merchantId), merchantId)
-                        .ToContext(nameof(employeeId), employeeId)
-                        .ToJson(), exception);
+                    model.ToContext(), exception);
 
                 throw;
             }
