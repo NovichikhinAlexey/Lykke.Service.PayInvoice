@@ -208,6 +208,7 @@ namespace Lykke.Service.PayInvoice.Services
 
             var history = Mapper.Map<HistoryItem>(invoice);
             history.PaidAmount = message.PaidAmount;
+            history.PaymentAmount = message.Order.PaymentAmount;
             history.ExchangeRate = message.Order.ExchangeRate;
             history.SourceWalletAddresses = message.Transactions
                 .SelectMany(o => o.SourceWalletAddresses)
