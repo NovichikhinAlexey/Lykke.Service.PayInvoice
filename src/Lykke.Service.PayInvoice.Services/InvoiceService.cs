@@ -211,6 +211,8 @@ namespace Lykke.Service.PayInvoice.Services
                 .SelectMany(o => o.SourceWalletAddresses)
                 .Distinct()
                 .ToList();
+            history.RefundWalletAddress = message.Refund?.Address;
+            history.RefundAmount = message.Refund?.Amount ?? decimal.Zero;
             history.PaidDate = message.PaidDate;
             history.Reason = "Payment request updated";
             history.Date = DateTime.UtcNow;

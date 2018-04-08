@@ -84,6 +84,16 @@ namespace Lykke.Service.PayInvoice.Client.Models.Invoice
         public List<string> SourceWalletAddresses { get; set; }
 
         /// <summary>
+        /// The wallet address for refund.
+        /// </summary>
+        public string RefundWalletAddress { get; set; }
+
+        /// <summary>
+        /// The refund amount.
+        /// </summary>
+        public decimal RefundAmount { get; set; }
+
+        /// <summary>
         /// The invoice due date in UTC.
         /// </summary>
         public DateTime DueDate { get; set; }

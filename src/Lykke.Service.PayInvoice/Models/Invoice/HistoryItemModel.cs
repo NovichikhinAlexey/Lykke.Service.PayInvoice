@@ -39,6 +39,10 @@ namespace Lykke.Service.PayInvoice.Models.Invoice
 
         public List<string> SourceWalletAddresses { get; set; }
 
+        public string RefundWalletAddress { get; set; }
+
+        public decimal RefundAmount { get; set; }
+
         public DateTime DueDate { get; set; }
 
         public DateTime? PaidDate { get; set; }

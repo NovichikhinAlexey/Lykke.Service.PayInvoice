@@ -14,10 +14,11 @@ namespace Lykke.Service.PayInvoice.Repositories
         private decimal _settlementAmount;
         private decimal _paidAmount;
         private decimal _exchangeRate;
+        private decimal _refundAmount;
         private DateTime _dueDate;
         private DateTime? _paidDate;
         private DateTime _date;
-
+        
         public HistoryItemEntity()
         {
         }
@@ -88,6 +89,18 @@ namespace Lykke.Service.PayInvoice.Repositories
 
         [ValueSerializer(typeof(JsonStorageValueSerializer))]
         public List<string> SourceWalletAddresses { get; set; }
+
+        public string RefundWalletAddress { get; set; }
+
+        public decimal RefundAmount
+        {
+            get => _refundAmount;
+            set
+            {
+                _refundAmount = value;
+                MarkValueTypePropertyAsDirty(nameof(RefundAmount));
+            }
+        }
 
         public DateTime DueDate
         {
