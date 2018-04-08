@@ -5,7 +5,6 @@ using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using Lykke.Service.PayInvoice.Client.Api;
-using Lykke.Service.PayInvoice.Client.Models.Balances;
 using Lykke.Service.PayInvoice.Client.Models.Employee;
 using Lykke.Service.PayInvoice.Client.Models.File;
 using Lykke.Service.PayInvoice.Client.Models.Invoice;
@@ -23,7 +22,6 @@ namespace Lykke.Service.PayInvoice.Client
         private readonly IDraftsApi _draftsApi;
         private readonly IFilesApi _filesApi;
         private readonly IEmployeesApi _employeesApi;
-        private readonly IBalancesApi _balancesApi;
         private readonly ApiRunner _runner;
 
         public PayInvoiceClient(PayInvoiceServiceClientSettings settings)
@@ -51,7 +49,6 @@ namespace Lykke.Service.PayInvoice.Client
             _draftsApi = RestService.For<IDraftsApi>(_httpClient);
             _filesApi = RestService.For<IFilesApi>(_httpClient);
             _employeesApi = RestService.For<IEmployeesApi>(_httpClient);
-            _balancesApi = RestService.For<IBalancesApi>(_httpClient);
             _runner = new ApiRunner();
         }
 
@@ -157,11 +154,6 @@ namespace Lykke.Service.PayInvoice.Client
         public async Task DeleteEmployeeAsync(string merchantId, string employeeId)
         {
             await _runner.RunAsync(() => _employeesApi.DeleteAsync(merchantId, employeeId));
-        }
-
-        public async Task<BalanceModel> GetBalanceAsync(string merchantId, string assetId)
-        {
-            return await _runner.RunAsync(() => _balancesApi.GetAsync(merchantId, assetId));
         }
 
         public void Dispose()

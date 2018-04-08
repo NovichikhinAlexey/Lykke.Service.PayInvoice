@@ -13,8 +13,8 @@ namespace Lykke.Service.PayInvoice.Services
                 case PaymentRequestStatus.New:
                     return InvoiceStatus.Unpaid;
 
-                //case PaymentRequestStatus.Canceled:
-                //    return InvoiceStatus.Removed;
+                case PaymentRequestStatus.Cancelled:
+                    return InvoiceStatus.Removed;
 
                 case PaymentRequestStatus.InProcess:
                     return InvoiceStatus.InProgress;
