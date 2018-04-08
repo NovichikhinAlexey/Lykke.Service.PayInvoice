@@ -167,6 +167,8 @@ namespace Lykke.Service.PayInvoice.Services
             }
             else if (invoice.Status == InvoiceStatus.Unpaid)
             {
+                await _payInternalClient.CancelAsync(invoice.MerchantId, invoice.PaymentRequestId);
+
                 await _invoiceRepository.SetStatusAsync(invoice.MerchantId, invoice.Id, InvoiceStatus.Removed);
 
                 await _log.WriteInfoAsync(nameof(InvoiceService), nameof(DeleteAsync),
