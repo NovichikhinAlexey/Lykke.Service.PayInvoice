@@ -110,19 +110,28 @@ namespace Lykke.Service.PayInvoice.Controllers
                 return BadRequest(ErrorResponse.Create(exception.Message));
             }
         }
-        
+
         /// <summary>
         /// Deletes an invoice by specified id.
         /// </summary>
         /// <param name="invoiceId">The invoice id.</param>
         /// <response code="204">Invoice successfully deleted.</response>
+        /// <response code="400">Problem occured.</response>
         [HttpDelete]
         [Route("{invoiceId}")]
         [SwaggerOperation("InvoicesDelete")]
         [ProducesResponseType((int)HttpStatusCode.NoContent)]
+        [ProducesResponseType(typeof(ErrorResponse), (int)HttpStatusCode.BadRequest)]
         public async Task<IActionResult> DeleteAsync(string invoiceId)
         {
-            await _invoiceService.DeleteAsync(invoiceId);
+            try
+            {
+                await _invoiceService.DeleteAsync(invoiceId);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(ErrorResponse.Create(ex.Message));
+            }
 
             return NoContent();
         }

@@ -39,7 +39,7 @@ namespace Lykke.Service.PayInvoice.Services
             _fileRepository = fileRepository;
             _historyRepository = historyRepository;
             _payInternalClient = payInternalClient;
-            _log = log;
+            _log = log.CreateComponentScope(nameof(InvoiceService));
         }
 
         public async Task<IReadOnlyList<Invoice>> GetAsync(string merchantId)
@@ -167,8 +167,17 @@ namespace Lykke.Service.PayInvoice.Services
             }
             else if (invoice.Status == InvoiceStatus.Unpaid)
             {
-                await _payInternalClient.CancelAsync(invoice.MerchantId, invoice.PaymentRequestId);
-
+                try
+                {
+                    await _payInternalClient.CancelAsync(invoice.MerchantId, invoice.PaymentRequestId);
+                }
+                catch (Exception ex)
+                {
+                    const string message = "PaymentRequest is not cancelled";
+                    _log.WriteError(nameof(DeleteAsync), new {message, invoice}, ex);
+                    throw new InvalidOperationException(message, ex);
+                }
+                
                 await _invoiceRepository.SetStatusAsync(invoice.MerchantId, invoice.Id, InvoiceStatus.Removed);
 
                 await _log.WriteInfoAsync(nameof(InvoiceService), nameof(DeleteAsync),
