@@ -87,7 +87,7 @@ namespace Lykke.Service.PayInvoice.Repositories
 
         public string WalletAddress { get; set; }
 
-        [ValueSerializer(typeof(JsonStorageValueSerializer))]
+        [JsonValueSerializer]
         public List<string> SourceWalletAddresses { get; set; }
 
         public string RefundWalletAddress { get; set; }

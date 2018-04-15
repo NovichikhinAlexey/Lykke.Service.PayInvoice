@@ -8,6 +8,6 @@ namespace Lykke.Service.PayInvoice.Client.Api
     internal interface IMerchantsApi
     {
         [Get("/api/merchants/{merchantId}/invoices")]
-        Task<IEnumerable<InvoiceModel>> GetAllAsync(string merchantId);
+        Task<IReadOnlyList<InvoiceModel>> GetAllAsync(string merchantId);
     }
 }
