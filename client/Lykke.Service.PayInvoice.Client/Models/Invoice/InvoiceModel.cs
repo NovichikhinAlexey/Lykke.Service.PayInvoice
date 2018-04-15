@@ -55,11 +55,6 @@ namespace Lykke.Service.PayInvoice.Client.Models.Invoice
         public string PaymentRequestId { get; set; }
 
         /// <summary>
-        /// Gets or sets payment request wallet address.
-        /// </summary>
-        public string WalletAddress { get; set; }
-
-        /// <summary>
         /// Gets or sets merchant id.
         /// </summary>
         public string MerchantId { get; set; }

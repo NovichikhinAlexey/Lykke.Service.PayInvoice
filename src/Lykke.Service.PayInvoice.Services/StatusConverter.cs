@@ -1,18 +1,11 @@
 ﻿using System;
-using Lykke.Service.PayInternal.Client.Models.PaymentRequest;
+using Lykke.Service.PayInternal.Contract.PaymentRequest;
 using Lykke.Service.PayInvoice.Core.Domain;
 
 namespace Lykke.Service.PayInvoice.Services
 {
     public static class StatusConverter
     {
-        public static InvoiceStatus Convert(
-            PayInternal.Contract.PaymentRequest.PaymentRequestStatus status,
-            PayInternal.Contract.PaymentRequest.PaymentRequestProcessingError error)
-        {
-            return Convert((PaymentRequestStatus) status, (PaymentRequestProcessingError) error);
-        }
-        
         public static InvoiceStatus Convert(PaymentRequestStatus status, PaymentRequestProcessingError error)
         {
             switch (status)
@@ -20,8 +13,8 @@ namespace Lykke.Service.PayInvoice.Services
                 case PaymentRequestStatus.New:
                     return InvoiceStatus.Unpaid;
 
-                //case PaymentRequestStatus.Canceled:
-                //    return InvoiceStatus.Removed;
+                case PaymentRequestStatus.Cancelled:
+                    return InvoiceStatus.Removed;
 
                 case PaymentRequestStatus.InProcess:
                     return InvoiceStatus.InProgress;

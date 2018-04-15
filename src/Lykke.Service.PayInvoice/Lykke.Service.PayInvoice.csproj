@@ -17,12 +17,11 @@
   <ItemGroup>
     <PackageReference Include="Autofac.Extensions.DependencyInjection" Version="4.2.2" />
     <PackageReference Include="AutoMapper" Version="6.2.2" />
-    <PackageReference Include="Lykke.Common" Version="6.1.1" />
+    <PackageReference Include="Lykke.Common" Version="6.2.0" />
     <PackageReference Include="Lykke.Common.ApiLibrary" Version="1.4.0" />
     <PackageReference Include="Lykke.Logs" Version="3.6.2" />
     <PackageReference Include="Lykke.RabbitMqBroker" Version="7.0.0" />
-    <PackageReference Include="Lykke.Service.Balances.Client" Version="1.0.21" />
-    <PackageReference Include="Lykke.Service.PayInternal.Client" Version="1.0.62" />
+    <PackageReference Include="Lykke.Service.PayInternal.Client" Version="1.1.1" />
     <PackageReference Include="Lykke.SettingsReader" Version="2.2.0" />
     <PackageReference Include="Lykke.SlackNotification.AzureQueue" Version="2.0.2" />
     <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.2.1" />
@@ -41,6 +40,9 @@
     <ProjectReference Include="..\Lykke.Service.PayInvoice.Services\Lykke.Service.PayInvoice.Services.csproj" />
   </ItemGroup>
   <ItemGroup>
+    <None Update="appsettings.Development.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="Dockerfile">
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
     </None>
