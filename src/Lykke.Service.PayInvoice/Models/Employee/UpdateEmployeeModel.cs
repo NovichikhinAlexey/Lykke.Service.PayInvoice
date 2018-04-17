@@ -5,7 +5,7 @@ namespace Lykke.Service.PayInvoice.Models.Employee
     public class UpdateEmployeeModel
     {
         [Required]
-        public string EmployeeId { get; set; }
+        public string Id { get; set; }
 
         [Required]
         [EmailAddress]
@@ -19,5 +19,7 @@ namespace Lykke.Service.PayInvoice.Models.Employee
         
         [Required]
         public string MerchantId { get; set; }
+        [Required]
+        public bool IsBlocked { get; set; }
     }
 }

@@ -29,5 +29,9 @@
         /// The employee merchant id.
         /// </summary>
         public string MerchantId { get; set; }
+        /// <summary>
+        /// The employee block status
+        /// </summary>
+        public bool IsBlocked { get; set; }
     }
 }

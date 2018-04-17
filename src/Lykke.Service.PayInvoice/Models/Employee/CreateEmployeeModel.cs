@@ -16,5 +16,7 @@ namespace Lykke.Service.PayInvoice.Models.Employee
 
         [Required]
         public string MerchantId { get; set; }
+        [Required]
+        public bool IsBlocked { get; set; }
     }
 }
