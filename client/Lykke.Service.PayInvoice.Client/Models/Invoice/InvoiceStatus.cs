@@ -61,28 +61,18 @@
         Refunded,
 
         /// <summary>
-        /// Settlement is in progress.
-        /// </summary>
-        SettlementInProgress,
-
-        /// <summary>
-        /// Settlement successfully completed.
-        /// </summary>
-        Settled,
-
-        /// <summary>
         /// Transfer has not been confirmed.
         /// </summary>
         NotConfirmed,
 
         /// <summary>
-        /// Invalid address has been provided.
-        /// </summary>
-        InvalidAddress,
-
-        /// <summary>
         /// An unexpected error occurred during processing invoice.
         /// </summary>
-        InternalError
+        InternalError,
+
+        /// <summary>
+        /// Payment due date expired and no payment transactions detected
+        /// </summary>
+        PastDue
     }
 }

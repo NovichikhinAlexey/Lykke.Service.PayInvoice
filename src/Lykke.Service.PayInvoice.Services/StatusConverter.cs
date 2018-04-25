@@ -28,12 +28,6 @@ namespace Lykke.Service.PayInvoice.Services
                 case PaymentRequestStatus.Refunded:
                     return InvoiceStatus.Refunded;
 
-                //case PaymentRequestStatus.SettlementInProgress:
-                //    return InvoiceStatus.SettlementInProgress;
-
-                //case PaymentRequestStatus.Settled:
-                //    return InvoiceStatus.Settled;
-
                 case PaymentRequestStatus.Error:
                     switch (error)
                     {
@@ -45,14 +39,16 @@ namespace Lykke.Service.PayInvoice.Services
                             return InvoiceStatus.Overpaid;
                         case PaymentRequestProcessingError.RefundNotConfirmed:
                             return InvoiceStatus.NotConfirmed;
-                        //case PaymentRequestErrorType.InvalidAddress:
-                        //    return InvoiceStatus.InvalidAddress;
                         case PaymentRequestProcessingError.UnknownPayment:
                         case PaymentRequestProcessingError.UnknownRefund:
                             return InvoiceStatus.InternalError;
                         default:
                             throw new Exception($"Unknown payment request error '{error}'");
                     }
+
+                case PaymentRequestStatus.PastDue:
+                    return InvoiceStatus.PastDue;
+
                 default:
                     throw new Exception($"Unknown payment request status '{status}'");
             }
