@@ -18,7 +18,6 @@ namespace Lykke.Service.PayInvoice.Models.Invoice
         public string SettlementAssetId { get; set; }
         public string PaymentAssetId { get; set; }
         public string PaymentRequestId { get; set; }
-        public string WalletAddress { get; set; }
         public string MerchantId { get; set; }
         public string EmployeeId { get; set; }
         public string Note { get; set; }

@@ -1,7 +1,6 @@
 ﻿using Autofac;
 using Common;
 using Common.Log;
-using Lykke.Service.Balances.Client;
 using Lykke.Service.PayInternal.Client;
 using Lykke.Service.PayInvoice.Rabbit.Subscribers;
 using Lykke.Service.PayInvoice.Settings;
@@ -28,10 +27,6 @@ namespace Lykke.Service.PayInvoice
             
             builder.RegisterInstance(new PayInternalClient(_settings.CurrentValue.PayInternalServiceClient))
                 .As<IPayInternalClient>()
-                .SingleInstance();
-            
-            builder.RegisterInstance(new BalancesClient(_settings.CurrentValue.BalancesServiceClient.ServiceUrl, _log))
-                .As<IBalancesClient>()
                 .SingleInstance();
             
             builder.RegisterType<PaymentRequestSubscriber>()

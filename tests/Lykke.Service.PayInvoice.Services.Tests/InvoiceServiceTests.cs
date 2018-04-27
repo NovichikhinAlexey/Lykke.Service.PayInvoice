@@ -15,6 +15,7 @@ namespace Lykke.Service.PayInvoice.Services.Tests
         private readonly Mock<IInvoiceRepository> _invoiceRepositoryMock = new Mock<IInvoiceRepository>();
         private readonly Mock<IFileInfoRepository> _fileInfoRepositoryMock = new Mock<IFileInfoRepository>();
         private readonly Mock<IFileRepository> _fileRepositoryMock = new Mock<IFileRepository>();
+        private readonly Mock<IHistoryRepository> _historyRepositoryMock = new Mock<IHistoryRepository>();
         private readonly Mock<IPayInternalClient> _payInternalClientMock = new Mock<IPayInternalClient>();
         private readonly Mock<ILog> _logMock = new Mock<ILog>();
 
@@ -27,6 +28,7 @@ namespace Lykke.Service.PayInvoice.Services.Tests
                 _invoiceRepositoryMock.Object,
                 _fileInfoRepositoryMock.Object,
                 _fileRepositoryMock.Object,
+                _historyRepositoryMock.Object,
                 _payInternalClientMock.Object,
                 _logMock.Object);
         }

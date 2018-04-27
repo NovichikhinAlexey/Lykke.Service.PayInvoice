@@ -1,27 +1,20 @@
 ﻿using System;
-using Lykke.Service.PayInternal.Client.Models.PaymentRequest;
+using Lykke.Service.PayInternal.Contract.PaymentRequest;
 using Lykke.Service.PayInvoice.Core.Domain;
 
 namespace Lykke.Service.PayInvoice.Services
 {
     public static class StatusConverter
     {
-        public static InvoiceStatus Convert(
-            PayInternal.Contract.PaymentRequest.PaymentRequestStatus status,
-            PayInternal.Contract.PaymentRequest.PaymentRequestErrorType error)
-        {
-            return Convert((PaymentRequestStatus) status, (PaymentRequestErrorType) error);
-        }
-        
-        public static InvoiceStatus Convert(PaymentRequestStatus status, PaymentRequestErrorType error)
+        public static InvoiceStatus Convert(PaymentRequestStatus status, PaymentRequestProcessingError error)
         {
             switch (status)
             {
                 case PaymentRequestStatus.New:
                     return InvoiceStatus.Unpaid;
 
-                //case PaymentRequestStatus.Canceled:
-                //    return InvoiceStatus.Removed;
+                case PaymentRequestStatus.Cancelled:
+                    return InvoiceStatus.Removed;
 
                 case PaymentRequestStatus.InProcess:
                     return InvoiceStatus.InProgress;
@@ -35,30 +28,27 @@ namespace Lykke.Service.PayInvoice.Services
                 case PaymentRequestStatus.Refunded:
                     return InvoiceStatus.Refunded;
 
-                //case PaymentRequestStatus.SettlementInProgress:
-                //    return InvoiceStatus.SettlementInProgress;
-
-                //case PaymentRequestStatus.Settled:
-                //    return InvoiceStatus.Settled;
-
                 case PaymentRequestStatus.Error:
                     switch (error)
                     {
-                        case PaymentRequestErrorType.PaymentExpired:
+                        case PaymentRequestProcessingError.PaymentExpired:
                             return InvoiceStatus.LatePaid;
-                        case PaymentRequestErrorType.PaymentAmountBelow:
+                        case PaymentRequestProcessingError.PaymentAmountBelow:
                             return InvoiceStatus.Underpaid;
-                        case PaymentRequestErrorType.PaymentAmountAbove:
+                        case PaymentRequestProcessingError.PaymentAmountAbove:
                             return InvoiceStatus.Overpaid;
-                        case PaymentRequestErrorType.RefundNotConfirmed:
+                        case PaymentRequestProcessingError.RefundNotConfirmed:
                             return InvoiceStatus.NotConfirmed;
-                        //case PaymentRequestErrorType.InvalidAddress:
-                        //    return InvoiceStatus.InvalidAddress;
-                        //case PaymentRequestErrorType.InternalError:
-                        //    return InvoiceStatus.InternalError;
+                        case PaymentRequestProcessingError.UnknownPayment:
+                        case PaymentRequestProcessingError.UnknownRefund:
+                            return InvoiceStatus.InternalError;
                         default:
                             throw new Exception($"Unknown payment request error '{error}'");
                     }
+
+                case PaymentRequestStatus.PastDue:
+                    return InvoiceStatus.PastDue;
+
                 default:
                     throw new Exception($"Unknown payment request status '{status}'");
             }

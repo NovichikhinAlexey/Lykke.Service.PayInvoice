@@ -27,6 +27,12 @@ namespace Lykke.Service.PayInvoice.Repositories
 
             CreateMap<Employee, EmployeeEntity>(MemberList.Source)
                 .ForSourceMember(src => src.Id, opt => opt.Ignore());
+
+            CreateMap<HistoryItemEntity, HistoryItem>(MemberList.Destination)
+                .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.RowKey));
+
+            CreateMap<HistoryItem, HistoryItemEntity>(MemberList.Source)
+                .ForSourceMember(src => src.Id, opt => opt.Ignore());
         }
     }
 }
