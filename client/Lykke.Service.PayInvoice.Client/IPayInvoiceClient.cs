@@ -97,33 +97,29 @@ namespace Lykke.Service.PayInvoice.Client
         /// <param name="merchantId">The merchant id.</param>
         /// <returns>The collection of employees.</returns>
         Task<IReadOnlyList<EmployeeModel>> GetEmployeesAsync(string merchantId);
-        
+        Task<IReadOnlyList<EmployeeModel>> GetEmployeesAsync();
         /// <summary>
         /// Returns an employee.
         /// </summary>
         /// <returns>The employee.</returns>
-        Task<EmployeeModel> GetEmployeeAsync(string merchantId, string employeeId);
+        Task<EmployeeModel> GetEmployeeAsync(string employeeId);
         
         /// <summary>
         /// Creates an employee.
         /// </summary>
-        /// <param name="merchantId">The merchan id.</param>
         /// <param name="model">The employee info.</param>
-        Task<EmployeeModel> AddEmployeeAsync(string merchantId, CreateEmployeeModel model);
+        Task<EmployeeModel> AddEmployeeAsync(CreateEmployeeModel model);
         
         /// <summary>
         /// Updates an employee.
         /// </summary>
-        /// <param name="merchantId">The merchan id.</param>
-        /// <param name="employeeId">The employee id.</param>
         /// <param name="model">The employee info.</param>
-        Task UpdateEmployeeAsync(string merchantId, string employeeId, CreateEmployeeModel model);
+        Task UpdateEmployeeAsync(UpdateEmployeeModel model);
         
         /// <summary>
         /// Deletes an employee.
         /// </summary>
-        /// <param name="merchantId">The merchan id.</param>
         /// <param name="employeeId">The employee id.</param>
-        Task DeleteEmployeeAsync(string merchantId, string employeeId);
+        Task DeleteEmployeeAsync(string employeeId);
     }
 }
