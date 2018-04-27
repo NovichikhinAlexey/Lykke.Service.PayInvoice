@@ -157,44 +157,44 @@ namespace Lykke.Service.PayInvoice.Client
             await _runner.RunAsync(() => _filesApi.DeleteAsync(invoiceId, fileId));
         }
 
-        public async Task<IReadOnlyList<EmployeeModel>> GetEmployeesAsync(string merchantId)
+        public async Task<IReadOnlyList<EmployeeModel>> GetEmployeesAsync()
         {
-            return await _runner.RunAsync(() => _employeesApi.GetAllAsync(merchantId));
+            return await _runner.RunAsync(() => _employeesApi.GetAllAsync());
         }
 
-        public async Task<EmployeeModel> GetEmployeeAsync(string merchantId, string employeeId)
+        public async Task<EmployeeModel> GetEmployeeAsync(string employeeId)
         {
-            return await _runner.RunAsync(() => _employeesApi.GetByIdAsync(merchantId, employeeId));
+            return await _runner.RunAsync(() => _employeesApi.GetByIdAsync(employeeId));
         }
 
-        public async Task<EmployeeModel> AddEmployeeAsync(string merchantId, CreateEmployeeModel model)
+        public async Task<EmployeeModel> AddEmployeeAsync(CreateEmployeeModel model)
         {
-            var content = new StringContent(JsonConvert.SerializeObject(model), Encoding.UTF8, "application/json");
-            var result = await _httpClient.PostAsync($"/api/merchants/{merchantId}/employees", content);
+            //var content = new StringContent(JsonConvert.SerializeObject(model), Encoding.UTF8, "application/json");
+            //var result = await _httpClient.PostAsync($"/api/merchants/{merchantId}/employees", content);
 
-            if (result.IsSuccessStatusCode)
-            {
-                string value = await result.Content.ReadAsStringAsync();
-                return JsonConvert.DeserializeObject<EmployeeModel>(value);
-            }
+            //if (result.IsSuccessStatusCode)
+            //{
+            //    string value = await result.Content.ReadAsStringAsync();
+            //    return JsonConvert.DeserializeObject<EmployeeModel>(value);
+            //}
 
-            throw new ErrorResponseException("An error occurred  during calling api");
-            //return await _runner.RunAsync(() => _employeesApi.AddAsync(merchantId, model));
+            //throw new ErrorResponseException("An error occurred  during calling api");
+            return await _runner.RunAsync(() => _employeesApi.AddAsync(model));
         }
 
-        public async Task UpdateEmployeeAsync(string merchantId, string employeeId, CreateEmployeeModel model)
+        public async Task UpdateEmployeeAsync(UpdateEmployeeModel model)
         {
-            var content = new StringContent(JsonConvert.SerializeObject(model), Encoding.UTF8, "application/json");
-            var result = await _httpClient.PutAsync($"/api/merchants/{merchantId}/employees/{employeeId}", content);
+            //var content = new StringContent(JsonConvert.SerializeObject(model), Encoding.UTF8, "application/json");
+            //var result = await _httpClient.PutAsync($"/api/merchants/{merchantId}/employees/{employeeId}", content);
 
-            if (!result.IsSuccessStatusCode)
-                throw new ErrorResponseException("An error occurred  during calling api");
-            //await _runner.RunAsync(() => _employeesApi.UpdateAsync(merchantId, employeeId, model));
+            //if (!result.IsSuccessStatusCode)
+            //    throw new ErrorResponseException("An error occurred  during calling api");
+            await _runner.RunAsync(() => _employeesApi.UpdateAsync(model));
         }
 
-        public async Task DeleteEmployeeAsync(string merchantId, string employeeId)
+        public async Task DeleteEmployeeAsync(string employeeId)
         {
-            await _runner.RunAsync(() => _employeesApi.DeleteAsync(merchantId, employeeId));
+            await _runner.RunAsync(() => _employeesApi.DeleteAsync(employeeId));
         }
 
         public async Task<BalanceModel> GetBalanceAsync(string merchantId, string assetId)
@@ -205,6 +205,19 @@ namespace Lykke.Service.PayInvoice.Client
         public void Dispose()
         {
             _httpClient?.Dispose();
+        }
+
+        public async Task<IReadOnlyList<EmployeeModel>> GetEmployeesAsync(string merchantId)
+        {
+            var result = await _httpClient.GetAsync($"/api/merchants/{merchantId}/employees");
+
+            if (result.IsSuccessStatusCode)
+            {
+                string value = await result.Content.ReadAsStringAsync();
+                return JsonConvert.DeserializeObject<IReadOnlyList<EmployeeModel>>(value);
+            }
+
+            throw new ErrorResponseException("An error occurred  during calling api");
         }
     }
 }

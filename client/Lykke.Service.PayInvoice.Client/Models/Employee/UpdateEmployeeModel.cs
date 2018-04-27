@@ -1,20 +1,25 @@
-﻿namespace Lykke.Service.PayInvoice.Client.Models.Employee
+﻿using System;
+using System.Collections.Generic;
+using System.Text;
+
+namespace Lykke.Service.PayInvoice.Client.Models.Employee
 {
-    /// <summary>
-    /// Merchant employee creation details.
-    /// </summary>
-    public class CreateEmployeeModel
+    public class UpdateEmployeeModel
     {
+        /// <summary>
+        /// Get or set Employee Id
+        /// </summary>
+        public string Id { get; set; }
         /// <summary>
         /// Gets or sets an email.
         /// </summary>
         public string Email { get; set; }
-        
+
         /// <summary>
         /// Gets or sets a first name.
         /// </summary>
         public string FirstName { get; set; }
-        
+
         /// <summary>
         /// Gets or sets a last name.
         /// </summary>
