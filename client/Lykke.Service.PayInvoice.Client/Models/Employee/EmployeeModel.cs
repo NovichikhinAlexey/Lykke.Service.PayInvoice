@@ -29,5 +29,9 @@
         /// Gets or sets a merchant id.
         /// </summary>
         public string MerchantId { get; set; }
+        /// <summary>
+        /// Gets or sets a isblocked flag
+        /// </summary>
+        public bool IsBlocked { get; set; }
     }
 }
