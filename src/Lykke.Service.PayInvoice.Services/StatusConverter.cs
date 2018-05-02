@@ -32,6 +32,8 @@ namespace Lykke.Service.PayInvoice.Services
                     switch (error)
                     {
                         case PaymentRequestProcessingError.PaymentExpired:
+                            return InvoiceStatus.PastDue;
+                        case PaymentRequestProcessingError.LatePaid:
                             return InvoiceStatus.LatePaid;
                         case PaymentRequestProcessingError.PaymentAmountBelow:
                             return InvoiceStatus.Underpaid;
@@ -45,9 +47,6 @@ namespace Lykke.Service.PayInvoice.Services
                         default:
                             throw new Exception($"Unknown payment request error '{error}'");
                     }
-
-                case PaymentRequestStatus.PastDue:
-                    return InvoiceStatus.PastDue;
 
                 default:
                     throw new Exception($"Unknown payment request status '{status}'");
