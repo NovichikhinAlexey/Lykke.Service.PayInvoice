@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
 using AzureStorage;
@@ -21,23 +22,36 @@ namespace Lykke.Service.PayInvoice.Repositories
             _storage = storage;
             _indexStorage = indexStorage;
         }
-        
-        public async Task<IReadOnlyList<Employee>> GetAsync(string merchantId)
+
+        public async Task<IReadOnlyList<Employee>> GetAsync()
         {
-            IEnumerable<EmployeeEntity> entities = await _storage.GetDataAsync(GetPartitionKey(merchantId));
+            IEnumerable<EmployeeEntity> entities = await _storage.GetDataAsync();
 
             var employees = Mapper.Map<List<Employee>>(entities);
 
             return employees;
         }
 
-        public async Task<Employee> GetAsync(string merchantId, string employeeId)
+        public async Task<Employee> GetByIdAsync(string employeeId)
         {
-            EmployeeEntity entity = await _storage.GetDataAsync(GetPartitionKey(merchantId), GetRowKey(employeeId));
+            IEnumerable<EmployeeEntity> entities =
+                await _storage.GetDataRowKeysOnlyAsync(new[] { GetRowKey(employeeId) });
 
-            var employee = Mapper.Map<Employee>(entity);
+            EmployeeEntity entity = entities.FirstOrDefault();
 
-            return employee;
+            if (entity == null)
+                return null;
+
+            return Mapper.Map<Employee>(entity);
+        }
+
+        public async Task<IReadOnlyList<Employee>> GetByMerchantIdAsync(string merchantId)
+        {
+            IEnumerable<EmployeeEntity> entities = await _storage.GetDataAsync(GetPartitionKey(merchantId));
+
+            var employees = Mapper.Map<List<Employee>>(entities);
+
+            return employees;
         }
 
         public async Task<Employee> FindAsync(string email)
@@ -67,7 +81,7 @@ namespace Lykke.Service.PayInvoice.Repositories
 
             await _indexStorage.InsertAsync(index);
 
-            return await GetAsync(entity.MerchantId, entity.RowKey);
+            return Mapper.Map<Employee>(entity);
         }
 
         public async Task UpdateAsync(Employee employee)
@@ -79,11 +93,14 @@ namespace Lykke.Service.PayInvoice.Repositories
             });
         }
 
-        public async Task DeleteAsync(string merchantId, string employeeId)
+        public async Task DeleteAsync(string employeeId)
         {
-            EmployeeEntity entity = await _storage.GetDataAsync(GetPartitionKey(merchantId), GetRowKey(employeeId));
-            
-            if(entity == null)
+            IEnumerable<EmployeeEntity> entities =
+                await _storage.GetDataRowKeysOnlyAsync(new[] { GetRowKey(employeeId) });
+
+            EmployeeEntity entity = entities.FirstOrDefault();
+
+            if (entity == null)
                 return;
 
             await _storage.DeleteAsync(entity);

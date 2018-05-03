@@ -6,9 +6,11 @@ namespace Lykke.Service.PayInvoice.Core.Repositories
 {
     public interface IEmployeeRepository
     {
-        Task<IReadOnlyList<Employee>> GetAsync(string merchantId);
+        Task<IReadOnlyList<Employee>> GetAsync();
 
-        Task<Employee> GetAsync(string merchantId, string employeeId);
+        Task<Employee> GetByIdAsync(string employeeId);
+
+        Task<IReadOnlyList<Employee>> GetByMerchantIdAsync(string merchantId);
         
         Task<Employee> FindAsync(string email);
         
@@ -16,6 +18,6 @@ namespace Lykke.Service.PayInvoice.Core.Repositories
         
         Task UpdateAsync(Employee employee);
 
-        Task DeleteAsync(string merchantId, string employeeId);
+        Task DeleteAsync(string employeeId);
     }
 }

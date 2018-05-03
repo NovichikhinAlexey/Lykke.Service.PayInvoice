@@ -7,19 +7,19 @@ namespace Lykke.Service.PayInvoice.Client.Api
 {
     internal interface IEmployeesApi
     {
-        [Get("/api/merchants/{merchantId}/employees")]
-        Task<IReadOnlyList<EmployeeModel>> GetAllAsync(string merchantId);
+        [Get("/api/Employees")]
+        Task<IReadOnlyList<EmployeeModel>> GetAllAsync();
 
-        [Get("/api/merchants/{merchantId}/employees/{employeeId}")]
-        Task<EmployeeModel> GetByIdAsync(string merchantId, string employeeId);
-        
-        //[Post("/api/merchants/{merchantId}/employees")]
-        //Task<EmployeeModel> AddAsync(string merchantId, [Body]CreateEmployeeModel model);
+        [Get("/api/Employees/{employeeId}")]
+        Task<EmployeeModel> GetByIdAsync(string employeeId);
 
-        //[Put("/api/merchants/{merchantId}/employees/{employeeId}")]
-        //Task UpdateAsync(string merchantId, string employeeId, [Body] CreateEmployeeModel model);
+        [Post("/api/Employees")]
+        Task<EmployeeModel> AddAsync([Body]CreateEmployeeModel model);
 
-        [Delete("/api/merchants/{merchantId}/employees/{employeeId}")]
-        Task DeleteAsync(string merchantId, string employeeId);
+        [Put("/api/Employees")]
+        Task UpdateAsync([Body] UpdateEmployeeModel model);
+
+        [Delete("/api/Employees")]
+        Task DeleteAsync(string employeeId);
     }
 }

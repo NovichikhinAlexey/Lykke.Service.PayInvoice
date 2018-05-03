@@ -17,5 +17,6 @@ namespace Lykke.Service.PayInvoice.Repositories
         public string FirstName { get; set; }
         public string LastName { get; set; }
         public string MerchantId { get; set; }
+        public bool IsBlocked { get; set; }
     }
 }
