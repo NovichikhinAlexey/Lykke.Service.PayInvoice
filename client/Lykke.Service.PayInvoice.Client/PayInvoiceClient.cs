@@ -8,6 +8,7 @@ using Lykke.Service.PayInvoice.Client.Api;
 using Lykke.Service.PayInvoice.Client.Models.Employee;
 using Lykke.Service.PayInvoice.Client.Models.File;
 using Lykke.Service.PayInvoice.Client.Models.Invoice;
+using Lykke.Service.PayInvoice.Core.Domain;
 using Microsoft.Extensions.PlatformAbstractions;
 using Newtonsoft.Json;
 using Refit;
@@ -22,6 +23,7 @@ namespace Lykke.Service.PayInvoice.Client
         private readonly IDraftsApi _draftsApi;
         private readonly IFilesApi _filesApi;
         private readonly IEmployeesApi _employeesApi;
+        private readonly IMerchantSettingsApi _merchantSettingsApi;
         private readonly ApiRunner _runner;
 
         public PayInvoiceClient(PayInvoiceServiceClientSettings settings)
@@ -49,6 +51,7 @@ namespace Lykke.Service.PayInvoice.Client
             _draftsApi = RestService.For<IDraftsApi>(_httpClient);
             _filesApi = RestService.For<IFilesApi>(_httpClient);
             _employeesApi = RestService.For<IEmployeesApi>(_httpClient);
+            _merchantSettingsApi = RestService.For<IMerchantSettingsApi>(_httpClient);
             _runner = new ApiRunner();
         }
 
@@ -80,6 +83,16 @@ namespace Lykke.Service.PayInvoice.Client
         public async Task<IEnumerable<InvoiceModel>> GetMerchantInvoicesAsync(string merchantId)
         {
             return await _runner.RunAsync(() => _merchantsApi.GetAllAsync(merchantId));
+        }
+
+        public async Task<MerchantSetting> GetMerchantSettingAsync(string merchantId)
+        {
+            return await _runner.RunAsync(() => _merchantSettingsApi.GetByIdAsync(merchantId));
+        }
+
+        public async Task<MerchantSetting> SetMerchantSettingAsync(MerchantSetting model)
+        {
+            return await _runner.RunAsync(() => _merchantSettingsApi.SetAsync(model));
         }
 
         public async Task<InvoiceModel> CreateDraftInvoiceAsync(CreateInvoiceModel model)

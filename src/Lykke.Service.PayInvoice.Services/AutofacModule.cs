@@ -25,6 +25,9 @@ namespace Lykke.Service.PayInvoice.Services
             
             builder.RegisterType<EmployeeService>()
                 .As<IEmployeeService>();
+
+            builder.RegisterType<MerchantSettingService>()
+                .As<IMerchantSettingService>();
         }
     }
 }

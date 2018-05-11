@@ -3,6 +3,7 @@ using Lykke.Service.PayInvoice.Core.Domain;
 using Lykke.Service.PayInvoice.Models.Employee;
 using Lykke.Service.PayInvoice.Models.File;
 using Lykke.Service.PayInvoice.Models.Invoice;
+using Lykke.Service.PayInvoice.Models.MerchantSetting;
 
 namespace Lykke.Service.PayInvoice
 {
@@ -32,6 +33,8 @@ namespace Lykke.Service.PayInvoice
                 .ForMember(dest => dest.Id, opt => opt.Ignore());
 
             CreateMap<HistoryItem, HistoryItemModel>(MemberList.Source);
+
+            CreateMap<SetMerchantSettingModel, MerchantSetting>(MemberList.Source);
         }
     }
 }
