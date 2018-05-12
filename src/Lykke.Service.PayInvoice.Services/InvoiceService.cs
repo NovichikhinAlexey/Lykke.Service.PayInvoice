@@ -208,11 +208,18 @@ namespace Lykke.Service.PayInvoice.Services
 
             await _invoiceRepository.SetStatusAsync(invoice.MerchantId, invoice.Id, status);
 
-            await _log.WriteInfoAsync(nameof(InvoiceService), nameof(UpdateAsync),
-                invoice.Id.ToContext(nameof(invoice.Id))
-                    .ToContext(nameof(status), status)
-                    .ToJson(), "Status updated.");
+            if (new List<InvoiceStatus>() {
+                    InvoiceStatus.Paid,
+                    InvoiceStatus.Overpaid,
+                    InvoiceStatus.Underpaid,
+                    InvoiceStatus.LatePaid }
+                .Contains(status))
+            {
+                await _invoiceRepository.SetPaidAmountAsync(invoice.MerchantId, invoice.Id, message.PaidAmount);
+            }
 
+            _log.WriteInfo(nameof(UpdateAsync), new { invoice.Id,  status }, "Status updated.");
+            
             invoice.Status = status;
 
             var history = Mapper.Map<HistoryItem>(invoice);

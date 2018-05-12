@@ -49,6 +49,8 @@ namespace Lykke.Service.PayInvoice.Repositories
         public string Status { get; set; }
         
         public string SettlementAssetId { get; set; }
+
+        public decimal PaidAmount { get; set; }
         
         public string PaymentAssetId { get; set; }
         
