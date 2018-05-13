@@ -1,19 +1,23 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
 using AzureStorage;
 using AzureStorage.Tables.Templates.Index;
 using Lykke.Service.PayInvoice.Core.Domain;
 using Lykke.Service.PayInvoice.Core.Repositories;
+using Lykke.Service.PayInvoice.Repositories.Extensions;
+using Microsoft.WindowsAzure.Storage.Table;
 
 namespace Lykke.Service.PayInvoice.Repositories
 {
-    public class InvoiceRepository : IInvoiceRepository
+    public partial class InvoiceRepository : IInvoiceRepository
     {
         private readonly INoSQLTableStorage<InvoiceEntity> _storage;
         private readonly INoSQLTableStorage<AzureIndex> _invoiceIdIndexStorage;
         private readonly INoSQLTableStorage<AzureIndex> _paymentRequestIdIndexStorage;
+        private readonly InvoiceEntity Entity = new InvoiceEntity();
 
         public InvoiceRepository(
             INoSQLTableStorage<InvoiceEntity> storage,
@@ -30,6 +34,27 @@ namespace Lykke.Service.PayInvoice.Repositories
             IList<InvoiceEntity> entities = await _storage.GetDataAsync();
 
             return Mapper.Map<List<Invoice>>(entities);
+        }
+
+        public async Task<IReadOnlyList<Invoice>> GetAllPaidAsync()
+        {
+            var result = new List<InvoiceEntity>();
+
+            var filter = StatusEqual(InvoiceStatus.Paid)
+                .Or(StatusEqual(InvoiceStatus.Overpaid))
+                .Or(StatusEqual(InvoiceStatus.Underpaid))
+                .Or(StatusEqual(InvoiceStatus.LatePaid));
+
+            var tableQuery = new TableQuery<InvoiceEntity>().Where(filter);
+
+            await _storage.ExecuteAsync(tableQuery, r => result = r.ToList());
+
+            return Mapper.Map<List<Invoice>>(result);
+
+            string StatusEqual(InvoiceStatus status)
+            {
+                return nameof(Entity.Status).PropertyEqual(status.ToString());
+            }
         }
 
         public async Task<IReadOnlyList<Invoice>> GetAsync(string merchantId)

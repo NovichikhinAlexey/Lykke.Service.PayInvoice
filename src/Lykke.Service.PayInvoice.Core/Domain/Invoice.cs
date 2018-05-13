@@ -48,6 +48,11 @@ namespace Lykke.Service.PayInvoice.Core.Domain
         public string SettlementAssetId { get; set; }
 
         /// <summary>
+        /// The paid amount in PaymentAssetId
+        /// </summary>
+        public decimal PaidAmount { get; set; }
+
+        /// <summary>
         /// Gets or sets the payment asset id.
         /// </summary>
         public string PaymentAssetId { get; set; }
