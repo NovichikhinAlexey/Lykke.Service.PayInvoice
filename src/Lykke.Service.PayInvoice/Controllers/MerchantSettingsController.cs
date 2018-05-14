@@ -1,8 +1,8 @@
 ﻿using System;
+using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using AutoMapper;
-using Common;
 using Common.Log;
 using Lykke.Common.Api.Contract.Responses;
 using Lykke.Service.PayInternal.Client;
@@ -68,14 +68,15 @@ namespace Lykke.Service.PayInvoice.Controllers
             if (!ModelState.IsValid)
                 return BadRequest(new ErrorResponse().AddErrors(ModelState));
 
-            var availableAssets = await _payInternalClient.GetPersonalAvailableAssetsAsync(model.MerchantId);
-            bool isValidAsset = availableAssets.PaymentAssets.Contains(model.BaseAsset)
-                || availableAssets.SettlementAssets.Contains(model.BaseAsset);
+            var settlementAssetsResponse = await _payInternalClient.GetAvailableSettlementAssetsAsync(model.MerchantId);
+
+            bool isValidAsset = settlementAssetsResponse.Assets.ToList().Contains(model.BaseAsset);
+                
             if (!isValidAsset)
             {
                 var errorResponse = new ErrorResponse()
                 {
-                    ErrorMessage = "Asset not found in available assets for the merchant"
+                    ErrorMessage = "Asset is not found in available settlement assets for the merchant"
                 };
                 return BadRequest(errorResponse);
             }
