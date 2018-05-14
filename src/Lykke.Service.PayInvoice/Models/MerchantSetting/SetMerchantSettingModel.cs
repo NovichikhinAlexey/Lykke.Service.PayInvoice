@@ -6,7 +6,7 @@ namespace Lykke.Service.PayInvoice.Models.MerchantSetting
     {
         [Required]
         public string MerchantId { get; set; }
-
+        [Required]
         public string BaseAsset { get; set; }
     }
 }

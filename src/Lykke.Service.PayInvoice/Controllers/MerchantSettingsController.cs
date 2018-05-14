@@ -5,6 +5,7 @@ using AutoMapper;
 using Common;
 using Common.Log;
 using Lykke.Common.Api.Contract.Responses;
+using Lykke.Service.PayInternal.Client;
 using Lykke.Service.PayInvoice.Core.Domain;
 using Lykke.Service.PayInvoice.Core.Services;
 using Lykke.Service.PayInvoice.Extensions;
@@ -18,13 +19,16 @@ namespace Lykke.Service.PayInvoice.Controllers
     public class MerchantSettingsController : Controller
     {
         private readonly IMerchantSettingService _merchantSettingService;
+        private readonly IPayInternalClient _payInternalClient;
         private readonly ILog _log;
 
         public MerchantSettingsController(
             IMerchantSettingService merchantSettingService,
+            IPayInternalClient payInternalClient,
             ILog log)
         {
             _merchantSettingService = merchantSettingService;
+            _payInternalClient = payInternalClient;
             _log = log.CreateComponentScope(nameof(MerchantSettingsController));
         }
 
@@ -63,6 +67,18 @@ namespace Lykke.Service.PayInvoice.Controllers
         {
             if (!ModelState.IsValid)
                 return BadRequest(new ErrorResponse().AddErrors(ModelState));
+
+            var availableAssets = await _payInternalClient.GetPersonalAvailableAssetsAsync(model.MerchantId);
+            bool isValidAsset = availableAssets.PaymentAssets.Contains(model.BaseAsset)
+                || availableAssets.SettlementAssets.Contains(model.BaseAsset);
+            if (!isValidAsset)
+            {
+                var errorResponse = new ErrorResponse()
+                {
+                    ErrorMessage = "Asset not found in available assets for the merchant"
+                };
+                return BadRequest(errorResponse);
+            }
 
             try
             {
