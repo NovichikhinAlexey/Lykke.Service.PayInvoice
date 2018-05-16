@@ -33,6 +33,12 @@ namespace Lykke.Service.PayInvoice.Repositories
 
             CreateMap<HistoryItem, HistoryItemEntity>(MemberList.Source)
                 .ForSourceMember(src => src.Id, opt => opt.Ignore());
+
+            CreateMap<MerchantSettingEntity, MerchantSetting>(MemberList.Destination)
+                .ForMember(dest => dest.MerchantId, opt => opt.MapFrom(src => src.RowKey));
+
+            CreateMap<MerchantSetting, MerchantSettingEntity>(MemberList.Source)
+                .ForSourceMember(src => src.MerchantId, opt => opt.Ignore());
         }
     }
 }

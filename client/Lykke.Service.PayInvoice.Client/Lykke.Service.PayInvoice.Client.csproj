@@ -16,8 +16,14 @@
     <PackageTags>Lykke</PackageTags>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Lykke.Common" Version="6.6.0" />
+    <Compile Include="..\..\src\Lykke.Service.PayInvoice.Core\Domain\MerchantSetting.cs" Link="Models\MerchantSetting\MerchantSetting.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Lykke.Common" Version="6.7.0" />
     <PackageReference Include="Microsoft.Extensions.PlatformAbstractions" Version="1.1.0" />
     <PackageReference Include="Refit" Version="4.3.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Models\MerchantSetting\" />
   </ItemGroup>
 </Project>

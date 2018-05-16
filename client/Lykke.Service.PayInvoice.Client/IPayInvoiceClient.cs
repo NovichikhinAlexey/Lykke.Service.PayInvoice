@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using Lykke.Service.PayInvoice.Client.Models.Employee;
 using Lykke.Service.PayInvoice.Client.Models.File;
 using Lykke.Service.PayInvoice.Client.Models.Invoice;
+using Lykke.Service.PayInvoice.Core.Domain;
 
 namespace Lykke.Service.PayInvoice.Client
 {
@@ -47,6 +48,17 @@ namespace Lykke.Service.PayInvoice.Client
         /// </summary>
         /// <returns>The collection of invoices.</returns>
         Task<IEnumerable<InvoiceModel>> GetMerchantInvoicesAsync(string merchantId);
+
+        /// <summary>
+        /// Returns merchant setting by id
+        /// </summary>
+        Task<MerchantSetting> GetMerchantSettingAsync(string merchantId);
+
+        /// <summary>
+        /// Create or update merchant setting
+        /// </summary>
+        /// <param name="merchantSetting">The model to create or update merchant setting</param>
+        Task<MerchantSetting> SetMerchantSettingAsync(MerchantSetting model);
 
         /// <summary>
         /// Creates draft invoice.
