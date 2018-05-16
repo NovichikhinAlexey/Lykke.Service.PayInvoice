@@ -45,6 +45,11 @@ namespace Lykke.Service.PayInvoice.Client.Models.Invoice
         public string SettlementAssetId { get; set; }
 
         /// <summary>
+        /// The paid amount in PaymentAssetId
+        /// </summary>
+        public decimal PaidAmount { get; set; }
+
+        /// <summary>
         /// Gets or sets invoice payment asset id.
         /// </summary>
         public string PaymentAssetId { get; set; }
