@@ -8,8 +8,6 @@ namespace Lykke.Service.PayInvoice.Repositories
     [ValueTypeMergingStrategy(ValueTypeMergingStrategy.UpdateIfDirty)]
     public class MerchantSettingEntity : AzureTableEntity
     {
-        private string _baseAsset;
-        
         public MerchantSettingEntity()
         {
         }
