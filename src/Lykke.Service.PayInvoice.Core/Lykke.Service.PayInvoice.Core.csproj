@@ -9,7 +9,7 @@
     <Folder Include="Domain\Health\" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Lykke.Service.PayInternal.Client" Version="1.1.16" />
-    <PackageReference Include="Lykke.Service.PayInternal.Contract" Version="1.0.27" />
+    <PackageReference Include="Lykke.Service.PayInternal.Client" Version="1.1.19" />
+    <PackageReference Include="Lykke.Service.PayInternal.Contract" Version="1.0.28" />
   </ItemGroup>
 </Project>
