@@ -8,6 +8,8 @@ namespace Lykke.Service.PayInvoice.Core.Repositories
     {
         Task<IReadOnlyList<Invoice>> GetAsync();
 
+        Task<IReadOnlyList<Invoice>> GetAllPaidAsync();
+
         Task<IReadOnlyList<Invoice>> GetAsync(string merchantId);
 
         Task<Invoice> GetAsync(string merchantId, string invoiceId);
@@ -21,6 +23,8 @@ namespace Lykke.Service.PayInvoice.Core.Repositories
         Task UpdateAsync(Invoice invoice);
 
         Task SetStatusAsync(string merchantId, string invoiceId, InvoiceStatus status);
+
+        Task SetPaidAmountAsync(string merchantId, string invoiceId, decimal paidAmount);
 
         Task DeleteAsync(string merchantId, string invoiceId);
     }

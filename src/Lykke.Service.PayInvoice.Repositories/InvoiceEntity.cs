@@ -11,7 +11,8 @@ namespace Lykke.Service.PayInvoice.Repositories
         private DateTime _dueDate;
         private decimal _amount;
         private DateTime _createdDate;
-        
+        private decimal _paidAmount;
+
         public InvoiceEntity()
         {
         }
@@ -49,7 +50,17 @@ namespace Lykke.Service.PayInvoice.Repositories
         public string Status { get; set; }
         
         public string SettlementAssetId { get; set; }
-        
+
+        public decimal PaidAmount
+        {
+            get => _paidAmount;
+            set
+            {
+                _paidAmount = value;
+                MarkValueTypePropertyAsDirty(nameof(PaidAmount));
+            }
+        }
+
         public string PaymentAssetId { get; set; }
         
         public string PaymentRequestId { get; set; }

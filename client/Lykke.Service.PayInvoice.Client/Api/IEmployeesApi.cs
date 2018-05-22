@@ -19,7 +19,7 @@ namespace Lykke.Service.PayInvoice.Client.Api
         [Put("/api/Employees")]
         Task UpdateAsync([Body] UpdateEmployeeModel model);
 
-        [Delete("/api/Employees")]
+        [Delete("/api/Employees/{employeeId}")]
         Task DeleteAsync(string employeeId);
     }
 }
