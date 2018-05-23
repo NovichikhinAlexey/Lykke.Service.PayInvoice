@@ -12,7 +12,7 @@ using Microsoft.WindowsAzure.Storage.Table;
 
 namespace Lykke.Service.PayInvoice.Repositories
 {
-    public partial class InvoiceRepository : IInvoiceRepository
+    public class InvoiceRepository : IInvoiceRepository
     {
         private readonly INoSQLTableStorage<InvoiceEntity> _storage;
         private readonly INoSQLTableStorage<AzureIndex> _invoiceIdIndexStorage;

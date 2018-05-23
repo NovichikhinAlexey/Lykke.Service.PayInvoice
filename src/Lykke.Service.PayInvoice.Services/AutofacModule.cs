@@ -1,5 +1,4 @@
 ﻿using Autofac;
-using Lykke.Service.PayInvoice.Core.Domain.DataMigrations;
 using Lykke.Service.PayInvoice.Core.Services;
 
 namespace Lykke.Service.PayInvoice.Services
@@ -29,13 +28,6 @@ namespace Lykke.Service.PayInvoice.Services
 
             builder.RegisterType<MerchantSettingService>()
                 .As<IMerchantSettingService>();
-
-            builder.RegisterType<DataMigrationService>()
-                .As<IDataMigrationService>();
-
-            // Migrations
-            builder.RegisterType<DataMigrationOneDotSeven>()
-                .As<IDataMigrationOneDotSeven>();
         }
     }
 }
