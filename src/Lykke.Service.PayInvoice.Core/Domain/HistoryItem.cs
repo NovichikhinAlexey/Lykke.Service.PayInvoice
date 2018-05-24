@@ -117,5 +117,15 @@ namespace Lykke.Service.PayInvoice.Core.Domain
         /// The changes date.
         /// </summary>
         public DateTime Date { get; set; }
+
+        /// <summary>
+        /// The Billing Category
+        /// </summary>
+        public string BillingCategory { get; set; }
+
+        /// <summary>
+        /// The dispute attribute
+        /// </summary>
+        public bool Dispute { get; set; }
     }
 }

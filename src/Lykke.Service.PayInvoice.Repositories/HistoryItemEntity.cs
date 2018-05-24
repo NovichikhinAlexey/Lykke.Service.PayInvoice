@@ -18,7 +18,8 @@ namespace Lykke.Service.PayInvoice.Repositories
         private DateTime _dueDate;
         private DateTime? _paidDate;
         private DateTime _date;
-        
+        private bool _dispute;
+
         public HistoryItemEntity()
         {
         }
@@ -133,6 +134,18 @@ namespace Lykke.Service.PayInvoice.Repositories
             {
                 _date = value;
                 MarkValueTypePropertyAsDirty(nameof(Date));
+            }
+        }
+        public string BillingCategory { get; set; }
+
+        public bool Dispute
+        {
+            get => _dispute;
+
+            set
+            {
+                _dispute = value;
+                MarkValueTypePropertyAsDirty(nameof(Dispute));
             }
         }
     }

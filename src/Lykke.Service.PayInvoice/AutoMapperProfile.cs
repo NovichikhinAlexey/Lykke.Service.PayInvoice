@@ -11,7 +11,7 @@ namespace Lykke.Service.PayInvoice
     {
         public AutoMapperProfile()
         {
-            CreateMap<Invoice, InvoiceModel>(MemberList.Destination);
+            CreateMap<Invoice, InvoiceModel>(MemberList.Source);
 
             CreateMap<CreateInvoiceModel, Invoice>(MemberList.Destination)
                 .ForMember(src => src.Id, opt => opt.Ignore())
