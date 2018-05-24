@@ -106,7 +106,7 @@ namespace Lykke.Service.PayInvoice.Repositories
 
             if(invoiceFilter.Dispute)
             {
-                filter = filter.AndIfNotEmpty(nameof(Entity.Dispute).PropertyEqual(Boolean.TrueString.ToLower()));
+                filter = filter.AndIfNotEmpty(nameof(Entity.Dispute).PropertyEqual(true));
             }
 
             if (invoiceFilter.BillingCategories.Any())
