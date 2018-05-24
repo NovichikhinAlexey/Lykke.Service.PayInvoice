@@ -56,5 +56,15 @@ namespace Lykke.Service.PayInvoice.Client.Models.Invoice
         /// The additional information.
         /// </summary>
         public string Note { get; set; }
+
+        /// <summary>
+        /// The Billing Category
+        /// </summary>
+        public string BillingCategory { get; set; }
+
+        /// <summary>
+        /// The dispute attribute
+        /// </summary>
+        public bool Dispute { get; set; }
     }
 }

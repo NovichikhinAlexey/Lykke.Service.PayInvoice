@@ -81,5 +81,15 @@ namespace Lykke.Service.PayInvoice.Core.Domain
         /// The date of creation in UTC.
         /// </summary>
         public DateTime CreatedDate { get; set; }
+
+        /// <summary>
+        /// The Billing Category
+        /// </summary>
+        public string BillingCategory { get; set; }
+
+        /// <summary>
+        /// The dispute attribute
+        /// </summary>
+        public bool Dispute { get; set; }
     }
 }

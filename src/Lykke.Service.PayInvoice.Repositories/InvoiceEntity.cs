@@ -12,6 +12,7 @@ namespace Lykke.Service.PayInvoice.Repositories
         private decimal _amount;
         private DateTime _createdDate;
         private decimal _paidAmount;
+        private bool _dispute;
 
         public InvoiceEntity()
         {
@@ -80,6 +81,19 @@ namespace Lykke.Service.PayInvoice.Repositories
             {
                 _createdDate = value;
                 MarkValueTypePropertyAsDirty(nameof(CreatedDate));
+            }
+        }
+
+        public string BillingCategory { get; set; }
+
+        public bool Dispute
+        {
+            get => _dispute;
+
+            set
+            {
+                _dispute = value;
+                MarkValueTypePropertyAsDirty(nameof(Dispute));
             }
         }
     }

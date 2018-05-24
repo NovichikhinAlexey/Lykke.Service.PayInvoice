@@ -117,5 +117,15 @@ namespace Lykke.Service.PayInvoice.Client.Models.Invoice
         /// The changes date.
         /// </summary>
         public DateTime Date { get; set; }
+
+        /// <summary>
+        /// The Billing Category
+        /// </summary>
+        public string BillingCategory { get; set; }
+
+        /// <summary>
+        /// The dispute attribute
+        /// </summary>
+        public bool Dispute { get; set; }
     }
 }
