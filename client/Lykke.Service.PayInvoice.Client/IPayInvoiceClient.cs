@@ -17,6 +17,19 @@ namespace Lykke.Service.PayInvoice.Client
         Task<InvoiceModel> GetInvoiceAsync(string invoiceId);
 
         /// <summary>
+        /// Returns invoices by filter
+        /// </summary>
+        /// <param name="merchantId">The merchant id</param>
+        /// <param name="clientMerchantId">The merchant id of the client</param>
+        /// <param name="statuses">The statuses</param>
+        /// <param name="dispute">The dispute attribute</param>
+        /// <param name="billingCategories">The billing categories</param>
+        /// <param name="greaterThan">The greater than number for filtering</param>
+        /// <param name="lessThan">The less than number for filtering</param>
+        /// <returns>A collection of invoices</returns>
+        Task<IReadOnlyList<InvoiceModel>> GetByFilter(string merchantId, string clientMerchantId, string statuses, bool? dispute, string billingCategories, int? greaterThan, int? lessThan);
+
+        /// <summary>
         /// Returns invoice history.
         /// </summary>
         /// <param name="invoiceId">The invoice id.</param>

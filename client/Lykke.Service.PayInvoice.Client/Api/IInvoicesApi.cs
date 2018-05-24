@@ -10,6 +10,9 @@ namespace Lykke.Service.PayInvoice.Client.Api
         [Get("/api/invoices/{invoiceId}")]
         Task<InvoiceModel> GetAsync(string invoiceId);
 
+        [Get("/api/invoices/filter")]
+        Task<IReadOnlyList<InvoiceModel>> GetByFilter(string merchantId, string clientMerchantId, string statuses, bool? dispute, string billingCategories, int? greaterThan, int? lessThan);
+
         [Get("/api/invoices/{invoiceId}/history")]
         Task<IReadOnlyList<HistoryItemModel>> GetHistoryAsync(string invoiceId);
 

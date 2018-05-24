@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using AutoMapper;
@@ -151,6 +152,60 @@ namespace Lykke.Service.PayInvoice.Controllers
             IReadOnlyList<HistoryItem> history = await _invoiceService.GetHistoryAsync(invoiceId);
 
             var model = Mapper.Map<List<HistoryItemModel>>(history);
+
+            return Ok(model);
+        }
+
+        /// <summary>
+        /// Returns invoices by filter
+        /// </summary>
+        /// <param name="merchantId">The merchant id</param>
+        /// <param name="clientMerchantId">The merchant id of the client</param>
+        /// <param name="statuses">The statuses</param>
+        /// <param name="dispute">The dispute attribute</param>
+        /// <param name="billingCategories">The billing categories</param>
+        /// <param name="greaterThan">The greater than number for filtering</param>
+        /// <param name="lessThan">The less than number for filtering</param>
+        /// <response code="200">A collection of invoices.</response>
+        /// <response code="400">Problem occured.</response>
+        [HttpGet]
+        [Route("filter")]
+        [SwaggerOperation("InvoicesGetByFilter")]
+        [ProducesResponseType(typeof(IEnumerable<InvoiceModel>), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(ErrorResponse), (int)HttpStatusCode.BadRequest)]
+        public async Task<IActionResult> GetByFilter(string merchantId, string clientMerchantId, string statuses, bool? dispute, string billingCategories, int? greaterThan, int? lessThan)
+        {
+            var statusesConverted = new List<InvoiceStatus>();
+
+            if (!string.IsNullOrEmpty(statuses))
+            {
+                foreach (var status in statuses.Split(",", StringSplitOptions.RemoveEmptyEntries))
+                {
+                    try
+                    {
+                        statusesConverted.Add(status.Trim().ParseEnum<InvoiceStatus>());
+                    }
+                    catch (Exception)
+                    {
+                        return BadRequest(ErrorResponse.Create($"Invoice status <{status}> is not valid"));
+                    }
+                }
+            }
+
+            IReadOnlyList<Invoice> invoices = await _invoiceService.GetByFilterAsync(new InvoiceFilter
+            {
+                MerchantId = merchantId,
+                ClientMerchantId = clientMerchantId,
+                Statuses = statusesConverted,
+                Dispute = dispute ?? false,
+                BillingCategories = billingCategories != null 
+                    ? billingCategories.Split(",", StringSplitOptions.RemoveEmptyEntries).Select(x => x.Trim()).ToList() 
+                    : new List<string>(),
+                GreaterThan = greaterThan,
+                LessThan = lessThan
+            });
+
+            var model = Mapper.Map<List<InvoiceModel>>(invoices);
 
             return Ok(model);
         }
