@@ -159,11 +159,11 @@ namespace Lykke.Service.PayInvoice.Controllers
         /// <summary>
         /// Returns invoices by filter
         /// </summary>
-        /// <param name="merchantId">The merchant id</param>
-        /// <param name="clientMerchantId">The merchant id of the client</param>
-        /// <param name="statuses">The statuses</param>
+        /// <param name="merchantIds">The merchant ids (e.g. ?merchantIds=one&amp;merchantIds=two)</param>
+        /// <param name="clientMerchantIds">The merchant ids of the clients (e.g. ?clientMerchantIds=one&amp;clientMerchantIds=two)</param>
+        /// <param name="statuses">The statuses (e.g. ?statuses=one&amp;statuses=two)</param>
         /// <param name="dispute">The dispute attribute</param>
-        /// <param name="billingCategories">The billing categories</param>
+        /// <param name="billingCategories">The billing categories (e.g. ?billingCategories=one&amp;billingCategories=two)</param>
         /// <param name="greaterThan">The greater than number for filtering</param>
         /// <param name="lessThan">The less than number for filtering</param>
         /// <response code="200">A collection of invoices.</response>
@@ -173,13 +173,13 @@ namespace Lykke.Service.PayInvoice.Controllers
         [SwaggerOperation("InvoicesGetByFilter")]
         [ProducesResponseType(typeof(IEnumerable<InvoiceModel>), (int)HttpStatusCode.OK)]
         [ProducesResponseType(typeof(ErrorResponse), (int)HttpStatusCode.BadRequest)]
-        public async Task<IActionResult> GetByFilter(string merchantId, string clientMerchantId, string statuses, bool? dispute, string billingCategories, int? greaterThan, int? lessThan)
+        public async Task<IActionResult> GetByFilter(IEnumerable<string> merchantIds, IEnumerable<string> clientMerchantIds, IEnumerable<string> statuses, bool? dispute, IEnumerable<string> billingCategories, int? greaterThan, int? lessThan)
         {
             var statusesConverted = new List<InvoiceStatus>();
 
-            if (!string.IsNullOrEmpty(statuses))
+            if (statuses != null)
             {
-                foreach (var status in statuses.Split(",", StringSplitOptions.RemoveEmptyEntries))
+                foreach (var status in statuses)
                 {
                     try
                     {
@@ -194,13 +194,11 @@ namespace Lykke.Service.PayInvoice.Controllers
 
             IReadOnlyList<Invoice> invoices = await _invoiceService.GetByFilterAsync(new InvoiceFilter
             {
-                MerchantId = merchantId,
-                ClientMerchantId = clientMerchantId,
+                MerchantIds = merchantIds ?? new List<string>(),
+                ClientMerchantIds = clientMerchantIds ?? new List<string>(),
                 Statuses = statusesConverted,
                 Dispute = dispute ?? false,
-                BillingCategories = billingCategories != null 
-                    ? billingCategories.Split(",", StringSplitOptions.RemoveEmptyEntries).Select(x => x.Trim()).ToList() 
-                    : new List<string>(),
+                BillingCategories = billingCategories ?? new List<string>(),
                 GreaterThan = greaterThan,
                 LessThan = lessThan
             });

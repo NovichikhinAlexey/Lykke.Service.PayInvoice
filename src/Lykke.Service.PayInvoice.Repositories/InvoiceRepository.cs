@@ -74,14 +74,24 @@ namespace Lykke.Service.PayInvoice.Repositories
         {
             var filter = string.Empty;
 
-            if (!string.IsNullOrEmpty(invoiceFilter.MerchantId))
+            if (invoiceFilter.MerchantIds.Any())
             {
-                filter = nameof(Entity.PartitionKey).PropertyEqual(GetPartitionKey(invoiceFilter.MerchantId));
+                var localFilter = string.Empty;
+                foreach (var merchantId in invoiceFilter.MerchantIds)
+                {
+                    localFilter = localFilter.OrIfNotEmpty(nameof(Entity.PartitionKey).PropertyEqual(GetPartitionKey(merchantId)));
+                }
+                filter = localFilter;
             }
 
-            if(!string.IsNullOrEmpty(invoiceFilter.ClientMerchantId))
+            if (invoiceFilter.ClientMerchantIds.Any())
             {
-                filter = filter.AndIfNotEmpty(nameof(Entity.ClientName).PropertyEqual(invoiceFilter.ClientMerchantId));
+                var localFilter = string.Empty;
+                foreach (var clientMerchantId in invoiceFilter.ClientMerchantIds)
+                {
+                    localFilter = localFilter.OrIfNotEmpty(nameof(Entity.ClientName).PropertyEqual(clientMerchantId));
+                }
+                filter = filter.AndIfNotEmpty(localFilter);
             }
 
             if(invoiceFilter.Statuses.Any())

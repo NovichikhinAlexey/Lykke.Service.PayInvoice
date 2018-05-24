@@ -19,15 +19,15 @@ namespace Lykke.Service.PayInvoice.Client
         /// <summary>
         /// Returns invoices by filter
         /// </summary>
-        /// <param name="merchantId">The merchant id</param>
-        /// <param name="clientMerchantId">The merchant id of the client</param>
-        /// <param name="statuses">The statuses</param>
+        /// <param name="merchantIds">The merchant ids (e.g. ?merchantIds=one&amp;merchantIds=two)</param>
+        /// <param name="clientMerchantIds">The merchant ids of the clients (e.g. ?clientMerchantIds=one&amp;clientMerchantIds=two)</param>
+        /// <param name="statuses">The statuses (e.g. ?statuses=one&amp;statuses=two)</param>
         /// <param name="dispute">The dispute attribute</param>
-        /// <param name="billingCategories">The billing categories</param>
+        /// <param name="billingCategories">The billing categories (e.g. ?billingCategories=one&amp;billingCategories=two)</param>
         /// <param name="greaterThan">The greater than number for filtering</param>
         /// <param name="lessThan">The less than number for filtering</param>
         /// <returns>A collection of invoices</returns>
-        Task<IReadOnlyList<InvoiceModel>> GetByFilter(string merchantId, string clientMerchantId, string statuses, bool? dispute, string billingCategories, int? greaterThan, int? lessThan);
+        Task<IReadOnlyList<InvoiceModel>> GetByFilter(IEnumerable<string> merchantIds, IEnumerable<string> clientMerchantIds, IEnumerable<string> statuses, bool? dispute, IEnumerable<string> billingCategories, int? greaterThan, int? lessThan);
 
         /// <summary>
         /// Returns invoice history.
