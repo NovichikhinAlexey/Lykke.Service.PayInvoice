@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
+using Common;
 using Lykke.Common.Api.Contract.Responses;
 using Refit;
 
@@ -13,9 +14,9 @@ namespace Lykke.Service.PayInvoice.Client
             {
                 await method();
             }
-            catch (ApiException exception)
+            catch (ApiException ex)
             {
-                throw new ErrorResponseException(GetErrorResponse(exception), exception);
+                ThrowException(ex);
             }
         }
 
@@ -25,9 +26,22 @@ namespace Lykke.Service.PayInvoice.Client
             {
                 return await method();
             }
-            catch (ApiException exception)
+            catch (ApiException ex)
             {
-                throw new ErrorResponseException(GetErrorResponse(exception), exception);
+                ThrowException(ex);
+                return default(T);
+            }
+        }
+
+        private void ThrowException(ApiException ex)
+        {
+            if (ex.HasContent)
+            {
+                throw new ErrorResponseException(GetErrorResponse(ex), ex);
+            }
+            else
+            {
+                throw new ErrorResponseException(ex.ToJson());
             }
         }
 
@@ -44,7 +58,7 @@ namespace Lykke.Service.PayInvoice.Client
                 errorResponse = null;
             }
 
-            return errorResponse ?? ErrorResponse.Create("AssetDisclaimers API is not specify the error response");
+            return errorResponse ?? ErrorResponse.Create("ErrorResponse is not specified");
         }
     }
 }

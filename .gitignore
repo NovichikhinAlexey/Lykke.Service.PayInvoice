@@ -58,3 +58,5 @@ _NCrunch_*
 node_modules
 **/launchSettings.json
 **/appsettings.*.json
+
+Lykke.Service.PayInvoice.Client.xml
