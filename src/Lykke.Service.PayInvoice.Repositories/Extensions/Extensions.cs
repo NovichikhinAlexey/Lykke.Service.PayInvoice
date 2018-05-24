@@ -9,6 +9,11 @@ namespace Lykke.Service.PayInvoice.Repositories.Extensions
             return TableQuery.GenerateFilterCondition(property, QueryComparisons.Equal, value);
         }
 
+        public static string PropertyEqual(this string property, bool value)
+        {
+            return TableQuery.GenerateFilterConditionForBool(property, QueryComparisons.Equal, value);
+        }
+
         public static string PropertyNotEqual(this string property, string value)
         {
             return TableQuery.GenerateFilterCondition(property, QueryComparisons.NotEqual, value);
