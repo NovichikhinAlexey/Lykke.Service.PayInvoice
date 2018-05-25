@@ -45,6 +45,11 @@ namespace Lykke.Service.PayInvoice.Client.Models.Invoice
         public string SettlementAssetId { get; set; }
 
         /// <summary>
+        /// The paid amount in PaymentAssetId
+        /// </summary>
+        public decimal PaidAmount { get; set; }
+
+        /// <summary>
         /// Gets or sets invoice payment asset id.
         /// </summary>
         public string PaymentAssetId { get; set; }
@@ -73,5 +78,15 @@ namespace Lykke.Service.PayInvoice.Client.Models.Invoice
         /// Gets or sets created date.
         /// </summary>
         public DateTime CreatedDate { get; set; }
+
+        /// <summary>
+        /// The Billing Category
+        /// </summary>
+        public string BillingCategory { get; set; }
+
+        /// <summary>
+        /// The dispute attribute
+        /// </summary>
+        public bool Dispute { get; set; }
     }
 }

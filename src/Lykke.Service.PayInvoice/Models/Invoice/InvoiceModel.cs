@@ -16,11 +16,14 @@ namespace Lykke.Service.PayInvoice.Models.Invoice
         [JsonConverter(typeof(StringEnumConverter))]
         public InvoiceStatus Status { get; set; }
         public string SettlementAssetId { get; set; }
+        public decimal PaidAmount { get; set; }
         public string PaymentAssetId { get; set; }
         public string PaymentRequestId { get; set; }
         public string MerchantId { get; set; }
         public string EmployeeId { get; set; }
         public string Note { get; set; }
         public DateTime CreatedDate { get; set; }
+        public string BillingCategory { get; set; }
+        public bool Dispute { get; set; }
     }
 }

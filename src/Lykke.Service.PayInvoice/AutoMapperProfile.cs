@@ -16,11 +16,13 @@ namespace Lykke.Service.PayInvoice
             CreateMap<CreateInvoiceModel, Invoice>(MemberList.Destination)
                 .ForMember(src => src.Id, opt => opt.Ignore())
                 .ForMember(src => src.Status, opt => opt.Ignore())
+                .ForMember(src => src.PaidAmount, opt => opt.Ignore())
                 .ForMember(src => src.PaymentRequestId, opt => opt.Ignore())
                 .ForMember(src => src.CreatedDate, opt => opt.Ignore());
 
             CreateMap<UpdateInvoiceModel, Invoice>(MemberList.Destination)
                 .ForMember(src => src.Status, opt => opt.Ignore())
+                .ForMember(src => src.PaidAmount, opt => opt.Ignore())
                 .ForMember(src => src.PaymentRequestId, opt => opt.Ignore())
                 .ForMember(src => src.CreatedDate, opt => opt.Ignore());
 
