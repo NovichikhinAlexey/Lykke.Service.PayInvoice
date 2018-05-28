@@ -11,7 +11,7 @@ namespace Lykke.Service.PayInvoice.Client.Api
         Task<InvoiceModel> GetAsync(string invoiceId);
 
         [Get("/api/invoices/filter")]
-        Task<IReadOnlyList<InvoiceModel>> GetByFilter([Query(CollectionFormat.Multi)] IEnumerable<string> merchantIds, [Query(CollectionFormat.Multi)] IEnumerable<string> clientMerchantIds, [Query(CollectionFormat.Multi)] IEnumerable<string> statuses, bool? dispute, [Query(CollectionFormat.Multi)] IEnumerable<string> billingCategories, int? greaterThan, int? lessThan);
+        Task<IReadOnlyList<InvoiceModel>> GetByFilter([Query(CollectionFormat.Multi)] IEnumerable<string> merchantIds, [Query(CollectionFormat.Multi)] IEnumerable<string> clientMerchantIds, [Query(CollectionFormat.Multi)] IEnumerable<string> statuses, bool? dispute, [Query(CollectionFormat.Multi)] IEnumerable<string> billingCategories, decimal? greaterThan, decimal? lessThan);
 
         [Get("/api/invoices/{invoiceId}/history")]
         Task<IReadOnlyList<HistoryItemModel>> GetHistoryAsync(string invoiceId);
