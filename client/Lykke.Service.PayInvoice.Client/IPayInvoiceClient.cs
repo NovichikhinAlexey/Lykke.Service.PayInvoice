@@ -27,7 +27,7 @@ namespace Lykke.Service.PayInvoice.Client
         /// <param name="greaterThan">The greater than number for filtering</param>
         /// <param name="lessThan">The less than number for filtering</param>
         /// <returns>A collection of invoices</returns>
-        Task<IReadOnlyList<InvoiceModel>> GetByFilter(IEnumerable<string> merchantIds, IEnumerable<string> clientMerchantIds, IEnumerable<string> statuses, bool? dispute, IEnumerable<string> billingCategories, int? greaterThan, int? lessThan);
+        Task<IReadOnlyList<InvoiceModel>> GetByFilter(IEnumerable<string> merchantIds, IEnumerable<string> clientMerchantIds, IEnumerable<string> statuses, bool? dispute, IEnumerable<string> billingCategories, decimal? greaterThan, decimal? lessThan);
 
         /// <summary>
         /// Returns invoice history.

@@ -19,7 +19,7 @@ namespace Lykke.Service.PayInvoice.Core.Domain
         public IEnumerable<InvoiceStatus> Statuses { get; set; }
         public bool Dispute { get; set; }
         public IEnumerable<string> BillingCategories { get; set; }
-        public int? GreaterThan { get; set; }
-        public int? LessThan { get; set; }
+        public decimal? GreaterThan { get; set; }
+        public decimal? LessThan { get; set; }
     }
 }
