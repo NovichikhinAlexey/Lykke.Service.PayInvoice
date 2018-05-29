@@ -14,6 +14,8 @@ namespace Lykke.Service.PayInvoice.Core.Repositories
 
         Task<Invoice> GetAsync(string merchantId, string invoiceId);
 
+        Task<IReadOnlyList<Invoice>> GetByFilterAsync(InvoiceFilter invoiceFilter);
+
         Task<Invoice> FindByIdAsync(string invoiceId);
 
         Task<Invoice> FindByPaymentRequestIdAsync(string paymentRequestId);

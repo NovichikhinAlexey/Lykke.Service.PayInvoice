@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using AutoMapper;
 using AzureStorage;
@@ -38,8 +39,6 @@ namespace Lykke.Service.PayInvoice.Repositories
 
         public async Task<IReadOnlyList<Invoice>> GetAllPaidAsync()
         {
-            var result = new List<InvoiceEntity>();
-
             var filter = StatusEqual(InvoiceStatus.Paid)
                 .Or(StatusEqual(InvoiceStatus.Overpaid))
                 .Or(StatusEqual(InvoiceStatus.Underpaid))
@@ -47,7 +46,7 @@ namespace Lykke.Service.PayInvoice.Repositories
 
             var tableQuery = new TableQuery<InvoiceEntity>().Where(filter);
 
-            await _storage.ExecuteAsync(tableQuery, r => result = r.ToList());
+            var result = await _storage.WhereAsync(tableQuery);
 
             return Mapper.Map<List<Invoice>>(result);
 
@@ -69,6 +68,69 @@ namespace Lykke.Service.PayInvoice.Repositories
             InvoiceEntity entity = await _storage.GetDataAsync(GetPartitionKey(merchantId), GetRowKey(invoiceId));
 
             return Mapper.Map<Invoice>(entity);
+        }
+
+        public async Task<IReadOnlyList<Invoice>> GetByFilterAsync(InvoiceFilter invoiceFilter)
+        {
+            var filter = string.Empty;
+
+            if (invoiceFilter.MerchantIds.Any())
+            {
+                var localFilter = string.Empty;
+                foreach (var merchantId in invoiceFilter.MerchantIds)
+                {
+                    localFilter = localFilter.OrIfNotEmpty(nameof(Entity.PartitionKey).PropertyEqual(GetPartitionKey(merchantId)));
+                }
+                filter = localFilter;
+            }
+
+            if (invoiceFilter.ClientMerchantIds.Any())
+            {
+                var localFilter = string.Empty;
+                foreach (var clientMerchantId in invoiceFilter.ClientMerchantIds)
+                {
+                    localFilter = localFilter.OrIfNotEmpty(nameof(Entity.ClientName).PropertyEqual(clientMerchantId));
+                }
+                filter = filter.AndIfNotEmpty(localFilter);
+            }
+
+            if(invoiceFilter.Statuses.Any())
+            {
+                var localFilter = string.Empty;
+                foreach (var status in invoiceFilter.Statuses)
+                {
+                    localFilter = localFilter.OrIfNotEmpty(nameof(Entity.Status).PropertyEqual(status.ToString()));
+                }
+                filter = filter.AndIfNotEmpty(localFilter);
+            }
+
+            if(invoiceFilter.Dispute)
+            {
+                filter = filter.AndIfNotEmpty(nameof(Entity.Dispute).PropertyEqual(true));
+            }
+
+            if (invoiceFilter.BillingCategories.Any())
+            {
+                var localFilter = string.Empty;
+                foreach (var cat in invoiceFilter.BillingCategories)
+                {
+                    if (cat.IsEmpty()) continue;
+                    localFilter = localFilter.OrIfNotEmpty(nameof(Entity.BillingCategory).PropertyEqual(cat));
+                }
+                filter = filter.AndIfNotEmpty(localFilter);
+            }
+
+            if (filter.IsEmpty())
+            {
+                filter = nameof(Entity.RowKey).PropertyNotEqual(GetInvoiceIdIndexRowKey())
+                    .And(nameof(Entity.RowKey).PropertyNotEqual(GetPaymentRequestIndexRowKey()));
+            }
+
+            var tableQuery = new TableQuery<InvoiceEntity>().Where(filter);
+
+            var result = await _storage.WhereAsync(tableQuery);
+
+            return Mapper.Map<List<Invoice>>(result);
         }
 
         public async Task<Invoice> FindByIdAsync(string invoiceId)

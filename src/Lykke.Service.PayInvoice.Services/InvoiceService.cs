@@ -57,6 +57,28 @@ namespace Lykke.Service.PayInvoice.Services
             return await _invoiceRepository.FindByIdAsync(invoiceId);
         }
 
+        public async Task<IReadOnlyList<Invoice>> GetByFilterAsync(string merchantId)
+        {
+            return await _invoiceRepository.GetAsync(merchantId);
+        }
+
+        public async Task<IReadOnlyList<Invoice>> GetByFilterAsync(InvoiceFilter invoiceFilter)
+        {
+            var filtered = await _invoiceRepository.GetByFilterAsync(invoiceFilter);
+
+            if (invoiceFilter.GreaterThan.HasValue)
+            {
+                filtered = filtered.Where(x => x.Amount >= invoiceFilter.GreaterThan.Value).ToList();
+            }
+
+            if (invoiceFilter.LessThan.HasValue)
+            {
+                filtered = filtered.Where(x => x.Amount <= invoiceFilter.LessThan.Value).ToList();
+            }
+
+            return filtered;
+        }
+
         public Task<IReadOnlyList<HistoryItem>> GetHistoryAsync(string invoiceId)
         {
             return _historyRepository.GetByInvoiceIdAsync(invoiceId);
