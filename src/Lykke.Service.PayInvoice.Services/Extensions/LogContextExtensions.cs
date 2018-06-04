@@ -35,5 +35,11 @@ namespace Lykke.Service.PayInvoice.Services.Extensions
                 .ToContext(nameof(model.EmployeeId), model.EmployeeId)
                 .ToContext(nameof(model.CreatedDate), model.CreatedDate.ToString(CultureInfo.InvariantCulture));
         }
+
+        public static Invoice Sanitize(this Invoice model)
+        {
+            model.ClientEmail = model.ClientEmail.SanitizeEmail();
+            return model;
+        }
     }
 }

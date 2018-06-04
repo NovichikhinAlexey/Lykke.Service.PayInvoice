@@ -8,6 +8,7 @@ using Common;
 using Common.Log;
 using Lykke.Common.Api.Contract.Responses;
 using Lykke.Service.PayInvoice.Core.Domain;
+using Lykke.Service.PayInvoice.Core.Domain.PaymentRequest;
 using Lykke.Service.PayInvoice.Core.Exceptions;
 using Lykke.Service.PayInvoice.Core.Services;
 using Lykke.Service.PayInvoice.Extensions;
@@ -26,7 +27,7 @@ namespace Lykke.Service.PayInvoice.Controllers
         public InvoicesController(IInvoiceService invoiceService, ILog log)
         {
             _invoiceService = invoiceService;
-            _log = log;
+            _log = log.CreateComponentScope(nameof(InvoicesController));
         }
 
         /// <summary>
@@ -96,19 +97,52 @@ namespace Lykke.Service.PayInvoice.Controllers
                 
                 return Ok(Mapper.Map<InvoiceModel>(invoice));
             }
-            catch (InvoiceNotFoundException exception)
+            catch (InvoiceNotFoundException ex)
             {
-                await _log.WriteErrorAsync(nameof(InvoicesController), nameof(CreateFromDraftAsync),
-                    new {invoiceId}.ToJson(), exception);
+                _log.WriteError(nameof(CreateFromDraftAsync), new { invoiceId }, ex);
 
                 return NotFound();
             }
-            catch (InvalidOperationException exception)
+            catch (InvalidOperationException ex)
             {
-                await _log.WriteErrorAsync(nameof(InvoicesController), nameof(CreateFromDraftAsync),
-                    new {invoiceId}.ToJson(), exception);
+                _log.WriteError(nameof(CreateFromDraftAsync), new { invoiceId }, ex);
 
-                return BadRequest(ErrorResponse.Create(exception.Message));
+                return BadRequest(ErrorResponse.Create(ex.Message));
+            }
+        }
+
+        /// <summary>
+        /// Change payment asset of the invoice by creating new payment request with new asset
+        /// </summary>
+        /// <param name="invoiceId">The invoice id</param>
+        /// <param name="paymentAssetId">The payment asset id</param>
+        /// <response code="200">Updated invoice</response>
+        /// <response code="400">Invalid model</response>
+        [HttpPost]
+        [Route("{invoiceId}/{paymentAssetId}")]
+        [SwaggerOperation("ChangePaymentAsset")]
+        [ProducesResponseType(typeof(InvoiceModel), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(ErrorResponse), (int)HttpStatusCode.BadRequest)]
+        [ProducesResponseType((int)HttpStatusCode.NotFound)]
+        public async Task<IActionResult> ChangePaymentAssetAsync(string invoiceId, string paymentAssetId)
+        {
+            try
+            {
+                Invoice invoice = await _invoiceService.ChangePaymentRequestAsync(invoiceId, paymentAssetId);
+
+                return Ok(Mapper.Map<InvoiceModel>(invoice));
+            }
+            catch (InvoiceNotFoundException ex)
+            {
+                _log.WriteError(nameof(ChangePaymentAssetAsync), new { invoiceId }, ex);
+
+                return NotFound();
+            }
+            catch (InvalidOperationException ex)
+            {
+                _log.WriteError(nameof(ChangePaymentAssetAsync), new { invoiceId }, ex);
+
+                return BadRequest(ErrorResponse.Create(ex.Message));
             }
         }
 
@@ -154,6 +188,23 @@ namespace Lykke.Service.PayInvoice.Controllers
             var model = Mapper.Map<List<HistoryItemModel>>(history);
 
             return Ok(model);
+        }
+
+        /// <summary>
+        /// Returns invoice's payment requests
+        /// </summary>
+        /// <param name="invoiceId">The invoice id</param>
+        /// <returns>A collection of invoice's payment requests</returns>
+        /// <response code="200">A collection of invoice's payment requests</response>
+        [HttpGet]
+        [Route("{invoiceId}/paymentrequests")]
+        [SwaggerOperation("InvoicesGetPaymentRequests")]
+        [ProducesResponseType(typeof(IEnumerable<PaymentRequestHistoryItem>), (int)HttpStatusCode.OK)]
+        public async Task<IActionResult> GetPaymentRequestsAsync(string invoiceId)
+        {
+            IReadOnlyList<PaymentRequestHistoryItem> paymentRequests = await _invoiceService.GetPaymentRequestsOfInvoiceAsync(invoiceId);
+
+            return Ok(paymentRequests);
         }
 
         /// <summary>

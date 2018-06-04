@@ -9,6 +9,7 @@ using Lykke.Service.PayInvoice.Client.Models.Employee;
 using Lykke.Service.PayInvoice.Client.Models.File;
 using Lykke.Service.PayInvoice.Client.Models.Invoice;
 using Lykke.Service.PayInvoice.Core.Domain;
+using Lykke.Service.PayInvoice.Core.Domain.PaymentRequest;
 using Microsoft.Extensions.PlatformAbstractions;
 using Newtonsoft.Json;
 using Refit;
@@ -75,6 +76,11 @@ namespace Lykke.Service.PayInvoice.Client
             return await _runner.RunAsync(() => _invoicesApi.CreateFromDraftAsync(invoiceId));
         }
 
+        public async Task<InvoiceModel> ChangePaymentAssetAsync(string invoiceId, string paymentAssetId)
+        {
+            return await _runner.RunAsync(() => _invoicesApi.ChangePaymentAssetAsync(invoiceId, paymentAssetId));
+        }
+
         public async Task DeleteInvoiceAsync(string invoiceId)
         {
             await _runner.RunAsync(() => _invoicesApi.DeleteAsync(invoiceId));
@@ -84,7 +90,12 @@ namespace Lykke.Service.PayInvoice.Client
         {
             return await _runner.RunAsync(() => _invoicesApi.GetHistoryAsync(invoiceId));
         }
-        
+
+        public async Task<IReadOnlyList<PaymentRequestHistoryItem>> GetPaymentRequestsAsync(string invoiceId)
+        {
+            return await _runner.RunAsync(() => _invoicesApi.GetPaymentRequestsAsync(invoiceId));
+        }
+
         public async Task<IEnumerable<InvoiceModel>> GetMerchantInvoicesAsync(string merchantId)
         {
             return await _runner.RunAsync(() => _merchantsApi.GetAllAsync(merchantId));

@@ -6,9 +6,11 @@ using AutoMapper;
 using Common;
 using Common.Log;
 using Lykke.Service.PayInternal.Client;
+using Lykke.Service.PayInternal.Client.Exceptions;
 using Lykke.Service.PayInternal.Client.Models.PaymentRequest;
 using Lykke.Service.PayInternal.Contract.PaymentRequest;
 using Lykke.Service.PayInvoice.Core.Domain;
+using Lykke.Service.PayInvoice.Core.Domain.PaymentRequest;
 using Lykke.Service.PayInvoice.Core.Exceptions;
 using Lykke.Service.PayInvoice.Core.Repositories;
 using Lykke.Service.PayInvoice.Core.Services;
@@ -23,6 +25,7 @@ namespace Lykke.Service.PayInvoice.Services
         private readonly IFileInfoRepository _fileInfoRepository;
         private readonly IFileRepository _fileRepository;
         private readonly IHistoryRepository _historyRepository;
+        private readonly IPaymentRequestHistoryRepository _paymentRequestHistoryRepository;
         private readonly IPayInternalClient _payInternalClient;
         private readonly ILog _log;
 
@@ -31,6 +34,7 @@ namespace Lykke.Service.PayInvoice.Services
             IFileInfoRepository fileInfoRepository,
             IFileRepository fileRepository,
             IHistoryRepository historyRepository,
+            IPaymentRequestHistoryRepository paymentRequestHistoryRepository,
             IPayInternalClient payInternalClient,
             ILog log)
         {
@@ -38,6 +42,7 @@ namespace Lykke.Service.PayInvoice.Services
             _fileInfoRepository = fileInfoRepository;
             _fileRepository = fileRepository;
             _historyRepository = historyRepository;
+            _paymentRequestHistoryRepository = paymentRequestHistoryRepository;
             _payInternalClient = payInternalClient;
             _log = log.CreateComponentScope(nameof(InvoiceService));
         }
@@ -84,6 +89,25 @@ namespace Lykke.Service.PayInvoice.Services
             return _historyRepository.GetByInvoiceIdAsync(invoiceId);
         }
 
+        public async Task<IReadOnlyList<PaymentRequestHistoryItem>> GetPaymentRequestsOfInvoiceAsync(string invoiceId)
+        {
+            var result = new List<PaymentRequestHistoryItem>();
+
+            var history = await _paymentRequestHistoryRepository.GetByInvoiceIdAsync(invoiceId);
+            result.AddRange(history.OrderBy(x => x.HistoryCreatedOn));
+
+            var invoice = await _invoiceRepository.FindByIdAsync(invoiceId);
+            var currentPaymentRequest = new PaymentRequestHistoryItem
+            {
+                InvoiceId = invoice.Id,
+                PaymentRequestId = invoice.PaymentRequestId,
+                PaymentAssetId = invoice.PaymentAssetId
+            };
+            result.Add(currentPaymentRequest);
+
+            return result;
+        }
+
         public async Task<Invoice> CreateDraftAsync(Invoice invoice)
         {
             invoice.Status = InvoiceStatus.Draft;
@@ -91,8 +115,7 @@ namespace Lykke.Service.PayInvoice.Services
 
             Invoice createdInvoice = await _invoiceRepository.InsertAsync(invoice);
 
-            await _log.WriteInfoAsync(nameof(InvoiceService), nameof(CreateDraftAsync),
-                invoice.ToContext().ToJson(), "Invoice draft created");
+            _log.WriteInfo(nameof(CreateDraftAsync), invoice.Sanitize(), "Invoice draft created");
 
             await WriteHistory(createdInvoice, "Invoice draft created");
 
@@ -114,8 +137,7 @@ namespace Lykke.Service.PayInvoice.Services
             
             await _invoiceRepository.UpdateAsync(invoice);
 
-            await _log.WriteInfoAsync(nameof(InvoiceService), nameof(UpdateDraftAsync),
-                invoice.ToContext().ToJson(), "Invoice draft updated");
+            _log.WriteInfo(nameof(UpdateDraftAsync), invoice.Sanitize(), "Invoice draft updated");
 
             await WriteHistory(invoice, "Invoice draft updated");
         }
@@ -130,8 +152,7 @@ namespace Lykke.Service.PayInvoice.Services
 
             Invoice createdInvoice = await _invoiceRepository.InsertAsync(invoice);
 
-            await _log.WriteInfoAsync(nameof(InvoiceService), nameof(CreateAsync),
-                invoice.ToContext().ToJson(), "Invoice created");
+            _log.WriteInfo(nameof(CreateAsync), invoice.Sanitize(), "Invoice created");
 
             await WriteHistory(createdInvoice, "Invoice created");
 
@@ -155,10 +176,43 @@ namespace Lykke.Service.PayInvoice.Services
             
             await _invoiceRepository.UpdateAsync(invoice);
 
-            await _log.WriteInfoAsync(nameof(InvoiceService), nameof(CreateFromDraftAsync),
-                invoice.ToContext().ToJson(), "Invoice created from draft");
+            _log.WriteInfo(nameof(CreateFromDraftAsync), invoice.Sanitize(), "Invoice created from draft");
 
             await WriteHistory(invoice, "Invoice created from draft");
+
+            return invoice;
+        }
+
+        public async Task<Invoice> ChangePaymentRequestAsync(string invoiceId, string paymentAssetId)
+        {
+            Invoice invoice = await _invoiceRepository.FindByIdAsync(invoiceId);
+
+            if (invoice == null)
+                throw new InvoiceNotFoundException(invoiceId);
+
+            if (invoice.Status != InvoiceStatus.Unpaid)
+                throw new InvalidOperationException("Invoice status is invalid.");
+
+            if (invoice.PaymentAssetId == paymentAssetId)
+                return invoice;
+
+            var previousPaymentAssetId = invoice.PaymentAssetId;
+            invoice.PaymentAssetId = paymentAssetId;
+
+            PaymentRequestModel paymentRequest = await CreatePaymentRequestAsync(invoice);
+
+            var previousPaymentRequestId = invoice.PaymentRequestId;
+            invoice.PaymentRequestId = paymentRequest.Id;
+
+            await _invoiceRepository.UpdateAsync(invoice);
+
+            await WritePaymentRequestHistory(invoice.Id, previousPaymentRequestId, previousPaymentAssetId);
+
+            await CancelPaymentRequestAsync(invoice.MerchantId, previousPaymentRequestId);
+
+            _log.WriteInfo(nameof(ChangePaymentRequestAsync), 
+                new { invoice = invoice.Sanitize(), previousPaymentRequestId, newPaymentRequest = paymentRequest }, 
+                "Payment request changed");
 
             return invoice;
         }
@@ -182,28 +236,17 @@ namespace Lykke.Service.PayInvoice.Services
                     await _fileRepository.DeleteAsync(fileInfo.Id);
                 }
 
-                await _log.WriteInfoAsync(nameof(InvoiceService), nameof(DeleteAsync),
-                    invoice.ToContext().ToJson(), "Invoice deleted.");
+                _log.WriteInfo(nameof(DeleteAsync), invoice.Sanitize(), "Invoice deleted.");
 
                 await _historyRepository.DeleteAsync(invoiceId);
             }
             else if (invoice.Status == InvoiceStatus.Unpaid)
             {
-                try
-                {
-                    await _payInternalClient.CancelAsync(invoice.MerchantId, invoice.PaymentRequestId);
-                }
-                catch (Exception ex)
-                {
-                    const string message = "PaymentRequest is not cancelled";
-                    _log.WriteError(nameof(DeleteAsync), new {message, invoice}, ex);
-                    throw new InvalidOperationException(message, ex);
-                }
-                
+                await CancelPaymentRequestAsync(invoice.MerchantId, invoice.PaymentRequestId);
+
                 await _invoiceRepository.SetStatusAsync(invoice.MerchantId, invoice.Id, InvoiceStatus.Removed);
 
-                await _log.WriteInfoAsync(nameof(InvoiceService), nameof(DeleteAsync),
-                    invoice.ToContext().ToJson(), "Invoice removed");
+                _log.WriteInfo(nameof(DeleteAsync), invoice.Sanitize(), "Invoice removed");
 
                 invoice.Status = InvoiceStatus.Removed;
 
@@ -211,17 +254,25 @@ namespace Lykke.Service.PayInvoice.Services
             }
             else
             {
-                await _log.WriteInfoAsync(nameof(InvoiceService), nameof(DeleteAsync),
-                    invoice.ToContext().ToJson(), "Cannot remove invoice");
+                _log.WriteInfo(nameof(DeleteAsync), invoice.Sanitize(), "Cannot remove invoice");
             }
         }
 
         public async Task UpdateAsync(PaymentRequestDetailsMessage message)
         {
-            Invoice invoice = await _invoiceRepository.FindByPaymentRequestIdAsync(message.Id);
+            var paymentRequestId = message.Id;
+            Invoice invoice = await _invoiceRepository.FindByPaymentRequestIdAsync(paymentRequestId);
 
             if (invoice == null)
                 throw new InvoiceNotFoundException();
+
+            if (message.Status == PayInternal.Contract.PaymentRequest.PaymentRequestStatus.Cancelled)
+            {
+                var paymentRequestHistoryItem = _paymentRequestHistoryRepository.GetAsync(invoice.Id, paymentRequestId);
+
+                if (paymentRequestHistoryItem != null)
+                    return;
+            }
 
             InvoiceStatus status = StatusConverter.Convert(message.Status, message.ProcessingError);
 
@@ -262,19 +313,42 @@ namespace Lykke.Service.PayInvoice.Services
             await _historyRepository.InsertAsync(history);
         }
 
+        private async Task CancelPaymentRequestAsync(string merchantId, string paymentRequestId)
+        {
+            try
+            {
+                var paymentRequest = await _payInternalClient.GetPaymentRequestAsync(merchantId, paymentRequestId);
+                if (paymentRequest.Status != PayInternal.Client.Models.PaymentRequest.PaymentRequestStatus.Cancelled)
+                {
+                    await _payInternalClient.CancelAsync(merchantId, paymentRequestId);
+                }
+            }
+            catch (Exception ex)
+            {
+                const string message = "PaymentRequest is not cancelled";
+                _log.WriteError(nameof(CancelPaymentRequestAsync), new { message, merchantId, paymentRequestId }, ex);
+                throw new InvalidOperationException(message, ex);
+            }
+        }
+
         private async Task<PaymentRequestModel> CreatePaymentRequestAsync(Invoice invoice)
         {
-            return await _payInternalClient.CreatePaymentRequestAsync(
-                new CreatePaymentRequestModel
-                {
-                    MerchantId = invoice.MerchantId,
-                    Amount = invoice.Amount,
-                    DueDate = invoice.DueDate,
-                    MarkupPercent = 0,
-                    MarkupPips = 0,
-                    PaymentAssetId = invoice.PaymentAssetId,
-                    SettlementAssetId = invoice.SettlementAssetId
-                });
+            try
+            {
+                return await _payInternalClient.CreatePaymentRequestAsync(
+                    new CreatePaymentRequestModel
+                    {
+                        MerchantId = invoice.MerchantId,
+                        Amount = invoice.Amount,
+                        DueDate = invoice.DueDate,
+                        PaymentAssetId = invoice.PaymentAssetId,
+                        SettlementAssetId = invoice.SettlementAssetId
+                    });
+            }
+            catch (DefaultErrorResponseException ex)
+            {
+                throw new InvalidOperationException($"{ex.StatusCode}: {ex.Error.ErrorMessage}", ex);
+            }
         }
 
         private async Task WriteHistory(Invoice invoice, string reason)
@@ -284,6 +358,19 @@ namespace Lykke.Service.PayInvoice.Services
             history.Date = DateTime.UtcNow;
             
             await _historyRepository.InsertAsync(history);
+        }
+
+        private async Task WritePaymentRequestHistory(string invoiceId, string paymentRequestId, string paymentAssetId)
+        {
+            var history = new PaymentRequestHistoryItem
+            {
+                InvoiceId = invoiceId,
+                PaymentRequestId = paymentRequestId,
+                PaymentAssetId = paymentAssetId,
+                HistoryCreatedOn = DateTime.UtcNow
+            };
+
+            await _paymentRequestHistoryRepository.InsertAsync(history);
         }
     }
 }

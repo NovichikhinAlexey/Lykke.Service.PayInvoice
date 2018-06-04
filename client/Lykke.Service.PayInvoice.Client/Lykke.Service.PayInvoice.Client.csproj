@@ -23,6 +23,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="..\..\src\Lykke.Service.PayInvoice.Core\Domain\MerchantSetting.cs" Link="Models\MerchantSetting\MerchantSetting.cs" />
+    <Compile Include="..\..\src\Lykke.Service.PayInvoice.Core\Domain\PaymentRequest\PaymentRequestHistoryItem.cs" Link="Models\Invoice\PaymentRequestHistoryItem.cs" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Lykke.Common" Version="6.8.2" />
