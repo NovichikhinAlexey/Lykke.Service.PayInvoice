@@ -25,7 +25,9 @@ namespace Lykke.Service.PayInvoice.Client
         /// <param name="error">The response error details</param>
         /// <param name="inner">The exception occurred during calling service API.</param>
         public ErrorResponseException(ErrorResponse error, ApiException inner)
-            : base(error.GetSummaryMessage() ?? string.Empty, inner)
+            : base(error != null 
+                  ? (error.ModelErrors != null && error.ModelErrors.Count > 0 ? error.GetSummaryMessage() : error.ErrorMessage)
+                  : inner.Message ?? string.Empty, inner)
         {
             Error = error;
             StatusCode = inner.StatusCode;
