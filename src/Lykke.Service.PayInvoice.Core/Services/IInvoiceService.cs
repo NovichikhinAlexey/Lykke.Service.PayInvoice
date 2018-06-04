@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 using Lykke.Service.PayInternal.Contract.PaymentRequest;
 using Lykke.Service.PayInvoice.Core.Domain;
+using Lykke.Service.PayInvoice.Core.Domain.PaymentRequest;
 
 namespace Lykke.Service.PayInvoice.Core.Services
 {
@@ -17,11 +18,15 @@ namespace Lykke.Service.PayInvoice.Core.Services
 
         Task<IReadOnlyList<HistoryItem>> GetHistoryAsync(string invoiceId);
 
+        Task<IReadOnlyList<PaymentRequestHistoryItem>> GetPaymentRequestsOfInvoiceAsync(string invoiceId);
+
         Task<Invoice> CreateDraftAsync(Invoice invoice);
 
         Task UpdateDraftAsync(Invoice invoice);
 
         Task<Invoice> CreateAsync(Invoice invoice);
+
+        Task<Invoice> ChangePaymentRequestAsync(string invoiceId, string paymentAssetId);
 
         Task<Invoice> CreateFromDraftAsync(string invoiceId);
 

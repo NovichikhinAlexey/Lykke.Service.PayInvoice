@@ -4,6 +4,7 @@ using Lykke.Service.PayInvoice.Client.Models.Employee;
 using Lykke.Service.PayInvoice.Client.Models.File;
 using Lykke.Service.PayInvoice.Client.Models.Invoice;
 using Lykke.Service.PayInvoice.Core.Domain;
+using Lykke.Service.PayInvoice.Core.Domain.PaymentRequest;
 
 namespace Lykke.Service.PayInvoice.Client
 {
@@ -37,6 +38,13 @@ namespace Lykke.Service.PayInvoice.Client
         Task<IReadOnlyList<HistoryItemModel>> GetInvoiceHistoryAsync(string invoiceId);
 
         /// <summary>
+        /// Returns invoice's payment requests
+        /// </summary>
+        /// <param name="invoiceId">The invoice id</param>
+        /// <returns>A collection of invoice's payment requests</returns>
+        Task<IReadOnlyList<PaymentRequestHistoryItem>> GetPaymentRequestsAsync(string invoiceId);
+
+        /// <summary>
         /// Creates an invoice.
         /// </summary>
         /// <param name="model">The model that describe an invoice.</param>
@@ -49,7 +57,15 @@ namespace Lykke.Service.PayInvoice.Client
         /// <param name="invoiceId">The invoice id.</param>
         /// <returns>Created invoice.</returns>
         Task<InvoiceModel> CreateInvoiceAsync(string invoiceId);
-        
+
+        /// <summary>
+        /// Change payment asset of the invoice by creating new payment request with new asset
+        /// </summary>
+        /// <param name="invoiceId">The invoice id</param>
+        /// <param name="paymentAssetId">The payment asset id</param>
+        /// <returns></returns>
+        Task<InvoiceModel> ChangePaymentAssetAsync(string invoiceId, string paymentAssetId);
+
         /// <summary>
         /// Deletes an invoice by specified id.
         /// </summary>
