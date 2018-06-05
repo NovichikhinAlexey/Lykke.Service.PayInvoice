@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using Lykke.Service.PayInvoice.Client.Models.Invoice;
+using Lykke.Service.PayInvoice.Core.Domain.PaymentRequest;
 using Refit;
 
 namespace Lykke.Service.PayInvoice.Client.Api
@@ -16,12 +17,18 @@ namespace Lykke.Service.PayInvoice.Client.Api
         [Get("/api/invoices/{invoiceId}/history")]
         Task<IReadOnlyList<HistoryItemModel>> GetHistoryAsync(string invoiceId);
 
+        [Get("/api/invoices/{invoiceId}/paymentrequests")]
+        Task<IReadOnlyList<PaymentRequestHistoryItem>> GetPaymentRequestsAsync(string invoiceId);
+
         [Post("/api/invoices")]
         Task<InvoiceModel> CreateAsync([Body] CreateInvoiceModel model);
 
         [Post("/api/invoices/{invoiceId}")]
         Task<InvoiceModel> CreateFromDraftAsync(string invoiceId);
-        
+
+        [Post("/api/invoices/{invoiceId}/{paymentAssetId}")]
+        Task<InvoiceModel> ChangePaymentAssetAsync(string invoiceId, string paymentAssetId);
+
         [Delete("/api/invoices/{invoiceId}")]
         Task DeleteAsync(string invoiceId);
     }

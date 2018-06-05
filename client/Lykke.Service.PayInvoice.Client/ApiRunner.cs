@@ -41,7 +41,7 @@ namespace Lykke.Service.PayInvoice.Client
             }
             else
             {
-                throw new ErrorResponseException(ex.ToJson());
+                throw new ErrorResponseException(null, ex);
             }
         }
 
@@ -58,7 +58,7 @@ namespace Lykke.Service.PayInvoice.Client
                 errorResponse = null;
             }
 
-            return errorResponse ?? ErrorResponse.Create("ErrorResponse is not specified");
+            return errorResponse;
         }
     }
 }
