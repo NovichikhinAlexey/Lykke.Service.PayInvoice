@@ -69,9 +69,18 @@ namespace Lykke.Service.PayInvoice.Controllers
             if (!ModelState.IsValid)
                 return BadRequest(new ErrorResponse().AddErrors(ModelState));
 
-            Invoice invoice = await _invoiceService.CreateAsync(Mapper.Map<Invoice>(model));
+            try
+            {
+                Invoice invoice = await _invoiceService.CreateAsync(Mapper.Map<Invoice>(model));
 
-            return Ok(Mapper.Map<InvoiceModel>(invoice));
+                return Ok(Mapper.Map<InvoiceModel>(invoice));
+            }
+            catch (InvalidOperationException ex)
+            {
+                _log.WriteError(nameof(CreateAsync), model.ToContext(), ex);
+
+                return BadRequest(ErrorResponse.Create(ex.Message));
+            }
         }
 
         /// <summary>
@@ -140,7 +149,7 @@ namespace Lykke.Service.PayInvoice.Controllers
             }
             catch (InvalidOperationException ex)
             {
-                _log.WriteError(nameof(ChangePaymentAssetAsync), new { invoiceId }, ex);
+                _log.WriteError(nameof(ChangePaymentAssetAsync), new { invoiceId, paymentAssetId }, ex);
 
                 return BadRequest(ErrorResponse.Create(ex.Message));
             }
@@ -200,11 +209,20 @@ namespace Lykke.Service.PayInvoice.Controllers
         [Route("{invoiceId}/paymentrequests")]
         [SwaggerOperation("InvoicesGetPaymentRequests")]
         [ProducesResponseType(typeof(IEnumerable<PaymentRequestHistoryItem>), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(ErrorResponse), (int)HttpStatusCode.NotFound)]
         public async Task<IActionResult> GetPaymentRequestsAsync(string invoiceId)
         {
-            IReadOnlyList<PaymentRequestHistoryItem> paymentRequests = await _invoiceService.GetPaymentRequestsOfInvoiceAsync(invoiceId);
+            try
+            {
+                IReadOnlyList<PaymentRequestHistoryItem> paymentRequests = await _invoiceService.GetPaymentRequestsOfInvoiceAsync(invoiceId);
 
-            return Ok(paymentRequests);
+                return Ok(paymentRequests);
+            }
+            catch (InvoiceNotFoundException ex)
+            {
+                _log.WriteError(nameof(GetPaymentRequestsAsync), new { invoiceId }, ex);
+                return NotFound(ErrorResponse.Create("Invoice not found"));
+            }
         }
 
         /// <summary>

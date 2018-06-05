@@ -97,6 +97,10 @@ namespace Lykke.Service.PayInvoice.Services
             result.AddRange(history.OrderBy(x => x.HistoryCreatedOn));
 
             var invoice = await _invoiceRepository.FindByIdAsync(invoiceId);
+
+            if (invoice == null)
+                throw new InvoiceNotFoundException(invoiceId);
+
             var currentPaymentRequest = new PaymentRequestHistoryItem
             {
                 InvoiceId = invoice.Id,
