@@ -94,19 +94,22 @@ namespace Lykke.Service.PayInvoice.Services
             var result = new List<PaymentRequestHistoryItem>();
 
             var history = await _paymentRequestHistoryRepository.GetByInvoiceIdAsync(invoiceId);
-            result.AddRange(history.OrderBy(x => x.HistoryCreatedOn));
+            result.AddRange(history.OrderBy(x => x.CreatedAt));
 
             var invoice = await _invoiceRepository.FindByIdAsync(invoiceId);
 
             if (invoice == null)
                 throw new InvoiceNotFoundException(invoiceId);
 
+            PaymentRequestModel paymentRequest = await _payInternalClient.GetPaymentRequestAsync(invoice.MerchantId, invoice.PaymentRequestId);
+
+            // Add current payment request
             var currentPaymentRequest = new PaymentRequestHistoryItem
             {
                 InvoiceId = invoice.Id,
                 PaymentRequestId = invoice.PaymentRequestId,
                 PaymentAssetId = invoice.PaymentAssetId,
-                HistoryCreatedOn = invoice.CreatedDate
+                CreatedAt = paymentRequest.Timestamp ?? DateTime.UtcNow
             };
             result.Add(currentPaymentRequest);
 
@@ -211,7 +214,7 @@ namespace Lykke.Service.PayInvoice.Services
 
             await _invoiceRepository.UpdateAsync(invoice);
 
-            await WritePaymentRequestHistory(invoice.Id, previousPaymentRequestId, previousPaymentAssetId);
+            await WritePaymentRequestHistory(invoice.MerchantId, invoice.Id, previousPaymentRequestId, previousPaymentAssetId);
 
             await CancelPaymentRequestAsync(invoice.MerchantId, previousPaymentRequestId);
 
@@ -365,14 +368,16 @@ namespace Lykke.Service.PayInvoice.Services
             await _historyRepository.InsertAsync(history);
         }
 
-        private async Task WritePaymentRequestHistory(string invoiceId, string paymentRequestId, string paymentAssetId)
+        private async Task WritePaymentRequestHistory(string merchantId, string invoiceId, string paymentRequestId, string paymentAssetId)
         {
+            PaymentRequestModel paymentRequest = await _payInternalClient.GetPaymentRequestAsync(merchantId, paymentRequestId);
+
             var history = new PaymentRequestHistoryItem
             {
                 InvoiceId = invoiceId,
                 PaymentRequestId = paymentRequestId,
                 PaymentAssetId = paymentAssetId,
-                HistoryCreatedOn = DateTime.UtcNow
+                CreatedAt = paymentRequest.Timestamp ?? DateTime.UtcNow
             };
 
             await _paymentRequestHistoryRepository.InsertAsync(history);

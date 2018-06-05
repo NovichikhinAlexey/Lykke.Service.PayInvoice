@@ -10,7 +10,7 @@ namespace Lykke.Service.PayInvoice.Repositories.PaymentRequestHistory
     [ValueTypeMergingStrategy(ValueTypeMergingStrategy.UpdateIfDirty)]
     public class PaymentRequestHistoryItemEntity : AzureTableEntity
     {
-        private DateTime _historyCreatedOn;
+        private DateTime _createdAt;
 
         public PaymentRequestHistoryItemEntity()
         {
@@ -24,13 +24,13 @@ namespace Lykke.Service.PayInvoice.Repositories.PaymentRequestHistory
 
         public string PaymentAssetId { get; set; }
 
-        public DateTime HistoryCreatedOn
+        public DateTime CreatedAt
         {
-            get => _historyCreatedOn;
+            get => _createdAt;
             set
             {
-                _historyCreatedOn = value;
-                MarkValueTypePropertyAsDirty(nameof(HistoryCreatedOn));
+                _createdAt = value;
+                MarkValueTypePropertyAsDirty(nameof(CreatedAt));
             }
         }
     }

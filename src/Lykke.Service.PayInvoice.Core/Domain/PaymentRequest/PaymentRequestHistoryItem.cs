@@ -24,6 +24,6 @@ namespace Lykke.Service.PayInvoice.Core.Domain.PaymentRequest
         /// <summary>
         /// The date when history item was written
         /// </summary>
-        public DateTime HistoryCreatedOn { get; set; }
+        public DateTime CreatedAt { get; set; }
     }
 }
