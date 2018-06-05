@@ -105,7 +105,8 @@ namespace Lykke.Service.PayInvoice.Services
             {
                 InvoiceId = invoice.Id,
                 PaymentRequestId = invoice.PaymentRequestId,
-                PaymentAssetId = invoice.PaymentAssetId
+                PaymentAssetId = invoice.PaymentAssetId,
+                HistoryCreatedOn = invoice.CreatedDate
             };
             result.Add(currentPaymentRequest);
 
