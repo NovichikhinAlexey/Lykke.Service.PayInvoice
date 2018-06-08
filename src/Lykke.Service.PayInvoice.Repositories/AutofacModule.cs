@@ -5,6 +5,7 @@ using AzureStorage.Tables;
 using AzureStorage.Tables.Templates.Index;
 using Common.Log;
 using Lykke.Service.PayInvoice.Core.Repositories;
+using Lykke.Service.PayInvoice.Repositories.PaymentRequestHistory;
 using Lykke.SettingsReader;
 using Microsoft.WindowsAzure.Storage.Table;
 
@@ -28,7 +29,7 @@ namespace Lykke.Service.PayInvoice.Repositories
             const string employeesTableName = "Employees";
             const string invoiceHistoryTableName = "InvoiceHistory";
             const string merchantSettingTableName = "MerchantSettings";
-            const string dataMigrationsTableName = "DataMigrations";
+            const string paymentRequestHistoryTableName = "PaymentRequestHistory";
 
             builder.RegisterInstance<IFileRepository>(
                 new FileRepository(AzureBlobStorage.Create(_connectionString)));
@@ -51,8 +52,8 @@ namespace Lykke.Service.PayInvoice.Repositories
             builder.RegisterInstance<IMerchantSettingRepository>(
                 new MerchantSettingRepository(CreateTable<MerchantSettingEntity>(merchantSettingTableName)));
 
-            builder.RegisterInstance<IDataMigrationRepository>(
-                new DataMigrationRepository(CreateTable<DataMigrationEntity>(dataMigrationsTableName)));
+            builder.RegisterInstance<IPaymentRequestHistoryRepository>(
+                new PaymentRequestHistoryRepository(CreateTable<PaymentRequestHistoryItemEntity>(paymentRequestHistoryTableName)));
         }
 
         private INoSQLTableStorage<T> CreateTable<T>(string name) where T : class, ITableEntity, new()

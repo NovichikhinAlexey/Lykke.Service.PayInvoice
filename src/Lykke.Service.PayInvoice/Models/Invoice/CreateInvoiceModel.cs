@@ -32,5 +32,9 @@ namespace Lykke.Service.PayInvoice.Models.Invoice
         public DateTime DueDate { get; set; }
 
         public string Note { get; set; }
+
+        public string BillingCategory { get; set; }
+
+        public bool Dispute { get; set; }
     }
 }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using AutoMapper;
@@ -7,6 +8,7 @@ using Common;
 using Common.Log;
 using Lykke.Common.Api.Contract.Responses;
 using Lykke.Service.PayInvoice.Core.Domain;
+using Lykke.Service.PayInvoice.Core.Domain.PaymentRequest;
 using Lykke.Service.PayInvoice.Core.Exceptions;
 using Lykke.Service.PayInvoice.Core.Services;
 using Lykke.Service.PayInvoice.Extensions;
@@ -25,7 +27,7 @@ namespace Lykke.Service.PayInvoice.Controllers
         public InvoicesController(IInvoiceService invoiceService, ILog log)
         {
             _invoiceService = invoiceService;
-            _log = log;
+            _log = log.CreateComponentScope(nameof(InvoicesController));
         }
 
         /// <summary>
@@ -67,9 +69,18 @@ namespace Lykke.Service.PayInvoice.Controllers
             if (!ModelState.IsValid)
                 return BadRequest(new ErrorResponse().AddErrors(ModelState));
 
-            Invoice invoice = await _invoiceService.CreateAsync(Mapper.Map<Invoice>(model));
+            try
+            {
+                Invoice invoice = await _invoiceService.CreateAsync(Mapper.Map<Invoice>(model));
 
-            return Ok(Mapper.Map<InvoiceModel>(invoice));
+                return Ok(Mapper.Map<InvoiceModel>(invoice));
+            }
+            catch (InvalidOperationException ex)
+            {
+                _log.WriteError(nameof(CreateAsync), model.ToContext(), ex);
+
+                return BadRequest(ErrorResponse.Create(ex.Message));
+            }
         }
 
         /// <summary>
@@ -95,19 +106,52 @@ namespace Lykke.Service.PayInvoice.Controllers
                 
                 return Ok(Mapper.Map<InvoiceModel>(invoice));
             }
-            catch (InvoiceNotFoundException exception)
+            catch (InvoiceNotFoundException ex)
             {
-                await _log.WriteErrorAsync(nameof(InvoicesController), nameof(CreateFromDraftAsync),
-                    new {invoiceId}.ToJson(), exception);
+                _log.WriteError(nameof(CreateFromDraftAsync), new { invoiceId }, ex);
 
                 return NotFound();
             }
-            catch (InvalidOperationException exception)
+            catch (InvalidOperationException ex)
             {
-                await _log.WriteErrorAsync(nameof(InvoicesController), nameof(CreateFromDraftAsync),
-                    new {invoiceId}.ToJson(), exception);
+                _log.WriteError(nameof(CreateFromDraftAsync), new { invoiceId }, ex);
 
-                return BadRequest(ErrorResponse.Create(exception.Message));
+                return BadRequest(ErrorResponse.Create(ex.Message));
+            }
+        }
+
+        /// <summary>
+        /// Change payment asset of the invoice by creating new payment request with new asset
+        /// </summary>
+        /// <param name="invoiceId">The invoice id</param>
+        /// <param name="paymentAssetId">The payment asset id</param>
+        /// <response code="200">Updated invoice</response>
+        /// <response code="400">Invalid model</response>
+        [HttpPost]
+        [Route("{invoiceId}/{paymentAssetId}")]
+        [SwaggerOperation("ChangePaymentAsset")]
+        [ProducesResponseType(typeof(InvoiceModel), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(ErrorResponse), (int)HttpStatusCode.BadRequest)]
+        [ProducesResponseType((int)HttpStatusCode.NotFound)]
+        public async Task<IActionResult> ChangePaymentAssetAsync(string invoiceId, string paymentAssetId)
+        {
+            try
+            {
+                Invoice invoice = await _invoiceService.ChangePaymentRequestAsync(invoiceId, paymentAssetId);
+
+                return Ok(Mapper.Map<InvoiceModel>(invoice));
+            }
+            catch (InvoiceNotFoundException ex)
+            {
+                _log.WriteError(nameof(ChangePaymentAssetAsync), new { invoiceId }, ex);
+
+                return NotFound();
+            }
+            catch (InvalidOperationException ex)
+            {
+                _log.WriteError(nameof(ChangePaymentAssetAsync), new { invoiceId, paymentAssetId }, ex);
+
+                return BadRequest(ErrorResponse.Create(ex.Message));
             }
         }
 
@@ -151,6 +195,84 @@ namespace Lykke.Service.PayInvoice.Controllers
             IReadOnlyList<HistoryItem> history = await _invoiceService.GetHistoryAsync(invoiceId);
 
             var model = Mapper.Map<List<HistoryItemModel>>(history);
+
+            return Ok(model);
+        }
+
+        /// <summary>
+        /// Returns invoice's payment requests
+        /// </summary>
+        /// <param name="invoiceId">The invoice id</param>
+        /// <returns>A collection of invoice's payment requests</returns>
+        /// <response code="200">A collection of invoice's payment requests</response>
+        [HttpGet]
+        [Route("{invoiceId}/paymentrequests")]
+        [SwaggerOperation("InvoicesGetPaymentRequests")]
+        [ProducesResponseType(typeof(IEnumerable<PaymentRequestHistoryItem>), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(ErrorResponse), (int)HttpStatusCode.NotFound)]
+        public async Task<IActionResult> GetPaymentRequestsAsync(string invoiceId)
+        {
+            try
+            {
+                IReadOnlyList<PaymentRequestHistoryItem> paymentRequests = await _invoiceService.GetPaymentRequestsOfInvoiceAsync(invoiceId);
+
+                return Ok(paymentRequests);
+            }
+            catch (InvoiceNotFoundException ex)
+            {
+                _log.WriteError(nameof(GetPaymentRequestsAsync), new { invoiceId }, ex);
+                return NotFound(ErrorResponse.Create("Invoice not found"));
+            }
+        }
+
+        /// <summary>
+        /// Returns invoices by filter
+        /// </summary>
+        /// <param name="merchantIds">The merchant ids (e.g. ?merchantIds=one&amp;merchantIds=two)</param>
+        /// <param name="clientMerchantIds">The merchant ids of the clients (e.g. ?clientMerchantIds=one&amp;clientMerchantIds=two)</param>
+        /// <param name="statuses">The statuses (e.g. ?statuses=one&amp;statuses=two)</param>
+        /// <param name="dispute">The dispute attribute</param>
+        /// <param name="billingCategories">The billing categories (e.g. ?billingCategories=one&amp;billingCategories=two)</param>
+        /// <param name="greaterThan">The greater than number for filtering</param>
+        /// <param name="lessThan">The less than number for filtering</param>
+        /// <response code="200">A collection of invoices.</response>
+        /// <response code="400">Problem occured.</response>
+        [HttpGet]
+        [Route("filter")]
+        [SwaggerOperation("InvoicesGetByFilter")]
+        [ProducesResponseType(typeof(IEnumerable<InvoiceModel>), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(ErrorResponse), (int)HttpStatusCode.BadRequest)]
+        public async Task<IActionResult> GetByFilter(IEnumerable<string> merchantIds, IEnumerable<string> clientMerchantIds, IEnumerable<string> statuses, bool? dispute, IEnumerable<string> billingCategories, decimal? greaterThan, decimal? lessThan)
+        {
+            var statusesConverted = new List<InvoiceStatus>();
+
+            if (statuses != null)
+            {
+                foreach (var status in statuses)
+                {
+                    try
+                    {
+                        statusesConverted.Add(status.Trim().ParseEnum<InvoiceStatus>());
+                    }
+                    catch (Exception)
+                    {
+                        return BadRequest(ErrorResponse.Create($"Invoice status <{status}> is not valid"));
+                    }
+                }
+            }
+
+            IReadOnlyList<Invoice> invoices = await _invoiceService.GetByFilterAsync(new InvoiceFilter
+            {
+                MerchantIds = merchantIds ?? new List<string>(),
+                ClientMerchantIds = clientMerchantIds ?? new List<string>(),
+                Statuses = statusesConverted,
+                Dispute = dispute ?? false,
+                BillingCategories = billingCategories ?? new List<string>(),
+                GreaterThan = greaterThan,
+                LessThan = lessThan
+            });
+
+            var model = Mapper.Map<List<InvoiceModel>>(invoices);
 
             return Ok(model);
         }
