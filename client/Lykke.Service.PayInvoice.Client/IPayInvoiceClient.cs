@@ -162,5 +162,12 @@ namespace Lykke.Service.PayInvoice.Client
         /// </summary>
         /// <param name="employeeId">The employee id.</param>
         Task DeleteEmployeeAsync(string employeeId);
+
+        /// <summary>
+        /// Returns an employee by email
+        /// </summary>
+        /// <param name="email">The employee email</param>
+        /// <returns>The employee</returns>
+        Task<EmployeeModel> GetEmployeeByEmailAsync(string email);
     }
 }

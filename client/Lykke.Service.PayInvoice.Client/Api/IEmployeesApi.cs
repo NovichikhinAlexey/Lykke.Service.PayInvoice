@@ -21,5 +21,8 @@ namespace Lykke.Service.PayInvoice.Client.Api
 
         [Delete("/api/Employees/{employeeId}")]
         Task DeleteAsync(string employeeId);
+
+        [Get("/api/Employees/byEmail/{email}")]
+        Task<EmployeeModel> GetByEmailAsync(string email);
     }
 }

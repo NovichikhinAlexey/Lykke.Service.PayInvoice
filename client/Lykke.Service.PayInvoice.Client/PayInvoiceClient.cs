@@ -185,6 +185,11 @@ namespace Lykke.Service.PayInvoice.Client
             await _runner.RunAsync(() => _employeesApi.DeleteAsync(employeeId));
         }
 
+        public Task<EmployeeModel> GetEmployeeByEmailAsync(string email)
+        {
+            return _runner.RunAsync(() => _employeesApi.GetByEmailAsync(email));
+        }
+
         public void Dispose()
         {
             _httpClient?.Dispose();

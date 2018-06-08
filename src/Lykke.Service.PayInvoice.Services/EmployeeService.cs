@@ -34,6 +34,11 @@ namespace Lykke.Service.PayInvoice.Services
             return _employeeRepository.GetByIdAsync(employeeId);
         }
 
+        public Task<Employee> GetByEmailAsync(string email)
+        {
+            return _employeeRepository.FindAsync(email);
+        }
+
         public Task<IReadOnlyList<Employee>> GetByMerchantIdAsync(string merchantId)
         {
             return _employeeRepository.GetByMerchantIdAsync(merchantId);
