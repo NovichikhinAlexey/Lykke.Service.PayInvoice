@@ -72,6 +72,35 @@ namespace Lykke.Service.PayInvoice.Controllers
         }
 
         /// <summary>
+        /// Returns an employee by email
+        /// </summary>
+        /// <param name="email">The employee email</param>
+        /// <returns>The employee</returns>
+        /// <response code="200">The employee.</response>
+        /// <response code="404">Employee not found.</response>
+        /// <response code="400">Email has invalid value</response>
+        [HttpGet]
+        [Route("byEmail/{email}")]
+        [SwaggerOperation("EmployeesGetByEmail")]
+        [ProducesResponseType(typeof(EmployeeModel), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(ErrorResponse), (int)HttpStatusCode.NotFound)]
+        [ProducesResponseType(typeof(ErrorResponse), (int)HttpStatusCode.BadRequest)]
+        public async Task<IActionResult> GetByEmail(string email)
+        {
+            email = Uri.UnescapeDataString(email);
+
+            if (!email.IsValidEmailAndRowKey())
+                return BadRequest(ErrorResponse.Create("Email value is invalid"));
+
+            Employee employee = await _employeeService.GetByEmailAsync(email);
+
+            if (employee == null)
+                return NotFound(ErrorResponse.Create("Employee not found"));
+
+            return Ok(Mapper.Map<EmployeeModel>(employee));
+        }
+
+        /// <summary>
         /// Creates an employee.
         /// </summary>
         /// <param name="model">The employee info.</param>
