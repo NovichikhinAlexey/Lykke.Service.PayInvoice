@@ -10,6 +10,8 @@ namespace Lykke.Service.PayInvoice.Core.Services
 
         Task<Employee> GetByIdAsync(string employeeId);
 
+        Task<Employee> GetByEmailAsync(string email);
+
         Task<IReadOnlyList<Employee>> GetByMerchantIdAsync(string merchantId);
         
         Task<Employee> AddAsync(Employee employee);
