@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using Lykke.AzureStorage.Tables;
 using Lykke.AzureStorage.Tables.Entity.Annotation;
 using Lykke.AzureStorage.Tables.Entity.ValueTypesMerging;
@@ -13,6 +13,7 @@ namespace Lykke.Service.PayInvoice.Repositories
         private DateTime _createdDate;
         private decimal _paidAmount;
         private bool _dispute;
+        private bool _hasMultiplePaymentrequests;
 
         public InvoiceEntity()
         {
@@ -65,7 +66,18 @@ namespace Lykke.Service.PayInvoice.Repositories
         public string PaymentAssetId { get; set; }
         
         public string PaymentRequestId { get; set; }
-        
+
+        public bool HasMultiplePaymentRequests
+        {
+            get => _hasMultiplePaymentrequests;
+
+            set
+            {
+                _hasMultiplePaymentrequests = value;
+                MarkValueTypePropertyAsDirty(nameof(HasMultiplePaymentRequests));
+            }
+        }
+
         public string WalletAddress { get; set; }
         
         public string MerchantId { get; set; }

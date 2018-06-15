@@ -22,6 +22,10 @@ namespace Lykke.Service.PayInvoice.Core.Domain.PaymentRequest
         /// </summary>
         public string PaymentAssetId { get; set; }
         /// <summary>
+        /// The payment request is paid or not
+        /// </summary>
+        public bool IsPaid { get; set; }
+        /// <summary>
         /// The date when history item was written
         /// </summary>
         public DateTime CreatedAt { get; set; }

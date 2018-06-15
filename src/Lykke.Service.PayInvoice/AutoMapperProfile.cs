@@ -11,20 +11,23 @@ namespace Lykke.Service.PayInvoice
     {
         public AutoMapperProfile()
         {
-            CreateMap<Invoice, InvoiceModel>(MemberList.Source);
+            CreateMap<Invoice, InvoiceModel>(MemberList.Source)
+                .ForSourceMember(src => src.HasMultiplePaymentRequests, opt => opt.Ignore());
 
             CreateMap<CreateInvoiceModel, Invoice>(MemberList.Destination)
-                .ForMember(src => src.Id, opt => opt.Ignore())
-                .ForMember(src => src.Status, opt => opt.Ignore())
-                .ForMember(src => src.PaidAmount, opt => opt.Ignore())
-                .ForMember(src => src.PaymentRequestId, opt => opt.Ignore())
-                .ForMember(src => src.CreatedDate, opt => opt.Ignore());
+                .ForMember(dest => dest.Id, opt => opt.Ignore())
+                .ForMember(dest => dest.Status, opt => opt.Ignore())
+                .ForMember(dest => dest.PaidAmount, opt => opt.Ignore())
+                .ForMember(dest => dest.PaymentRequestId, opt => opt.Ignore())
+                .ForMember(dest => dest.CreatedDate, opt => opt.Ignore())
+                .ForMember(dest => dest.HasMultiplePaymentRequests, opt => opt.Ignore());
 
             CreateMap<UpdateInvoiceModel, Invoice>(MemberList.Destination)
-                .ForMember(src => src.Status, opt => opt.Ignore())
-                .ForMember(src => src.PaidAmount, opt => opt.Ignore())
-                .ForMember(src => src.PaymentRequestId, opt => opt.Ignore())
-                .ForMember(src => src.CreatedDate, opt => opt.Ignore());
+                .ForMember(dest => dest.Status, opt => opt.Ignore())
+                .ForMember(dest => dest.PaidAmount, opt => opt.Ignore())
+                .ForMember(dest => dest.PaymentRequestId, opt => opt.Ignore())
+                .ForMember(dest => dest.CreatedDate, opt => opt.Ignore())
+                .ForMember(dest => dest.HasMultiplePaymentRequests, opt => opt.Ignore());
 
             CreateMap<FileInfo, FileInfoModel>(MemberList.Source)
                 .ForSourceMember(src => src.InvoiceId, opt => opt.Ignore());
