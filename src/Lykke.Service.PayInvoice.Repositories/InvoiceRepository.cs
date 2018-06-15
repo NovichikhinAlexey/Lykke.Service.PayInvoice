@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -15,6 +16,7 @@ namespace Lykke.Service.PayInvoice.Repositories
 {
     public class InvoiceRepository : IInvoiceRepository
     {
+        private ConcurrentDictionary<string, string> partitionKeyByRowKey = new ConcurrentDictionary<string, string>();
         private readonly INoSQLTableStorage<InvoiceEntity> _storage;
         private readonly INoSQLTableStorage<AzureIndex> _invoiceIdIndexStorage;
         private readonly INoSQLTableStorage<AzureIndex> _paymentRequestIdIndexStorage;
@@ -68,6 +70,24 @@ namespace Lykke.Service.PayInvoice.Repositories
             InvoiceEntity entity = await _storage.GetDataAsync(GetPartitionKey(merchantId), GetRowKey(invoiceId));
 
             return Mapper.Map<Invoice>(entity);
+        }
+
+        public async Task<IReadOnlyList<Invoice>> GetByIdsAsync(string merchantId, IEnumerable<string> invoiceIds)
+        {
+            var filter = nameof(Entity.PartitionKey).PropertyEqual(GetPartitionKey(merchantId));
+
+            var localFilter = string.Empty;
+            foreach (var invoiceId in invoiceIds)
+            {
+                localFilter = localFilter.OrIfNotEmpty(nameof(Entity.RowKey).PropertyEqual(invoiceId));
+            }
+            filter = filter.AndIfNotEmpty(localFilter);
+
+            var tableQuery = new TableQuery<InvoiceEntity>().Where(filter);
+
+            var result = await _storage.WhereAsync(tableQuery);
+
+            return Mapper.Map<List<Invoice>>(result);
         }
 
         public async Task<IReadOnlyList<Invoice>> GetByFilterAsync(InvoiceFilter invoiceFilter)
@@ -135,19 +155,28 @@ namespace Lykke.Service.PayInvoice.Repositories
 
         public async Task<Invoice> FindByIdAsync(string invoiceId)
         {
-            AzureIndex index =
+            string partitionKey;
+            string rowKey = GetRowKey(invoiceId);
+
+            if (!partitionKeyByRowKey.TryGetValue(rowKey, out partitionKey))
+            {
+                AzureIndex index =
                 await _invoiceIdIndexStorage.GetDataAsync(GetInvoiceIdIndexPartitionKey(invoiceId), GetInvoiceIdIndexRowKey());
 
-            if (index == null)
-                return null;
+                if (index == null)
+                    return null;
 
-            InvoiceEntity entity = await _storage.GetDataAsync(index);
-            
+                partitionKey = index.PrimaryPartitionKey;
+                partitionKeyByRowKey.TryAdd(rowKey, partitionKey);
+            }
+
+            InvoiceEntity entity = await _storage.GetDataAsync(partitionKey, rowKey);
+
             var invoice = Mapper.Map<Invoice>(entity);
 
             return invoice;
         }
-        
+
         public async Task<Invoice> FindByPaymentRequestIdAsync(string paymentRequestId)
         {
             AzureIndex index =

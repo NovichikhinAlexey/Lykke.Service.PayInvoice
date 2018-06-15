@@ -24,6 +24,12 @@ namespace Lykke.Service.PayInvoice.Services
             return _merchantSettingRepository.GetByIdAsync(merchantId);
         }
 
+        public async Task<string> GetBaseAssetAsync(string merchantId)
+        {
+            var merchantSetting = await GetByIdAsync(merchantId);
+            return merchantSetting?.BaseAsset;
+        }
+
         public async Task<MerchantSetting> SetAsync(MerchantSetting merchantSettings)
         {
             await _merchantSettingRepository.SetAsync(merchantSettings);

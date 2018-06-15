@@ -13,7 +13,8 @@ namespace Lykke.Service.PayInvoice.Services
                 .ForMember(dest => dest.ModifiedById, opt => opt.MapFrom(src => src.EmployeeId))
                 .ForSourceMember(src => src.MerchantId, opt => opt.Ignore())
                 .ForSourceMember(src => src.Note, opt => opt.Ignore())
-                .ForSourceMember(src => src.CreatedDate, opt => opt.Ignore());
+                .ForSourceMember(src => src.CreatedDate, opt => opt.Ignore())
+                .ForSourceMember(src => src.HasMultiplePaymentRequests, opt => opt.Ignore());
         }
     }
 }

@@ -73,6 +73,18 @@ namespace Lykke.Service.PayInvoice.Client
         Task DeleteInvoiceAsync(string invoiceId);
 
         /// <summary>
+        /// Pay invoices
+        /// </summary>
+        /// <param name="model">The model for paying invoices</param>
+        Task PayInvoicesAsync(PayInvoicesRequest model);
+
+        /// <summary>
+        /// Get sum for paying invoices
+        /// </summary>
+        /// <param name="model">The model for getting sum</param>
+        Task<decimal> GetSumToPayInvoicesAsync(GetSumToPayInvoicesRequest model);
+
+        /// <summary>
         /// Returns invoices by merchant id.
         /// </summary>
         /// <returns>The collection of invoices.</returns>

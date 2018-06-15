@@ -7,6 +7,8 @@ namespace Lykke.Service.PayInvoice.Core.Services
     {
         Task<MerchantSetting> GetByIdAsync(string merchantId);
 
+        Task<string> GetBaseAssetAsync(string merchantId);
+
         Task<MerchantSetting> SetAsync(MerchantSetting merchantSettings);
     }
 }

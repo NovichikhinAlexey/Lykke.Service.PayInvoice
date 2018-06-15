@@ -13,6 +13,7 @@ using Lykke.Service.PayInvoice.Core.Exceptions;
 using Lykke.Service.PayInvoice.Core.Services;
 using Lykke.Service.PayInvoice.Extensions;
 using Lykke.Service.PayInvoice.Models.Invoice;
+using Lykke.Service.PayInvoice.Validation;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.SwaggerGen;
 
@@ -22,11 +23,16 @@ namespace Lykke.Service.PayInvoice.Controllers
     public class InvoicesController : Controller
     {
         private readonly IInvoiceService _invoiceService;
+        private readonly IMerchantService _merchantService;
         private readonly ILog _log;
 
-        public InvoicesController(IInvoiceService invoiceService, ILog log)
+        public InvoicesController(
+            IInvoiceService invoiceService,
+            IMerchantService merchantService,
+            ILog log)
         {
             _invoiceService = invoiceService;
+            _merchantService = merchantService;
             _log = log.CreateComponentScope(nameof(InvoicesController));
         }
 
@@ -275,6 +281,99 @@ namespace Lykke.Service.PayInvoice.Controllers
             var model = Mapper.Map<List<InvoiceModel>>(invoices);
 
             return Ok(model);
+        }
+
+        /// <summary>
+        /// Pay one or multiple invoices with certain amount
+        /// </summary>
+        /// <param name="model">Invoices ids and amount to pay</param>
+        /// <response code="200">Accepted for further processing</response>
+        /// <response code="400">Problem occured</response>
+        [HttpPost("pay")]
+        [SwaggerOperation("PayInvoices")]
+        [ValidateModel]
+        [ProducesResponseType((int)HttpStatusCode.Accepted)]
+        [ProducesResponseType(typeof(ErrorResponse), (int)HttpStatusCode.NotFound)]
+        [ProducesResponseType(typeof(ErrorResponse), (int)HttpStatusCode.BadRequest)]
+        public async Task<IActionResult> PayInvoices([FromBody] PayInvoicesRequest model)
+        {
+            IReadOnlyList<string> groupMerchants = await _merchantService.GetGroupMerchants(model.MerchantId);
+
+            // Should be only inside group
+            if (!groupMerchants.Any())
+            {
+                return NotFound(ErrorResponse.Create("Merchant group not found"));
+            }
+
+            IReadOnlyList<Invoice> invoices;
+
+            try
+            {
+                invoices = await _invoiceService.GetByIdsAsync(model.InvoicesIds);
+            }
+            catch (InvoiceNotFoundException ex)
+            {
+                return NotFound(ErrorResponse.Create($"Invoice {ex.InvoiceId} not found"));
+            }
+
+            // Get group merchants and checks that the invoices belong to them
+            foreach (var invoice in invoices)
+            {
+                if (!groupMerchants.Contains(invoice.MerchantId))
+                {
+                    return BadRequest(ErrorResponse.Create($"Invoice {invoice.Id} is not inside group"));
+                }
+            }
+
+            try
+            {
+                await _invoiceService.PayInvoicesAsync(model.MerchantId, invoices, model.Amount);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(ErrorResponse.Create(ex.Message));
+            }
+
+            return Accepted();
+        }
+
+        /// <summary>
+        /// Get sum for paying invoices
+        /// </summary>
+        /// <param name="model">Request model</param>
+        /// <response code="200">Sum for paying invoices</response>
+        /// <response code="400">Problem occured</response>
+        [HttpPost("sum")]
+        [SwaggerOperation("GetSumToPayInvoices")]
+        [ValidateModel]
+        [ProducesResponseType(typeof(decimal), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(ErrorResponse), (int)HttpStatusCode.NotFound)]
+        [ProducesResponseType(typeof(ErrorResponse), (int)HttpStatusCode.BadRequest)]
+        public async Task<IActionResult> GetSumToPayInvoices([FromBody] GetSumToPayInvoicesRequest model)
+        {
+            IReadOnlyList<Invoice> invoices;
+
+            try
+            {
+                invoices = await _invoiceService.GetByIdsAsync(model.InvoicesIds);
+            }
+            catch (InvoiceNotFoundException ex)
+            {
+                return NotFound(ErrorResponse.Create($"Invoice {ex.InvoiceId} not found"));
+            }
+
+            decimal sum;
+
+            try
+            {
+                 sum = await _invoiceService.GetSumToPayInvoicesAsync(model.MerchantId, invoices);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(ErrorResponse.Create(ex.Message));
+            }
+
+            return Ok(sum);
         }
     }
 }
