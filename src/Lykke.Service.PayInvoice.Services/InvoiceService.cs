@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
 using AutoMapper;
 using Common;
@@ -29,6 +30,7 @@ namespace Lykke.Service.PayInvoice.Services
         private readonly IFileRepository _fileRepository;
         private readonly IHistoryRepository _historyRepository;
         private readonly IPaymentRequestHistoryRepository _paymentRequestHistoryRepository;
+        private readonly IMerchantService _merchantService;
         private readonly IMerchantSettingService _merchantSettingService;
         private readonly IPayInternalClient _payInternalClient;
         private readonly ILog _log;
@@ -39,6 +41,7 @@ namespace Lykke.Service.PayInvoice.Services
             IFileRepository fileRepository,
             IHistoryRepository historyRepository,
             IPaymentRequestHistoryRepository paymentRequestHistoryRepository,
+            IMerchantService merchantService,
             IMerchantSettingService merchantSettingService,
             IPayInternalClient payInternalClient,
             ILog log)
@@ -48,6 +51,7 @@ namespace Lykke.Service.PayInvoice.Services
             _fileRepository = fileRepository;
             _historyRepository = historyRepository;
             _paymentRequestHistoryRepository = paymentRequestHistoryRepository;
+            _merchantService = merchantService;
             _merchantSettingService = merchantSettingService;
             _payInternalClient = payInternalClient;
             _log = log.CreateComponentScope(nameof(InvoiceService));
@@ -82,7 +86,7 @@ namespace Lykke.Service.PayInvoice.Services
                 var invoice = await _invoiceRepository.FindByIdAsync(invoiceId);
 
                 if (invoice == null)
-                    throw new InvoiceNotFoundException(invoiceId);
+                    throw new InvoiceNotFoundException(invoiceId, $"Invoice {invoiceId} not found");
 
                 result.Add(invoice);
             }
@@ -371,6 +375,33 @@ namespace Lykke.Service.PayInvoice.Services
             await _historyRepository.InsertAsync(history);
         }
 
+        public async Task<IReadOnlyList<Invoice>> ValidateForPayingInvoicesAsync(string merchantId, IEnumerable<string> invoicesIds)
+        {
+            try
+            {
+                var merchant = await _payInternalClient.GetMerchantByIdAsync(merchantId);
+            }
+            catch (DefaultErrorResponseException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
+            {
+                throw new MerchantNotFoundException(merchantId);
+            }
+
+            IReadOnlyList<string> groupMerchants = await _merchantService.GetGroupMerchants(merchantId);
+
+            var invoices = await GetByIdsAsync(invoicesIds);
+
+            // Get group merchants and checks that the invoices belong to them
+            foreach (var invoice in invoices)
+            {
+                if (!groupMerchants.Contains(invoice.MerchantId))
+                    throw new InvoiceNotInsideGroupException(invoice.Id);
+                if (invoice.ClientName != merchantId)
+                    throw new MerchantNotInvoiceClientException(invoice.Id);
+            }
+
+            return invoices;
+        }
+
         public async Task PayInvoicesAsync(string merchantId, IEnumerable<Invoice> invoices, decimal amount)
         {
             // Check if invoices has been already In Progress and return message
@@ -505,7 +536,7 @@ namespace Lykke.Service.PayInvoice.Services
                 // When invoice in EUR and baseAsset is USD or vice versa
                 Invoice updatedInvoice = await ChangePaymentRequestAsync(invoice.Id, baseAssetId, invoice.Amount);
                 paymentRequestIdForPaying = updatedInvoice.PaymentRequestId;
-                amountToPayInBaseAsset = await GetPaymentAmount(invoice.MerchantId, invoice.PaymentRequestId);
+                amountToPayInBaseAsset = await GetPaymentAmount(invoice.MerchantId, paymentRequestIdForPaying);
             }
 
             return (amountToPayInBaseAsset, paymentRequestIdForPaying);

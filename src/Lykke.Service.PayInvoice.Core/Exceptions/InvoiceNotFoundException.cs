@@ -36,6 +36,12 @@ namespace Lykke.Service.PayInvoice.Core.Exceptions
             InvoiceId = invoiceId;
         }
 
+        public InvoiceNotFoundException(string invoiceId, string message)
+            : base(message)
+        {
+            InvoiceId = invoiceId;
+        }
+
         /// <summary>
         /// Initializes a new instance of the <see cref="InvoiceNotFoundException"/> class with a specified error message and a reference to the inner exception that is the cause of this exception.
         /// </summary>
