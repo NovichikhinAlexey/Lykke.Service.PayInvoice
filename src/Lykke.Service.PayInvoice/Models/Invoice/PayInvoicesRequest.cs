@@ -6,15 +6,8 @@ using Lykke.Service.PayInvoice.Validation;
 
 namespace Lykke.Service.PayInvoice.Models.Invoice
 {
-    public class PayInvoicesRequest
+    public class PayInvoicesRequest : GetSumToPayInvoicesRequest
     {
-        [Required]
-        [RowKey]
-        public string MerchantId { get; set; }
-        [Required]
-        [NotEmptyCollection]
-        [RowKey]
-        public IEnumerable<string> InvoicesIds { get; set; }
         [GreaterThan(0)]
         public decimal Amount { get; set; }
     }

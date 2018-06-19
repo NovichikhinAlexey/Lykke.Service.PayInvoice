@@ -38,6 +38,8 @@ namespace Lykke.Service.PayInvoice.Core.Services
 
         Task DeleteAsync(string invoiceId);
 
+        Task<IReadOnlyList<Invoice>> ValidateForPayingInvoicesAsync(string merchantId, IEnumerable<string> invoicesIds);
+
         Task PayInvoicesAsync(string merchantId, IEnumerable<Invoice> invoices, decimal amount);
 
         Task<decimal> GetSumToPayInvoicesAsync(string merchantId, IEnumerable<Invoice> invoices);

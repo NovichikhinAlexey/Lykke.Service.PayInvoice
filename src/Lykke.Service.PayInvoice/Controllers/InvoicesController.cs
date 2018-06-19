@@ -297,37 +297,14 @@ namespace Lykke.Service.PayInvoice.Controllers
         [ProducesResponseType(typeof(ErrorResponse), (int)HttpStatusCode.BadRequest)]
         public async Task<IActionResult> PayInvoices([FromBody] PayInvoicesRequest model)
         {
-            IReadOnlyList<string> groupMerchants = await _merchantService.GetGroupMerchants(model.MerchantId);
+            var validationResult = await ValidateForPayingInvoicesAsync(model);
 
-            // Should be only inside group
-            if (!groupMerchants.Any())
-            {
-                return NotFound(ErrorResponse.Create("Merchant group not found"));
-            }
-
-            IReadOnlyList<Invoice> invoices;
+            if (validationResult.HasError)
+                return validationResult.ActionResult;
 
             try
             {
-                invoices = await _invoiceService.GetByIdsAsync(model.InvoicesIds);
-            }
-            catch (InvoiceNotFoundException ex)
-            {
-                return NotFound(ErrorResponse.Create($"Invoice {ex.InvoiceId} not found"));
-            }
-
-            // Get group merchants and checks that the invoices belong to them
-            foreach (var invoice in invoices)
-            {
-                if (!groupMerchants.Contains(invoice.MerchantId))
-                {
-                    return BadRequest(ErrorResponse.Create($"Invoice {invoice.Id} is not inside group"));
-                }
-            }
-
-            try
-            {
-                await _invoiceService.PayInvoicesAsync(model.MerchantId, invoices, model.Amount);
+                await _invoiceService.PayInvoicesAsync(model.MerchantId, validationResult.Invoices, model.Amount);
             }
             catch (InvalidOperationException ex)
             {
@@ -351,22 +328,16 @@ namespace Lykke.Service.PayInvoice.Controllers
         [ProducesResponseType(typeof(ErrorResponse), (int)HttpStatusCode.BadRequest)]
         public async Task<IActionResult> GetSumToPayInvoices([FromBody] GetSumToPayInvoicesRequest model)
         {
-            IReadOnlyList<Invoice> invoices;
+            var validationResult = await ValidateForPayingInvoicesAsync(model);
 
-            try
-            {
-                invoices = await _invoiceService.GetByIdsAsync(model.InvoicesIds);
-            }
-            catch (InvoiceNotFoundException ex)
-            {
-                return NotFound(ErrorResponse.Create($"Invoice {ex.InvoiceId} not found"));
-            }
+            if (validationResult.HasError)
+                return validationResult.ActionResult;
 
             decimal sum;
 
             try
             {
-                 sum = await _invoiceService.GetSumToPayInvoicesAsync(model.MerchantId, invoices);
+                 sum = await _invoiceService.GetSumToPayInvoicesAsync(model.MerchantId, validationResult.Invoices);
             }
             catch (InvalidOperationException ex)
             {
@@ -374,6 +345,39 @@ namespace Lykke.Service.PayInvoice.Controllers
             }
 
             return Ok(sum);
+        }
+
+        private async Task<(IReadOnlyList<Invoice> Invoices, bool HasError, IActionResult ActionResult)> ValidateForPayingInvoicesAsync(GetSumToPayInvoicesRequest model)
+        {
+            IReadOnlyList<Invoice> invoices = null;
+            bool hasError = false;
+            IActionResult actionResult = null;
+
+            try
+            {
+                invoices = await _invoiceService.ValidateForPayingInvoicesAsync(model.MerchantId, model.InvoicesIds);
+            }
+            catch (Exception ex)
+            {
+                hasError = true;
+
+                switch (ex)
+                {
+                    case MerchantNotFoundException _:
+                    case MerchantGroupNotFoundException _:
+                    case InvoiceNotFoundException _:
+                        actionResult = NotFound(ErrorResponse.Create(ex.Message));
+                        break;
+                    case InvoiceNotInsideGroupException _:
+                    case MerchantNotInvoiceClientException _:
+                        actionResult = BadRequest(ErrorResponse.Create(ex.Message));
+                        break;
+                    default:
+                        throw;
+                }
+            }
+
+            return (invoices, hasError, actionResult);
         }
     }
 }
