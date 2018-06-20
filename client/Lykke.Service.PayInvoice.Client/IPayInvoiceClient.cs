@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using Lykke.Service.PayInvoice.Client.Models.Employee;
 using Lykke.Service.PayInvoice.Client.Models.File;
 using Lykke.Service.PayInvoice.Client.Models.Invoice;
+using Lykke.Service.PayInvoice.Client.Models.MerchantSetting;
 using Lykke.Service.PayInvoice.Core.Domain;
 using Lykke.Service.PayInvoice.Core.Domain.PaymentRequest;
 
@@ -100,6 +101,16 @@ namespace Lykke.Service.PayInvoice.Client
         /// </summary>
         /// <param name="merchantSetting">The model to create or update merchant setting</param>
         Task<MerchantSetting> SetMerchantSettingAsync(MerchantSetting model);
+
+        /// <summary>
+        /// Get base asset
+        /// </summary>
+        Task<string> GetBaseAssetAsync(string merchantId);
+
+        /// <summary>
+        /// Update base asset
+        /// </summary>
+        Task SetBaseAssetAsync(UpdateBaseAssetRequest model);
 
         /// <summary>
         /// Creates draft invoice.
