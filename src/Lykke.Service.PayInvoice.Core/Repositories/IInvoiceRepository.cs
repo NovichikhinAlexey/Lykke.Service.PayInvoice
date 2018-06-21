@@ -29,5 +29,9 @@ namespace Lykke.Service.PayInvoice.Core.Repositories
         Task SetPaidAmountAsync(string merchantId, string invoiceId, decimal paidAmount);
 
         Task DeleteAsync(string merchantId, string invoiceId);
+
+        Task MarkDisputeAsync(string invoiceId);
+
+        Task CancelDisputeAsync(string invoiceId);
     }
 }

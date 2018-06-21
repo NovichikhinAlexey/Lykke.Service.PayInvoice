@@ -207,5 +207,20 @@ namespace Lykke.Service.PayInvoice.Client
 
             throw new ErrorResponseException("An error occurred  during calling api");
         }
+
+        public Task MarkDisputeAsync(MarkInvoiceDisputeRequest model)
+        {
+            return _runner.RunAsync(() => _invoicesApi.MarkDisputeAsync(model));
+        }
+
+        public Task CancelDisputeAsync(CancelInvoiceDisputeRequest model)
+        {
+            return _runner.RunAsync(() => _invoicesApi.CancelDisputeAsync(model));
+        }
+
+        public Task<InvoiceDisputeInfoResponse> GetInvoiceDisputeInfoAsync(string invoiceId)
+        {
+            return _runner.RunAsync(() => _invoicesApi.GetInvoiceDisputeInfoAsync(invoiceId));
+        }
     }
 }

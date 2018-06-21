@@ -31,5 +31,14 @@ namespace Lykke.Service.PayInvoice.Client.Api
 
         [Delete("/api/invoices/{invoiceId}")]
         Task DeleteAsync(string invoiceId);
+
+        [Post("/api/invoices/dispute/mark")]
+        Task MarkDisputeAsync([Body] MarkInvoiceDisputeRequest model);
+
+        [Post("/api/invoices/dispute/cancel")]
+        Task CancelDisputeAsync([Body] CancelInvoiceDisputeRequest model);
+
+        [Get("/api/invoices/dispute/{invoiceId}")]
+        Task<InvoiceDisputeInfoResponse> GetInvoiceDisputeInfoAsync(string invoiceId);
     }
 }

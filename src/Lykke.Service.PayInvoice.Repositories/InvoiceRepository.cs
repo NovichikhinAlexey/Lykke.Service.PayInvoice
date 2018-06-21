@@ -208,6 +208,29 @@ namespace Lykke.Service.PayInvoice.Repositories
             });
         }
 
+        public async Task MarkDisputeAsync(string invoiceId)
+        {
+            AzureIndex index = await _invoiceIdIndexStorage.GetDataAsync(GetInvoiceIdIndexPartitionKey(invoiceId), GetInvoiceIdIndexRowKey());
+
+            await _storage.MergeAsync(index.PrimaryPartitionKey, index.PrimaryRowKey, entity =>
+            {
+                entity.Dispute = true;
+                entity.HadDispute = true;
+                return entity;
+            });
+        }
+
+        public async Task CancelDisputeAsync(string invoiceId)
+        {
+            AzureIndex index = await _invoiceIdIndexStorage.GetDataAsync(GetInvoiceIdIndexPartitionKey(invoiceId), GetInvoiceIdIndexRowKey());
+
+            await _storage.MergeAsync(index.PrimaryPartitionKey, index.PrimaryRowKey, entity =>
+            {
+                entity.Dispute = false;
+                return entity;
+            });
+        }
+
         public async Task DeleteAsync(string merchantId, string invoiceId)
         {
             InvoiceEntity entity = await _storage.GetDataAsync(GetPartitionKey(merchantId), GetRowKey(invoiceId));
