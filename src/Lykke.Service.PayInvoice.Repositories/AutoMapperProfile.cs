@@ -2,6 +2,7 @@
 using AutoMapper;
 using Lykke.Service.PayInvoice.Core.Domain;
 using Lykke.Service.PayInvoice.Core.Domain.PaymentRequest;
+using Lykke.Service.PayInvoice.Repositories.InvoiceDisputes;
 using Lykke.Service.PayInvoice.Repositories.PaymentRequestHistory;
 
 namespace Lykke.Service.PayInvoice.Repositories
@@ -49,6 +50,11 @@ namespace Lykke.Service.PayInvoice.Repositories
             CreateMap<PaymentRequestHistoryItem, PaymentRequestHistoryItemEntity>(MemberList.Source)
                 .ForSourceMember(src => src.InvoiceId, opt => opt.Ignore())
                 .ForSourceMember(src => src.PaymentRequestId, opt => opt.Ignore());
+
+            CreateMap<InvoiceDisputeEntity, InvoiceDispute>(MemberList.Destination);
+
+            CreateMap<InvoiceDispute, InvoiceDisputeEntity>(MemberList.Source)
+                .ForSourceMember(src => src.InvoiceId, opt => opt.Ignore());
         }
     }
 }

@@ -5,6 +5,7 @@ using AzureStorage.Tables;
 using AzureStorage.Tables.Templates.Index;
 using Common.Log;
 using Lykke.Service.PayInvoice.Core.Repositories;
+using Lykke.Service.PayInvoice.Repositories.InvoiceDisputes;
 using Lykke.Service.PayInvoice.Repositories.PaymentRequestHistory;
 using Lykke.SettingsReader;
 using Microsoft.WindowsAzure.Storage.Table;
@@ -30,6 +31,7 @@ namespace Lykke.Service.PayInvoice.Repositories
             const string invoiceHistoryTableName = "InvoiceHistory";
             const string merchantSettingTableName = "MerchantSettings";
             const string paymentRequestHistoryTableName = "PaymentRequestHistory";
+            const string invoiceDisputeTableName = "InvoiceDispute";
 
             builder.RegisterInstance<IFileRepository>(
                 new FileRepository(AzureBlobStorage.Create(_connectionString)));
@@ -54,6 +56,9 @@ namespace Lykke.Service.PayInvoice.Repositories
 
             builder.RegisterInstance<IPaymentRequestHistoryRepository>(
                 new PaymentRequestHistoryRepository(CreateTable<PaymentRequestHistoryItemEntity>(paymentRequestHistoryTableName)));
+
+            builder.RegisterInstance<IInvoiceDisputeRepository>(
+                new InvoiceDisputeRepository(CreateTable<InvoiceDisputeEntity>(invoiceDisputeTableName)));
         }
 
         private INoSQLTableStorage<T> CreateTable<T>(string name) where T : class, ITableEntity, new()
