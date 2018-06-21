@@ -60,6 +60,26 @@ namespace Lykke.Service.PayInvoice.Services
             return merchantSettings.BaseAsset;
         }
 
+        public async Task SetBaseAssetAsync(string merchantId, string baseAsset)
+        {
+            await ValidateAssetAsync(merchantId, baseAsset);
+
+            var merchantSettings = await _merchantSettingRepository.GetByIdAsync(merchantId);
+
+            if (merchantSettings == null)
+            {
+                merchantSettings = new MerchantSetting
+                {
+                    MerchantId = merchantId,
+                    BaseAsset = baseAsset
+                };
+            }
+
+            await _merchantSettingRepository.SetAsync(merchantSettings);
+
+            _log.WriteInfo(nameof(SetAsync), merchantSettings, "Merchant settings updated.");
+        }
+
         private async Task ValidateAssetAsync(string merchantId, string baseAsset)
         {
             var settlementAssetsResponse = await _payInternalClient.GetAvailableSettlementAssetsAsync(merchantId);

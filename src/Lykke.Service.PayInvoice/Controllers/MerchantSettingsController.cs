@@ -110,10 +110,9 @@ namespace Lykke.Service.PayInvoice.Controllers
         }
 
         /// <summary>
-        /// Create or update merchant setting
+        /// Create or update base asset
         /// </summary>
-        /// <param name="model">The merchant setting info</param>
-        /// <response code="200">Successfully created</response>
+        /// <response code="200">Successfully created or updated</response>
         /// <response code="404">Merchant setting is not found</response>
         /// <response code="400">Invalid model</response>
         [HttpPost("baseAsset")]
@@ -128,18 +127,11 @@ namespace Lykke.Service.PayInvoice.Controllers
 
             try
             {
-                MerchantSetting merchantSettings = await _merchantSettingService.GetByIdAsync(model.MerchantId);
-
-                merchantSettings.BaseAsset = model.BaseAsset;
-
-                await _merchantSettingService.SetAsync(merchantSettings);
+                await _merchantSettingService.SetBaseAssetAsync(model.MerchantId, model.BaseAsset);
 
                 return Ok();
             }
-            catch (MerchantSettingNotFoundException ex)
-            {
-                return NotFound(ErrorResponse.Create(ex.Message));
-            }
+            
             catch (AssetNotAvailableForMerchantException ex)
             {
                 return BadRequest(ErrorResponse.Create(ex.Message));
