@@ -30,7 +30,4 @@
     <PackageReference Include="Microsoft.Extensions.PlatformAbstractions" Version="1.1.0" />
     <PackageReference Include="Refit" Version="4.5.6" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Models\MerchantSetting\" />
-  </ItemGroup>
 </Project>
