@@ -110,15 +110,15 @@ namespace Lykke.Service.PayInvoice.Controllers
         }
 
         /// <summary>
-        /// Create or update merchant setting
+        /// Update base asset
         /// </summary>
-        /// <param name="model">The merchant setting info</param>
-        /// <response code="200">Successfully created</response>
+        /// <param name="model">Update base asset request</param>
+        /// <response code="200">Successfully updated</response>
         /// <response code="404">Merchant setting is not found</response>
         /// <response code="400">Invalid model</response>
         [HttpPost("baseAsset")]
         [SwaggerOperation("SetBaseAsset")]
-        [ProducesResponseType(typeof(MerchantSetting), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(void), (int)HttpStatusCode.OK)]
         [ProducesResponseType(typeof(ErrorResponse), (int)HttpStatusCode.NotFound)]
         [ProducesResponseType(typeof(ErrorResponse), (int)HttpStatusCode.BadRequest)]
         public async Task<IActionResult> SetBaseAssetAsync([FromBody] UpdateBaseAssetRequest model)
