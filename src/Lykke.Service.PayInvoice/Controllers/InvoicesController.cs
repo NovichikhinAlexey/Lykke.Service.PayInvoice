@@ -276,5 +276,111 @@ namespace Lykke.Service.PayInvoice.Controllers
 
             return Ok(model);
         }
+
+        /// <summary>
+        /// Mark dispute
+        /// </summary>
+        /// <param name="model">The model</param>
+        /// <response code="200">Success</response>
+        /// <response code="404">Not found</response>
+        /// <response code="400">Invalid model</response>
+        [HttpPost]
+        [Route("dispute/mark")]
+        [SwaggerOperation(nameof(MarkDispute))]
+        [ProducesResponseType(typeof(void), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(ErrorResponse), (int)HttpStatusCode.NotFound)]
+        [ProducesResponseType(typeof(ErrorResponse), (int)HttpStatusCode.BadRequest)]
+        public async Task<IActionResult> MarkDispute([FromBody] MarkInvoiceDisputeRequest model)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(new ErrorResponse().AddErrors(ModelState));
+
+            try
+            {
+                await _invoiceService.MarkDisputeAsync(model.InvoiceId, model.Reason, model.EmployeeId);
+
+                return Ok();
+            }
+            catch (InvoiceNotFoundException ex)
+            {
+                return NotFound(ErrorResponse.Create(ex.Message));
+            }
+            catch (EmployeeNotFoundException ex)
+            {
+                return NotFound(ErrorResponse.Create(ex.Message));
+            }
+            catch (InvalidOperationException ex)
+            {
+                _log.WriteError(nameof(MarkDispute), model, ex);
+
+                return BadRequest(ErrorResponse.Create(ex.Message));
+            }
+        }
+
+        /// <summary>
+        /// Cancel dispute
+        /// </summary>
+        /// <param name="model">The model</param>
+        /// <response code="200">Success</response>
+        /// <response code="404">Not found</response>
+        /// <response code="400">Invalid model</response>
+        [HttpPost]
+        [Route("dispute/cancel")]
+        [SwaggerOperation(nameof(CancelDispute))]
+        [ProducesResponseType(typeof(void), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(ErrorResponse), (int)HttpStatusCode.NotFound)]
+        [ProducesResponseType(typeof(ErrorResponse), (int)HttpStatusCode.BadRequest)]
+        public async Task<IActionResult> CancelDispute([FromBody] CancelInvoiceDisputeRequest model)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(new ErrorResponse().AddErrors(ModelState));
+
+            try
+            {
+                await _invoiceService.CancelDisputeAsync(model.InvoiceId, model.EmployeeId);
+
+                return Ok();
+            }
+            catch (InvoiceNotFoundException ex)
+            {
+                return NotFound(ErrorResponse.Create(ex.Message));
+            }
+            catch (EmployeeNotFoundException ex)
+            {
+                return NotFound(ErrorResponse.Create(ex.Message));
+            }
+            catch (InvalidOperationException ex)
+            {
+                _log.WriteError(nameof(CancelDispute), model, ex);
+
+                return BadRequest(ErrorResponse.Create(ex.Message));
+            }
+        }
+
+        /// <summary>
+        /// Get invoice dispute information
+        /// </summary>
+        /// <param name="invoiceId">The invoice id</param>
+        /// <response code="200">Invoice dispute information</response>
+        /// <response code="404">Not found</response>
+        /// <response code="400">Invalid model</response>
+        [HttpGet]
+        [Route("dispute/{invoiceId}")]
+        [SwaggerOperation(nameof(GetInvoiceDisputeInfo))]
+        [ProducesResponseType(typeof(InvoiceDispute), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(ErrorResponse), (int)HttpStatusCode.NotFound)]
+        public async Task<IActionResult> GetInvoiceDisputeInfo(string invoiceId)
+        {
+            try
+            {
+                InvoiceDispute invoiceDispute = await _invoiceService.GetInvoiceDisputeAsync(invoiceId);
+                
+                return Ok(invoiceDispute);
+            }
+            catch (InvoiceDisputeNotFoundException ex)
+            {
+                return NotFound(ErrorResponse.Create(ex.Message));
+            }
+        }
     }
 }

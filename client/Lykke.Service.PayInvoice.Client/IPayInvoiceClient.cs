@@ -74,6 +74,25 @@ namespace Lykke.Service.PayInvoice.Client
         Task DeleteInvoiceAsync(string invoiceId);
 
         /// <summary>
+        /// Mark invoice as Dispute
+        /// </summary>
+        /// <param name="model">The marking invoice dispute request</param>
+        Task MarkDisputeAsync(MarkInvoiceDisputeRequest model);
+
+        /// <summary>
+        /// Cancel dispute
+        /// </summary>
+        /// <param name="model">Cancel dispute request</param>
+        Task CancelDisputeAsync(CancelInvoiceDisputeRequest model);
+
+        /// <summary>
+        /// Get invoice's dispute information
+        /// </summary>
+        /// <param name="invoiceId">The invoice id</param>
+        /// <returns></returns>
+        Task<InvoiceDisputeInfoResponse> GetInvoiceDisputeInfoAsync(string invoiceId);
+
+        /// <summary>
         /// Returns invoices by merchant id.
         /// </summary>
         /// <returns>The collection of invoices.</returns>

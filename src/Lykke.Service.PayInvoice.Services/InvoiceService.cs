@@ -26,6 +26,8 @@ namespace Lykke.Service.PayInvoice.Services
         private readonly IFileRepository _fileRepository;
         private readonly IHistoryRepository _historyRepository;
         private readonly IPaymentRequestHistoryRepository _paymentRequestHistoryRepository;
+        private readonly IEmployeeRepository _employeeRepository;
+        private readonly IInvoiceDisputeRepository _invoiceDisputeRepository;
         private readonly IPayInternalClient _payInternalClient;
         private readonly ILog _log;
 
@@ -35,6 +37,8 @@ namespace Lykke.Service.PayInvoice.Services
             IFileRepository fileRepository,
             IHistoryRepository historyRepository,
             IPaymentRequestHistoryRepository paymentRequestHistoryRepository,
+            IEmployeeRepository employeeRepository,
+            IInvoiceDisputeRepository invoiceDisputeRepository,
             IPayInternalClient payInternalClient,
             ILog log)
         {
@@ -43,6 +47,8 @@ namespace Lykke.Service.PayInvoice.Services
             _fileRepository = fileRepository;
             _historyRepository = historyRepository;
             _paymentRequestHistoryRepository = paymentRequestHistoryRepository;
+            _employeeRepository = employeeRepository;
+            _invoiceDisputeRepository = invoiceDisputeRepository;
             _payInternalClient = payInternalClient;
             _log = log.CreateComponentScope(nameof(InvoiceService));
         }
@@ -381,6 +387,57 @@ namespace Lykke.Service.PayInvoice.Services
             };
 
             await _paymentRequestHistoryRepository.InsertAsync(history);
+        }
+
+        public async Task MarkDisputeAsync(string invoiceId, string reason, string employeeId)
+        {
+            await ValidateDisputeActions(invoiceId, employeeId, isMarkAction: true);
+
+            await _invoiceRepository.MarkDisputeAsync(invoiceId);
+
+            await _invoiceDisputeRepository.InsertAsync(new InvoiceDispute
+            {
+                InvoiceId = invoiceId,
+                Reason = reason,
+                EmployeeId = employeeId,
+                CreatedAt = DateTime.UtcNow
+            });
+        }
+
+        public async Task CancelDisputeAsync(string invoiceId, string employeeId)
+        {
+            await ValidateDisputeActions(invoiceId, employeeId, isMarkAction: false);
+
+            await _invoiceRepository.CancelDisputeAsync(invoiceId);
+        }
+
+        public async Task<InvoiceDispute> GetInvoiceDisputeAsync(string invoiceId)
+        {
+            var invoiceDispute = await _invoiceDisputeRepository.GetByInvoiceIdAsync(invoiceId);
+
+            if (invoiceDispute == null)
+                throw new InvoiceDisputeNotFoundException(invoiceId);
+
+            return invoiceDispute;
+        }
+
+        private async Task ValidateDisputeActions(string invoiceId, string employeeId, bool isMarkAction)
+        {
+            Invoice invoice = await _invoiceRepository.FindByIdAsync(invoiceId);
+
+            if (invoice == null)
+                throw new InvoiceNotFoundException(invoiceId);
+
+            if (isMarkAction && invoice.Status != InvoiceStatus.Unpaid)
+                throw new InvalidOperationException("Invoice status is invalid.");
+
+            Employee employee = await _employeeRepository.GetByIdAsync(employeeId);
+
+            if (employee == null)
+                throw new EmployeeNotFoundException(employeeId);
+
+            if (invoice.ClientName != employee.MerchantId)
+                throw new InvalidOperationException("Only counterparty can mark or cancel an invoice as Dispute");
         }
     }
 }

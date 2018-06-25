@@ -33,5 +33,11 @@ namespace Lykke.Service.PayInvoice.Core.Services
         Task UpdateAsync(PaymentRequestDetailsMessage message);
 
         Task DeleteAsync(string invoiceId);
+
+        Task MarkDisputeAsync(string invoiceId, string reason, string employeeId);
+
+        Task CancelDisputeAsync(string invoiceId, string employeeId);
+
+        Task<InvoiceDispute> GetInvoiceDisputeAsync(string invoiceId);
     }
 }
