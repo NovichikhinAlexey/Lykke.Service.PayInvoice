@@ -449,6 +449,8 @@ namespace Lykke.Service.PayInvoice.Services
 
                             paymentAmountInBaseAsset = GetPaymentAmount(leftAmountInBaseAsset, amountToPayInBaseAsset);
 
+                            await CheckoutOrder(invoice.MerchantId, paymentRequestIdForPaying);
+
                             payResult = await PayPaymentRequestAsync(invoice.MerchantId, merchantId, paymentRequestIdForPaying, paymentAmountInBaseAsset);
 
                             _log.WriteInfo(nameof(PayInvoicesAsync), new { InvoiceId = invoice.Id, invoice.MerchantId, PayerMerchantId = merchantId, paymentRequestIdForPaying, leftAmountInBaseAsset, amountToPayInBaseAsset }, "Paid Unpaid invoice");
@@ -678,14 +680,13 @@ namespace Lykke.Service.PayInvoice.Services
         {
             try
             {
-                //TODO:
-                //var payResult = await _payInternalClient.PayPaymentRequest(new PaymentModel
-                //{
-                //    MerchantId = merchantIdOfInvoice,
-                //    PayerMerchantId = payerMerchantId,
-                //    PaymentRequestId = paymentRequestId,
-                //    Amount = amount
-                //});
+                await _payInternalClient.PayAsync(new PaymentRequest
+                {
+                    MerchantId = merchantIdOfInvoice,
+                    PayerMerchantId = payerMerchantId,
+                    PaymentRequestId = paymentRequestId,
+                    Amount = amount
+                });
                 return true;
             }
             catch (DefaultErrorResponseException ex)
@@ -696,11 +697,11 @@ namespace Lykke.Service.PayInvoice.Services
 
         private async Task<decimal> GetPaymentAmount(string merchantIdOfInvoice, string paymentRequestId)
         {
-            OrderModel order = await GetOrder(merchantIdOfInvoice, paymentRequestId);
+            OrderModel order = await CheckoutOrder(merchantIdOfInvoice, paymentRequestId);
             return order.PaymentAmount;
         }
 
-        private async Task<OrderModel> GetOrder(string merchantIdOfInvoice, string paymentRequestId)
+        private async Task<OrderModel> CheckoutOrder(string merchantIdOfInvoice, string paymentRequestId)
         {
             try
             {
