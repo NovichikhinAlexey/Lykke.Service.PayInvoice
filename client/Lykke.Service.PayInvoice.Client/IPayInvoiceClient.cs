@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using Lykke.Service.PayInvoice.Client.Models.Employee;
 using Lykke.Service.PayInvoice.Client.Models.File;
 using Lykke.Service.PayInvoice.Client.Models.Invoice;
+using Lykke.Service.PayInvoice.Client.Models.MerchantSetting;
 using Lykke.Service.PayInvoice.Core.Domain;
 using Lykke.Service.PayInvoice.Core.Domain.PaymentRequest;
 
@@ -85,6 +86,25 @@ namespace Lykke.Service.PayInvoice.Client
         Task<decimal> GetSumToPayInvoicesAsync(GetSumToPayInvoicesRequest model);
 
         /// <summary>
+        /// Mark invoice as Dispute
+        /// </summary>
+        /// <param name="model">The marking invoice dispute request</param>
+        Task MarkDisputeAsync(MarkInvoiceDisputeRequest model);
+
+        /// <summary>
+        /// Cancel dispute
+        /// </summary>
+        /// <param name="model">Cancel dispute request</param>
+        Task CancelDisputeAsync(CancelInvoiceDisputeRequest model);
+
+        /// <summary>
+        /// Get invoice's dispute information
+        /// </summary>
+        /// <param name="invoiceId">The invoice id</param>
+        /// <returns></returns>
+        Task<InvoiceDisputeInfoResponse> GetInvoiceDisputeInfoAsync(string invoiceId);
+
+        /// <summary>
         /// Returns invoices by merchant id.
         /// </summary>
         /// <returns>The collection of invoices.</returns>
@@ -100,6 +120,16 @@ namespace Lykke.Service.PayInvoice.Client
         /// </summary>
         /// <param name="merchantSetting">The model to create or update merchant setting</param>
         Task<MerchantSetting> SetMerchantSettingAsync(MerchantSetting model);
+
+        /// <summary>
+        /// Get base asset
+        /// </summary>
+        Task<string> GetBaseAssetAsync(string merchantId);
+
+        /// <summary>
+        /// Update base asset
+        /// </summary>
+        Task SetBaseAssetAsync(UpdateBaseAssetRequest model);
 
         /// <summary>
         /// Creates draft invoice.

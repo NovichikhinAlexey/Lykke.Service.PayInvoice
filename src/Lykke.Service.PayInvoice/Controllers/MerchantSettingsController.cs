@@ -7,6 +7,7 @@ using Common.Log;
 using Lykke.Common.Api.Contract.Responses;
 using Lykke.Service.PayInternal.Client;
 using Lykke.Service.PayInvoice.Core.Domain;
+using Lykke.Service.PayInvoice.Core.Exceptions;
 using Lykke.Service.PayInvoice.Core.Services;
 using Lykke.Service.PayInvoice.Extensions;
 using Lykke.Service.PayInvoice.Models.MerchantSetting;
@@ -19,16 +20,13 @@ namespace Lykke.Service.PayInvoice.Controllers
     public class MerchantSettingsController : Controller
     {
         private readonly IMerchantSettingService _merchantSettingService;
-        private readonly IPayInternalClient _payInternalClient;
         private readonly ILog _log;
 
         public MerchantSettingsController(
             IMerchantSettingService merchantSettingService,
-            IPayInternalClient payInternalClient,
             ILog log)
         {
             _merchantSettingService = merchantSettingService;
-            _payInternalClient = payInternalClient;
             _log = log.CreateComponentScope(nameof(MerchantSettingsController));
         }
 
@@ -42,15 +40,19 @@ namespace Lykke.Service.PayInvoice.Controllers
         [Route("{merchantId}")]
         [SwaggerOperation("MerchantSettingGetById")]
         [ProducesResponseType(typeof(MerchantSetting), (int)HttpStatusCode.OK)]
-        [ProducesResponseType((int)HttpStatusCode.NotFound)]
+        [ProducesResponseType(typeof(ErrorResponse), (int)HttpStatusCode.NotFound)]
         public async Task<IActionResult> GetByIdAsync(string merchantId)
         {
-            MerchantSetting merchantSetting = await _merchantSettingService.GetByIdAsync(merchantId);
+            try
+            {
+                MerchantSetting merchantSettings = await _merchantSettingService.GetByIdAsync(merchantId);
 
-            if (merchantSetting == null)
-                return NotFound();
-
-            return Ok(merchantSetting);
+                return Ok(merchantSettings);
+            }
+            catch (MerchantSettingNotFoundException ex)
+            {
+                return NotFound(ErrorResponse.Create(ex.Message));
+            }
         }
 
         /// <summary>
@@ -68,19 +70,6 @@ namespace Lykke.Service.PayInvoice.Controllers
             if (!ModelState.IsValid)
                 return BadRequest(new ErrorResponse().AddErrors(ModelState));
 
-            var settlementAssetsResponse = await _payInternalClient.GetAvailableSettlementAssetsAsync(model.MerchantId);
-
-            bool isValidAsset = settlementAssetsResponse.Assets.ToList().Contains(model.BaseAsset);
-                
-            if (!isValidAsset)
-            {
-                var errorResponse = new ErrorResponse()
-                {
-                    ErrorMessage = "Asset is not found in available settlement assets for the merchant"
-                };
-                return BadRequest(errorResponse);
-            }
-
             try
             {
                 var merchantSettingModel = Mapper.Map<MerchantSetting>(model);
@@ -89,10 +78,71 @@ namespace Lykke.Service.PayInvoice.Controllers
 
                 return Ok(merchantSetting);
             }
-            catch (Exception exception)
+            catch (AssetNotAvailableForMerchantException ex)
             {
-                _log.WriteError(nameof(SetAsync), model, exception);
-                throw;
+                return BadRequest(ErrorResponse.Create(ex.Message));
+            }
+        }
+
+        /// <summary>
+        /// Returns base asset by id
+        /// </summary>
+        /// <param name="merchantId">The merchant id</param>
+        /// <response code="200">The base asset</response>
+        /// <response code="404">Merchant setting is not found</response>
+        [HttpGet]
+        [Route("baseAsset/{merchantId}")]
+        [SwaggerOperation("GetBaseAssetById")]
+        [ProducesResponseType(typeof(string), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(ErrorResponse), (int)HttpStatusCode.NotFound)]
+        public async Task<IActionResult> GetBaseAssetByIdAsync(string merchantId)
+        {
+            try
+            {
+                string baseAsset = await _merchantSettingService.GetBaseAssetByIdAsync(merchantId);
+
+                return Ok(baseAsset);
+            }
+            catch (MerchantSettingNotFoundException ex)
+            {
+                return NotFound(ErrorResponse.Create(ex.Message));
+            }
+        }
+
+        /// <summary>
+        /// Update base asset
+        /// </summary>
+        /// <param name="model">Update base asset request</param>
+        /// <response code="200">Successfully updated</response>
+        /// <response code="404">Merchant setting is not found</response>
+        /// <response code="400">Invalid model</response>
+        [HttpPost("baseAsset")]
+        [SwaggerOperation("SetBaseAsset")]
+        [ProducesResponseType(typeof(void), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(ErrorResponse), (int)HttpStatusCode.NotFound)]
+        [ProducesResponseType(typeof(ErrorResponse), (int)HttpStatusCode.BadRequest)]
+        public async Task<IActionResult> SetBaseAssetAsync([FromBody] UpdateBaseAssetRequest model)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(new ErrorResponse().AddErrors(ModelState));
+
+            try
+            {
+                MerchantSetting merchantSettings = await _merchantSettingService.GetByIdAsync(model.MerchantId);
+
+                merchantSettings.BaseAsset = model.BaseAsset;
+
+                await _merchantSettingService.SetAsync(merchantSettings);
+
+                return Ok();
+            }
+            catch (MerchantSettingNotFoundException ex)
+            {
+                return NotFound(ErrorResponse.Create(ex.Message));
+            }
+            catch (AssetNotAvailableForMerchantException ex)
+            {
+                return BadRequest(ErrorResponse.Create(ex.Message));
             }
         }
     }
