@@ -14,11 +14,15 @@ namespace Lykke.Service.PayInvoice.Client.Models.Invoice
         /// Gets or sets merchant id
         /// </summary>
         [Required]
-        public string MerchantId { get; set; }
+        public string EmployeeId { get; set; }
         /// <summary>
         /// Gets or sets invoices ids
         /// </summary>
         [Required]
         public IEnumerable<string> InvoicesIds { get; set; }
+        /// <summary>
+        /// Optional, need to pass when can differ from BaseAsset
+        /// </summary>
+        public string AssetForPay { get; set; }
     }
 }

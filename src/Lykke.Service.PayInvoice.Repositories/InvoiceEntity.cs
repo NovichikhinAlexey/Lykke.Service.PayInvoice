@@ -13,8 +13,8 @@ namespace Lykke.Service.PayInvoice.Repositories
         private DateTime _createdDate;
         private decimal _paidAmount;
         private bool _dispute;
-        private bool _hasMultiplePaymentrequests;
         private bool _hadDispute;
+        private bool _hasMultiplePaymentrequests;
 
         public InvoiceEntity()
         {

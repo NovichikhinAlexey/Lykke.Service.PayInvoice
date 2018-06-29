@@ -8,10 +8,14 @@ namespace Lykke.Service.PayInvoice.Models.Invoice
     {
         [Required]
         [RowKey]
-        public string MerchantId { get; set; }
+        public string EmployeeId { get; set; }
         [Required]
         [NotEmptyCollection]
         [RowKey]
         public IEnumerable<string> InvoicesIds { get; set; }
+        /// <summary>
+        /// Optional, if null then BaseAsset will be used
+        /// </summary>
+        public string AssetForPay { get; set; }
     }
 }
