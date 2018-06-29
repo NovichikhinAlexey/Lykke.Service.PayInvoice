@@ -24,15 +24,18 @@ namespace Lykke.Service.PayInvoice.Controllers
     {
         private readonly IInvoiceService _invoiceService;
         private readonly IMerchantService _merchantService;
+        private readonly IMerchantSettingService _merchantSettingService;
         private readonly ILog _log;
 
         public InvoicesController(
             IInvoiceService invoiceService,
             IMerchantService merchantService,
+            IMerchantSettingService merchantSettingService,
             ILog log)
         {
             _invoiceService = invoiceService;
             _merchantService = merchantService;
+            _merchantSettingService = merchantSettingService;
             _log = log.CreateComponentScope(nameof(InvoicesController));
         }
 
@@ -304,11 +307,17 @@ namespace Lykke.Service.PayInvoice.Controllers
 
             try
             {
-                await _invoiceService.PayInvoicesAsync(model.MerchantId, validationResult.Invoices, model.Amount);
+                await _invoiceService.PayInvoicesAsync(model.MerchantId, validationResult.Invoices, validationResult.AssetForPay, model.Amount);
             }
             catch (InvalidOperationException ex)
             {
+                _log.WriteError(nameof(PayInvoices), model, ex);
                 return BadRequest(ErrorResponse.Create(ex.Message));
+            }
+            catch (Exception ex)
+            {
+                _log.WriteError(nameof(PayInvoices), model, ex);
+                return BadRequest(ErrorResponse.Create("Internal error"));
             }
 
             return Accepted();
@@ -337,29 +346,53 @@ namespace Lykke.Service.PayInvoice.Controllers
 
             try
             {
-                 sum = await _invoiceService.GetSumToPayInvoicesAsync(model.MerchantId, validationResult.Invoices);
+                 sum = await _invoiceService.GetSumInAssetForPayAsync(validationResult.Invoices, validationResult.AssetForPay);
             }
             catch (InvalidOperationException ex)
             {
+                _log.WriteError(nameof(GetSumToPayInvoices), model, ex);
+
                 return BadRequest(ErrorResponse.Create(ex.Message));
+            }
+            catch (Exception ex)
+            {
+                _log.WriteError(nameof(GetSumToPayInvoices), model, ex);
+                return BadRequest(ErrorResponse.Create("Internal error"));
             }
 
             return Ok(sum);
         }
 
-        private async Task<(IReadOnlyList<Invoice> Invoices, bool HasError, IActionResult ActionResult)> ValidateForPayingInvoicesAsync(GetSumToPayInvoicesRequest model)
+        private async Task<(IReadOnlyList<Invoice> Invoices, string AssetForPay, bool HasError, IActionResult ActionResult)> ValidateForPayingInvoicesAsync(GetSumToPayInvoicesRequest model)
         {
             IReadOnlyList<Invoice> invoices = null;
+            string assetForPay = null;
             bool hasError = false;
             IActionResult actionResult = null;
 
             try
             {
-                invoices = await _invoiceService.ValidateForPayingInvoicesAsync(model.MerchantId, model.InvoicesIds);
+                // choose the asset for pay
+                if (string.IsNullOrEmpty(model.AssetForPay))
+                {
+                    string baseAssetId = await _merchantSettingService.GetBaseAssetAsync(model.MerchantId);
+
+                    if (string.IsNullOrEmpty(baseAssetId))
+                        throw new InvalidOperationException("BaseAsset for merchant is not found");
+
+                    assetForPay = baseAssetId;
+                }
+                else
+                {
+                    assetForPay = model.AssetForPay;
+                }
+
+                invoices = await _invoiceService.ValidateForPayingInvoicesAsync(model.MerchantId, model.InvoicesIds, model.AssetForPay);
             }
             catch (Exception ex)
             {
                 hasError = true;
+                _log.WriteError(nameof(ValidateForPayingInvoicesAsync), model, ex);
 
                 switch (ex)
                 {
@@ -370,6 +403,8 @@ namespace Lykke.Service.PayInvoice.Controllers
                         break;
                     case InvoiceNotInsideGroupException _:
                     case MerchantNotInvoiceClientException _:
+                    case AssetNotAvailableForMerchantException _:
+                    case InvalidOperationException _:
                         actionResult = BadRequest(ErrorResponse.Create(ex.Message));
                         break;
                     default:
@@ -377,7 +412,7 @@ namespace Lykke.Service.PayInvoice.Controllers
                 }
             }
 
-            return (invoices, hasError, actionResult);
+            return (invoices, assetForPay, hasError, actionResult);
         }
 
         /// <summary>

@@ -20,5 +20,9 @@ namespace Lykke.Service.PayInvoice.Client.Models.Invoice
         /// </summary>
         [Required]
         public IEnumerable<string> InvoicesIds { get; set; }
+        /// <summary>
+        /// Optional, need to pass when can differ from BaseAsset
+        /// </summary>
+        public string AssetForPay { get; set; }
     }
 }

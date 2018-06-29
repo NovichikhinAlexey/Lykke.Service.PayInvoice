@@ -13,5 +13,6 @@ namespace Lykke.Service.PayInvoice.Models.Invoice
         [NotEmptyCollection]
         [RowKey]
         public IEnumerable<string> InvoicesIds { get; set; }
+        public string AssetForPay { get; set; }
     }
 }
