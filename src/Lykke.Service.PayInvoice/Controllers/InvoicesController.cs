@@ -349,7 +349,7 @@ namespace Lykke.Service.PayInvoice.Controllers
 
             try
             {
-                 sum = await _invoiceService.GetSumInAssetForPayAsync(validationResult.Invoices, validationResult.AssetForPay);
+                 sum = await _invoiceService.GetSumInAssetForPayAsync(validationResult.Employee.MerchantId, validationResult.Invoices, validationResult.AssetForPay);
             }
             catch (InvalidOperationException ex)
             {

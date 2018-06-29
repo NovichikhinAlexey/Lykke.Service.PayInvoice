@@ -42,7 +42,7 @@ namespace Lykke.Service.PayInvoice.Core.Services
 
         Task PayInvoicesAsync(Employee employee, IEnumerable<Invoice> invoices, string assetForPay, decimal amount);
 
-        Task<decimal> GetSumInAssetForPayAsync(IEnumerable<Invoice> invoices, string assetForPay);
+        Task<decimal> GetSumInAssetForPayAsync(string merchantId, IEnumerable<Invoice> invoices, string assetForPay);
 
         Task MarkDisputeAsync(string invoiceId, string reason, string employeeId);
 
