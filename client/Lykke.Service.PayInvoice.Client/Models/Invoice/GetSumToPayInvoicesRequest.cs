@@ -14,7 +14,7 @@ namespace Lykke.Service.PayInvoice.Client.Models.Invoice
         /// Gets or sets merchant id
         /// </summary>
         [Required]
-        public string MerchantId { get; set; }
+        public string EmployeeId { get; set; }
         /// <summary>
         /// Gets or sets invoices ids
         /// </summary>

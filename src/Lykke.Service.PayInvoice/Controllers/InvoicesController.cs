@@ -25,17 +25,20 @@ namespace Lykke.Service.PayInvoice.Controllers
         private readonly IInvoiceService _invoiceService;
         private readonly IMerchantService _merchantService;
         private readonly IMerchantSettingService _merchantSettingService;
+        private readonly IEmployeeService _employeeService;
         private readonly ILog _log;
 
         public InvoicesController(
             IInvoiceService invoiceService,
             IMerchantService merchantService,
             IMerchantSettingService merchantSettingService,
+            IEmployeeService employeeService,
             ILog log)
         {
             _invoiceService = invoiceService;
             _merchantService = merchantService;
             _merchantSettingService = merchantSettingService;
+            _employeeService = employeeService;
             _log = log.CreateComponentScope(nameof(InvoicesController));
         }
 
@@ -307,7 +310,7 @@ namespace Lykke.Service.PayInvoice.Controllers
 
             try
             {
-                await _invoiceService.PayInvoicesAsync(model.MerchantId, validationResult.Invoices, validationResult.AssetForPay, model.Amount);
+                await _invoiceService.PayInvoicesAsync(validationResult.Employee, validationResult.Invoices, validationResult.AssetForPay, model.Amount);
             }
             catch (InvalidOperationException ex)
             {
@@ -363,19 +366,22 @@ namespace Lykke.Service.PayInvoice.Controllers
             return Ok(sum);
         }
 
-        private async Task<(IReadOnlyList<Invoice> Invoices, string AssetForPay, bool HasError, IActionResult ActionResult)> ValidateForPayingInvoicesAsync(GetSumToPayInvoicesRequest model)
+        private async Task<(IReadOnlyList<Invoice> Invoices, string AssetForPay, Employee Employee, bool HasError, IActionResult ActionResult)> ValidateForPayingInvoicesAsync(GetSumToPayInvoicesRequest model)
         {
             IReadOnlyList<Invoice> invoices = null;
             string assetForPay = null;
+            Employee employee = null;
             bool hasError = false;
             IActionResult actionResult = null;
 
             try
             {
+                employee = await _employeeService.GetByIdAsync(model.EmployeeId);
+
                 // choose the asset for pay
                 if (string.IsNullOrEmpty(model.AssetForPay))
                 {
-                    string baseAssetId = await _merchantSettingService.GetBaseAssetAsync(model.MerchantId);
+                    string baseAssetId = await _merchantSettingService.GetBaseAssetAsync(employee.MerchantId);
 
                     if (string.IsNullOrEmpty(baseAssetId))
                         throw new InvalidOperationException("BaseAsset for merchant is not found");
@@ -387,7 +393,7 @@ namespace Lykke.Service.PayInvoice.Controllers
                     assetForPay = model.AssetForPay;
                 }
 
-                invoices = await _invoiceService.ValidateForPayingInvoicesAsync(model.MerchantId, model.InvoicesIds, model.AssetForPay);
+                invoices = await _invoiceService.ValidateForPayingInvoicesAsync(employee.MerchantId, model.InvoicesIds, model.AssetForPay);
             }
             catch (Exception ex)
             {
@@ -396,6 +402,7 @@ namespace Lykke.Service.PayInvoice.Controllers
 
                 switch (ex)
                 {
+                    case EmployeeNotFoundException _:
                     case MerchantNotFoundException _:
                     case MerchantGroupNotFoundException _:
                     case InvoiceNotFoundException _:
@@ -412,7 +419,7 @@ namespace Lykke.Service.PayInvoice.Controllers
                 }
             }
 
-            return (invoices, assetForPay, hasError, actionResult);
+            return (invoices, assetForPay, employee, hasError, actionResult);
         }
 
         /// <summary>
