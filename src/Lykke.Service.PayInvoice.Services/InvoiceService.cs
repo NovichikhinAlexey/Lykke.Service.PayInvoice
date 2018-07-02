@@ -14,6 +14,7 @@ using Lykke.Service.PayInternal.Client.Models.Order;
 using Lykke.Service.PayInternal.Client.Models.PaymentRequest;
 using Lykke.Service.PayInternal.Contract.PaymentRequest;
 using Lykke.Service.PayInvoice.Core.Domain;
+using Lykke.Service.PayInvoice.Core.Domain.HistoryOperation;
 using Lykke.Service.PayInvoice.Core.Domain.InvoicePayerHistory;
 using Lykke.Service.PayInvoice.Core.Domain.PaymentRequest;
 using Lykke.Service.PayInvoice.Core.Exceptions;
@@ -33,6 +34,7 @@ namespace Lykke.Service.PayInvoice.Services
         private readonly IPaymentRequestHistoryRepository _paymentRequestHistoryRepository;
         private readonly IMerchantService _merchantService;
         private readonly IMerchantSettingService _merchantSettingService;
+        private readonly IHistoryOperationService _historyOperationService;
         private readonly IEmployeeRepository _employeeRepository;
         private readonly IInvoiceDisputeRepository _invoiceDisputeRepository;
         private readonly IInvoicePayerHistoryRepository _invoicePayerHistoryRepository;
@@ -47,6 +49,7 @@ namespace Lykke.Service.PayInvoice.Services
             IPaymentRequestHistoryRepository paymentRequestHistoryRepository,
             IMerchantService merchantService,
             IMerchantSettingService merchantSettingService,
+            IHistoryOperationService historyOperationService,
             IEmployeeRepository employeeRepository,
             IInvoiceDisputeRepository invoiceDisputeRepository,
             IInvoicePayerHistoryRepository invoicePayerHistoryRepository,
@@ -60,6 +63,7 @@ namespace Lykke.Service.PayInvoice.Services
             _paymentRequestHistoryRepository = paymentRequestHistoryRepository;
             _merchantService = merchantService;
             _merchantSettingService = merchantSettingService;
+            _historyOperationService = historyOperationService;
             _employeeRepository = employeeRepository;
             _invoiceDisputeRepository = invoiceDisputeRepository;
             _invoicePayerHistoryRepository = invoicePayerHistoryRepository;
@@ -250,17 +254,18 @@ namespace Lykke.Service.PayInvoice.Services
             if (invoice == null)
                 throw new InvoiceNotFoundException(invoiceId);
 
-            bool isUnderpaid = false;
+            bool isPayingUnderpaid = false;
             if (allowUnderpaid && invoice.Status == InvoiceStatus.Underpaid)
             {
-                isUnderpaid = true;
+                isPayingUnderpaid = true;
             }
             else if (invoice.Status != InvoiceStatus.Unpaid)
             {
                 throw new InvalidOperationException("Invoice status is invalid.");
             }
 
-            if (invoice.PaymentAssetId == paymentAssetId)
+            if (invoice.PaymentAssetId == paymentAssetId
+                && !isPayingUnderpaid)
                 return invoice;
             
             var previousPaymentAssetId = invoice.PaymentAssetId;
@@ -271,7 +276,7 @@ namespace Lykke.Service.PayInvoice.Services
             var previousPaymentRequestId = invoice.PaymentRequestId;
             invoice.PaymentRequestId = paymentRequest.Id;
             // for underpaid mark also that there are multiple paid payment requests
-            if (isUnderpaid)
+            if (isPayingUnderpaid)
             {
                 invoice.HasMultiplePaymentRequests = true;
             }
@@ -350,39 +355,39 @@ namespace Lykke.Service.PayInvoice.Services
 
             if (status.IsPaidStatus())
             {
+                if (invoice.HasMultiplePaymentRequests)
+                {
+                    decimal leftAmountToPayInSettlementAsset = await GetLeftAmountToPayInSettlementAsset(invoice);
+
+                    InvoiceStatus invoiceStatus;
+
+                    if (leftAmountToPayInSettlementAsset > 0)
+                    {
+                        invoiceStatus = InvoiceStatus.Underpaid;
+                    }
+                    else if (leftAmountToPayInSettlementAsset < 0)
+                    {
+                        invoiceStatus = InvoiceStatus.Overpaid;
+                    }
+                    else
+                    {
+                        invoiceStatus = InvoiceStatus.Paid;
+                    }
+
+                    _log.WriteInfo(nameof(UpdateAsync), new
+                    {
+                        invoice.Id,
+                        messageStatus = status.ToString(),
+                        invoiceStatus = invoiceStatus.ToString()
+                    }, "Calculate status when HasMultiplePaymentRequests");
+
+                    status = invoiceStatus;
+                }
+
                 await _invoiceRepository.SetPaidAmountAsync(invoice.MerchantId, invoice.Id, message.PaidAmount);
             }
 
-            if (invoice.HasMultiplePaymentRequests && status.IsPaidStatus())
-            {
-                decimal leftAmountToPayInSettlementAsset = await GetLeftAmountToPayInSettlementAsset(invoice);
-
-                InvoiceStatus invoiceStatus;
-
-                if (leftAmountToPayInSettlementAsset > 0)
-                {
-                    invoiceStatus = InvoiceStatus.Underpaid;
-                }
-                else if (leftAmountToPayInSettlementAsset < 0)
-                {
-                    invoiceStatus = InvoiceStatus.Overpaid;
-                }
-                else
-                {
-                    invoiceStatus = InvoiceStatus.Paid;
-                }
-
-                _log.WriteInfo(nameof(UpdateAsync), new
-                {
-                    invoice.Id,
-                    messageStatus = status.ToString(),
-                    invoiceStatus = invoiceStatus.ToString()
-                }, "Calculate status when HasMultiplePaymentRequests");
-
-                status = invoiceStatus;
-            }
-
-            if (invoice.Status == status)
+            if (invoice.Status == status && invoice.Status != InvoiceStatus.Underpaid)
                 return;
 
             await _invoiceRepository.SetStatusAsync(invoice.MerchantId, invoice.Id, status);
@@ -409,6 +414,45 @@ namespace Lykke.Service.PayInvoice.Services
             history.Date = DateTime.UtcNow;
 
             await _historyRepository.InsertAsync(history);
+
+            // send additional info only for Paid Statuses and if invoice was paid by another merchant inside our system
+            var invoicePayerHistoryItem = await _invoicePayerHistoryRepository.GetAsync(invoice.Id, paymentRequestId);
+            if (!status.IsPaidStatus() || invoicePayerHistoryItem == null)
+                return;
+
+            var payerEmployee = await _employeeRepository.GetByIdAsync(invoicePayerHistoryItem.EmployeeId);
+
+            if (payerEmployee == null)
+            {
+                _log.WriteError(nameof(UpdateAsync), new { message, invoiceId = invoice.Id, invoicePayerHistoryItem.EmployeeId }, new Exception("PayerEmployee should not be empty"));
+                return;
+            }
+
+            var transaction = message.Transactions?.OrderByDescending(x => x.FirstSeen).FirstOrDefault();
+
+            if (transaction == null)
+            {
+                _log.WriteError(nameof(UpdateAsync), new { message, invoiceId = invoice.Id }, new Exception("Transaction should not be empty"));
+                return;
+            }
+
+            // send info to history service
+            var historyOperationCommand = new HistoryOperationCommand
+            {
+                InvoiceId = invoice.Id,
+                MerchantId = payerEmployee.MerchantId,
+                OppositeMerchantId = invoice.MerchantId,
+                EmployeeEmail = payerEmployee.Email,
+                Amount = message.PaidAmount,
+                AssetId = message.PaymentAssetId,
+                TxHash = transaction.Id,
+                CreatedOn = transaction.FirstSeen
+            };
+            await _historyOperationService.PublishOutgoingInvoicePayment(historyOperationCommand);
+
+            historyOperationCommand.MerchantId = invoice.MerchantId;
+            historyOperationCommand.OppositeMerchantId = payerEmployee.MerchantId;
+            await _historyOperationService.PublishIncomingInvoicePayment(historyOperationCommand);
         }
 
         public async Task<IReadOnlyList<Invoice>> ValidateForPayingInvoicesAsync(string merchantId, IEnumerable<string> invoicesIds, string assetForPay)
@@ -672,21 +716,14 @@ namespace Lykke.Service.PayInvoice.Services
             string paymentRequestIdForPaying = invoice.PaymentRequestId;
             decimal leftAmountToPayInSettlementAsset = await GetLeftAmountToPayInSettlementAsset(invoice);
 
-            if (assetForPay == invoice.SettlementAssetId)
+            if (isPaying)
             {
-                leftAmountToPayInAssetForPay = await GetCalculatedPaymentAmountAsync(invoice.SettlementAssetId, assetForPay, leftAmountToPayInSettlementAsset, payerMerchantId);
+                paymentRequestIdForPaying = await GetOrUpdatePaymentRequestIdForPaying(assetForPay, invoice, leftAmountToPayInSettlementAsset);
+                leftAmountToPayInAssetForPay = await CheckoutAndGetPaymentAmount(invoice.MerchantId, paymentRequestIdForPaying);
             }
             else
             {
-                if (isPaying)
-                {
-                    paymentRequestIdForPaying = await GetOrUpdatePaymentRequestIdForPaying(assetForPay, invoice, leftAmountToPayInSettlementAsset);
-                    leftAmountToPayInAssetForPay = await CheckoutAndGetPaymentAmount(invoice.MerchantId, paymentRequestIdForPaying);
-                }
-                else
-                {
-                    leftAmountToPayInAssetForPay = await GetCalculatedPaymentAmountAsync(invoice.SettlementAssetId, assetForPay, leftAmountToPayInSettlementAsset, payerMerchantId);
-                }
+                leftAmountToPayInAssetForPay = await GetCalculatedPaymentAmountAsync(invoice.SettlementAssetId, assetForPay, leftAmountToPayInSettlementAsset, payerMerchantId);
             }
 
             return (leftAmountToPayInSettlementAsset, leftAmountToPayInAssetForPay, paymentRequestIdForPaying);
@@ -740,7 +777,7 @@ namespace Lykke.Service.PayInvoice.Services
             {
                 if (invoice.SettlementAssetId == invoice.PaymentAssetId)
                 {
-                    paidInSettlementAsset += invoice.PaidAmount;
+                    paidInSettlementAsset += (decimal)currentPaymentRequest.PaidAmount;
                 }
                 else
                 {

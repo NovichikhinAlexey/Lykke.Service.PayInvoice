@@ -1,10 +1,19 @@
 ﻿using Autofac;
 using Lykke.Service.PayInvoice.Core.Services;
+using Lykke.Service.PayInvoice.Core.Settings;
 
 namespace Lykke.Service.PayInvoice.Services
 {
     public class AutofacModule : Module
     {
+        private readonly RetryPolicySettings _retryPolicySettings;
+
+        public AutofacModule(
+            RetryPolicySettings retryPolicySettings)
+        {
+            _retryPolicySettings = retryPolicySettings;
+        }
+
         protected override void Load(ContainerBuilder builder)
         {
             builder.RegisterType<HealthService>()
@@ -31,6 +40,10 @@ namespace Lykke.Service.PayInvoice.Services
 
             builder.RegisterType<MerchantSettingService>()
                 .As<IMerchantSettingService>();
+
+            builder.RegisterType<HistoryOperationService>()
+                .WithParameter(TypedParameter.From(_retryPolicySettings))
+                .As<IHistoryOperationService>();
         }
     }
 }
