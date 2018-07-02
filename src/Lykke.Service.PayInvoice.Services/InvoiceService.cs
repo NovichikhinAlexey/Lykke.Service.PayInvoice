@@ -14,6 +14,7 @@ using Lykke.Service.PayInternal.Client.Models.Order;
 using Lykke.Service.PayInternal.Client.Models.PaymentRequest;
 using Lykke.Service.PayInternal.Contract.PaymentRequest;
 using Lykke.Service.PayInvoice.Core.Domain;
+using Lykke.Service.PayInvoice.Core.Domain.HistoryOperation;
 using Lykke.Service.PayInvoice.Core.Domain.InvoicePayerHistory;
 using Lykke.Service.PayInvoice.Core.Domain.PaymentRequest;
 using Lykke.Service.PayInvoice.Core.Exceptions;
@@ -33,6 +34,7 @@ namespace Lykke.Service.PayInvoice.Services
         private readonly IPaymentRequestHistoryRepository _paymentRequestHistoryRepository;
         private readonly IMerchantService _merchantService;
         private readonly IMerchantSettingService _merchantSettingService;
+        private readonly IHistoryOperationService _historyOperationService;
         private readonly IEmployeeRepository _employeeRepository;
         private readonly IInvoiceDisputeRepository _invoiceDisputeRepository;
         private readonly IInvoicePayerHistoryRepository _invoicePayerHistoryRepository;
@@ -47,6 +49,7 @@ namespace Lykke.Service.PayInvoice.Services
             IPaymentRequestHistoryRepository paymentRequestHistoryRepository,
             IMerchantService merchantService,
             IMerchantSettingService merchantSettingService,
+            IHistoryOperationService historyOperationService,
             IEmployeeRepository employeeRepository,
             IInvoiceDisputeRepository invoiceDisputeRepository,
             IInvoicePayerHistoryRepository invoicePayerHistoryRepository,
@@ -60,6 +63,7 @@ namespace Lykke.Service.PayInvoice.Services
             _paymentRequestHistoryRepository = paymentRequestHistoryRepository;
             _merchantService = merchantService;
             _merchantSettingService = merchantSettingService;
+            _historyOperationService = historyOperationService;
             _employeeRepository = employeeRepository;
             _invoiceDisputeRepository = invoiceDisputeRepository;
             _invoicePayerHistoryRepository = invoicePayerHistoryRepository;
@@ -410,6 +414,45 @@ namespace Lykke.Service.PayInvoice.Services
             history.Date = DateTime.UtcNow;
 
             await _historyRepository.InsertAsync(history);
+
+            // send additional info only for Paid Statuses and if invoice was paid by another merchant inside our system
+            var invoicePayerHistoryItem = await _invoicePayerHistoryRepository.GetAsync(invoice.Id, paymentRequestId);
+            if (!status.IsPaidStatus() || invoicePayerHistoryItem == null)
+                return;
+
+            var payerEmployee = await _employeeRepository.GetByIdAsync(invoicePayerHistoryItem.EmployeeId);
+
+            if (payerEmployee == null)
+            {
+                _log.WriteError(nameof(UpdateAsync), new { message, invoiceId = invoice.Id, invoicePayerHistoryItem.EmployeeId }, new Exception("PayerEmployee should not be empty"));
+                return;
+            }
+
+            var transaction = message.Transactions?.OrderByDescending(x => x.FirstSeen).FirstOrDefault();
+
+            if (transaction == null)
+            {
+                _log.WriteError(nameof(UpdateAsync), new { message, invoiceId = invoice.Id }, new Exception("Transaction should not be empty"));
+                return;
+            }
+
+            // send info to history service
+            var historyOperationCommand = new HistoryOperationCommand
+            {
+                InvoiceId = invoice.Id,
+                MerchantId = payerEmployee.MerchantId,
+                OppositeMerchantId = invoice.MerchantId,
+                EmployeeEmail = payerEmployee.Email,
+                Amount = message.PaidAmount,
+                AssetId = message.PaymentAssetId,
+                TxHash = transaction.Id,
+                CreatedOn = transaction.FirstSeen
+            };
+            await _historyOperationService.PublishOutgoingInvoicePayment(historyOperationCommand);
+
+            historyOperationCommand.MerchantId = invoice.MerchantId;
+            historyOperationCommand.OppositeMerchantId = payerEmployee.MerchantId;
+            await _historyOperationService.PublishIncomingInvoicePayment(historyOperationCommand);
         }
 
         public async Task<IReadOnlyList<Invoice>> ValidateForPayingInvoicesAsync(string merchantId, IEnumerable<string> invoicesIds, string assetForPay)

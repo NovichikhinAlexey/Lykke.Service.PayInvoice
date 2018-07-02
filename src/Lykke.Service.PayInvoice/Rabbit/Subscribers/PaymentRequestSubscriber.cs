@@ -31,7 +31,7 @@ namespace Lykke.Service.PayInvoice.Rabbit.Subscribers
         public void Start()
         {
             var settings = RabbitMqSubscriptionSettings
-                .CreateForSubscriber(_settings.ConnectionString, _settings.PaymentRequestsExchangeName, "payinvoice")
+                .CreateForSubscriber(_settings.ConnectionString, _settings.PaymentRequestsExchangeName, "payinvoice-debug")
                 .MakeDurable();
 
             settings.DeadLetterExchangeName = null;
