@@ -382,12 +382,12 @@ namespace Lykke.Service.PayInvoice.Services
 
                     _log.WriteInfo(nameof(UpdateAsync), new
                     {
-                        message,
-                        invoice.Id,
+                        invoiceId = invoice.Id,
                         totalPaidAmountInSettlementAsset,
                         messageConvertedStatus = status.ToString(),
-                        calculatedInvoiceStatus = invoiceStatus.ToString()
-                    }, "Calculate status when HasMultiplePaymentRequests");
+                        calculatedInvoiceStatus = invoiceStatus.ToString(),
+                        message
+                    }, "Calculate status when HasMultiplePaymentRequests or Underpaid");
 
                     status = invoiceStatus;
                 }
@@ -400,7 +400,12 @@ namespace Lykke.Service.PayInvoice.Services
 
             await _invoiceRepository.SetStatusAsync(invoice.MerchantId, invoice.Id, status);
 
-            _log.WriteInfo(nameof(UpdateAsync), new { invoice.Id, status = status.ToString() }, "Status updated.");
+            _log.WriteInfo(nameof(UpdateAsync), new
+            {
+                invoiceId = invoice.Id,
+                status = status.ToString(),
+                message
+            }, "Status updated.");
             
             invoice.Status = status;
 
