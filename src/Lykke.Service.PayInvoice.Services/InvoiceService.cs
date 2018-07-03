@@ -384,8 +384,9 @@ namespace Lykke.Service.PayInvoice.Services
                     {
                         message,
                         invoice.Id,
-                        messageStatus = status.ToString(),
-                        invoiceStatus = invoiceStatus.ToString()
+                        leftAmountToPayInSettlementAsset,
+                        messageConvertedStatus = status.ToString(),
+                        calculatedInvoiceStatus = invoiceStatus.ToString()
                     }, "Calculate status when HasMultiplePaymentRequests");
 
                     status = invoiceStatus;
