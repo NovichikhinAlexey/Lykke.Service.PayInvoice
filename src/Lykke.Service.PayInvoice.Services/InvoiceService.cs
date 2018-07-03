@@ -474,7 +474,7 @@ namespace Lykke.Service.PayInvoice.Services
                 TxFirstSeen = transaction.FirstSeen
             };
 
-            if (status == InvoiceStatus.Underpaid && invoice.HasMultiplePaymentRequests)
+            if (status == InvoiceStatus.Underpaid && leftAmountToPayInSettlementAsset > 0)
             {
                 invoiceConfirmationCommand.AmountLeftPaid = await GetCalculatedPaymentAmountAsync(invoice.SettlementAssetId, invoice.SettlementAssetId, leftAmountToPayInSettlementAsset, payerEmployee.MerchantId);
                 invoiceConfirmationCommand.AmountPaid = invoice.Amount - invoiceConfirmationCommand.AmountLeftPaid;
