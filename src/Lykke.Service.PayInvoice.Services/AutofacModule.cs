@@ -44,6 +44,10 @@ namespace Lykke.Service.PayInvoice.Services
             builder.RegisterType<HistoryOperationService>()
                 .WithParameter(TypedParameter.From(_retryPolicySettings))
                 .As<IHistoryOperationService>();
+
+            builder.RegisterType<InvoiceConfirmationService>()
+                .WithParameter(TypedParameter.From(_retryPolicySettings))
+                .As<IInvoiceConfirmationService>();
         }
     }
 }

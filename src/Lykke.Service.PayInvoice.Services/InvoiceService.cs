@@ -15,6 +15,7 @@ using Lykke.Service.PayInternal.Client.Models.PaymentRequest;
 using Lykke.Service.PayInternal.Contract.PaymentRequest;
 using Lykke.Service.PayInvoice.Core.Domain;
 using Lykke.Service.PayInvoice.Core.Domain.HistoryOperation;
+using Lykke.Service.PayInvoice.Core.Domain.InvoiceConfirmation;
 using Lykke.Service.PayInvoice.Core.Domain.InvoicePayerHistory;
 using Lykke.Service.PayInvoice.Core.Domain.PaymentRequest;
 using Lykke.Service.PayInvoice.Core.Exceptions;
@@ -35,6 +36,7 @@ namespace Lykke.Service.PayInvoice.Services
         private readonly IMerchantService _merchantService;
         private readonly IMerchantSettingService _merchantSettingService;
         private readonly IHistoryOperationService _historyOperationService;
+        private readonly IInvoiceConfirmationService _invoiceConfirmationService;
         private readonly IEmployeeRepository _employeeRepository;
         private readonly IInvoiceDisputeRepository _invoiceDisputeRepository;
         private readonly IInvoicePayerHistoryRepository _invoicePayerHistoryRepository;
@@ -50,6 +52,7 @@ namespace Lykke.Service.PayInvoice.Services
             IMerchantService merchantService,
             IMerchantSettingService merchantSettingService,
             IHistoryOperationService historyOperationService,
+            IInvoiceConfirmationService invoiceConfirmationService,
             IEmployeeRepository employeeRepository,
             IInvoiceDisputeRepository invoiceDisputeRepository,
             IInvoicePayerHistoryRepository invoicePayerHistoryRepository,
@@ -64,6 +67,7 @@ namespace Lykke.Service.PayInvoice.Services
             _merchantService = merchantService;
             _merchantSettingService = merchantSettingService;
             _historyOperationService = historyOperationService;
+            _invoiceConfirmationService = invoiceConfirmationService;
             _employeeRepository = employeeRepository;
             _invoiceDisputeRepository = invoiceDisputeRepository;
             _invoicePayerHistoryRepository = invoicePayerHistoryRepository;
@@ -353,11 +357,13 @@ namespace Lykke.Service.PayInvoice.Services
 
             InvoiceStatus status = StatusConverter.Convert(message.Status, message.ProcessingError);
 
+            decimal leftAmountToPayInSettlementAsset = 0;
+
             if (status.IsPaidStatus())
             {
                 if (invoice.HasMultiplePaymentRequests)
                 {
-                    decimal leftAmountToPayInSettlementAsset = await GetLeftAmountToPayInSettlementAsset(invoice);
+                    leftAmountToPayInSettlementAsset = await GetLeftAmountToPayInSettlementAsset(invoice);
 
                     InvoiceStatus invoiceStatus;
 
@@ -376,9 +382,11 @@ namespace Lykke.Service.PayInvoice.Services
 
                     _log.WriteInfo(nameof(UpdateAsync), new
                     {
+                        message,
                         invoice.Id,
-                        messageStatus = status.ToString(),
-                        invoiceStatus = invoiceStatus.ToString()
+                        leftAmountToPayInSettlementAsset,
+                        messageConvertedStatus = status.ToString(),
+                        calculatedInvoiceStatus = invoiceStatus.ToString()
                     }, "Calculate status when HasMultiplePaymentRequests");
 
                     status = invoiceStatus;
@@ -453,6 +461,29 @@ namespace Lykke.Service.PayInvoice.Services
             historyOperationCommand.MerchantId = invoice.MerchantId;
             historyOperationCommand.OppositeMerchantId = payerEmployee.MerchantId;
             await _historyOperationService.PublishIncomingInvoicePayment(historyOperationCommand);
+
+            historyOperationCommand.EmployeeEmail = historyOperationCommand.EmployeeEmail.SanitizeEmail();
+            _log.WriteInfo(nameof(UpdateAsync), new { message, historyOperationCommand }, "Information sent to history service");
+
+            // send info to callback service
+            var invoiceConfirmationCommand = new InvoiceConfirmationCommand
+            {
+                EmployeeEmail = payerEmployee.Email,
+                InvoiceNumber = invoice.Number,
+                TxHash = transaction.Id,
+                TxFirstSeen = transaction.FirstSeen
+            };
+
+            if (status == InvoiceStatus.Underpaid && invoice.HasMultiplePaymentRequests)
+            {
+                invoiceConfirmationCommand.AmountLeftPaid = await GetCalculatedPaymentAmountAsync(invoice.SettlementAssetId, invoice.SettlementAssetId, leftAmountToPayInSettlementAsset, payerEmployee.MerchantId);
+                invoiceConfirmationCommand.AmountPaid = invoice.Amount - invoiceConfirmationCommand.AmountLeftPaid;
+            }
+
+            await _invoiceConfirmationService.PublishInvoicePayment(invoiceConfirmationCommand);
+
+            invoiceConfirmationCommand.EmployeeEmail = invoiceConfirmationCommand.EmployeeEmail.SanitizeEmail();
+            _log.WriteInfo(nameof(UpdateAsync), new { message, invoiceConfirmationCommand }, "Information sent to callback service");
         }
 
         public async Task<IReadOnlyList<Invoice>> ValidateForPayingInvoicesAsync(string merchantId, IEnumerable<string> invoicesIds, string assetForPay)
@@ -967,24 +998,42 @@ namespace Lykke.Service.PayInvoice.Services
 
         public async Task MarkDisputeAsync(string invoiceId, string reason, string employeeId)
         {
-            await ValidateDisputeActions(invoiceId, employeeId, isMarkAction: true);
+            var validationResult = await ValidateDisputeActions(invoiceId, employeeId, isMarkAction: true);
 
             await _invoiceRepository.MarkDisputeAsync(invoiceId);
 
+            var now = DateTime.UtcNow;
             await _invoiceDisputeRepository.InsertAsync(new InvoiceDispute
             {
                 InvoiceId = invoiceId,
                 Reason = reason,
                 EmployeeId = employeeId,
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = now
+            });
+
+            // send info to callback service
+            await _invoiceConfirmationService.PublishDisputeRaised(new DisputeRaisedConfirmationCommand
+            {
+                InvoiceNumber = validationResult.Invoice.Number,
+                EmployeeEmail = validationResult.Employee.Email,
+                Reason = reason,
+                DateTime = now
             });
         }
 
         public async Task CancelDisputeAsync(string invoiceId, string employeeId)
         {
-            await ValidateDisputeActions(invoiceId, employeeId, isMarkAction: false);
+            var validationResult = await ValidateDisputeActions(invoiceId, employeeId, isMarkAction: false);
 
             await _invoiceRepository.CancelDisputeAsync(invoiceId);
+
+            // send info to callback service
+            await _invoiceConfirmationService.PublishDisputeCancelled(new DisputeCancelledConfirmationCommand
+            {
+                InvoiceNumber = validationResult.Invoice.Number,
+                EmployeeEmail = validationResult.Employee.Email,
+                DateTime = DateTime.UtcNow
+            });
         }
 
         public async Task<InvoiceDispute> GetInvoiceDisputeAsync(string invoiceId)
@@ -997,7 +1046,7 @@ namespace Lykke.Service.PayInvoice.Services
             return invoiceDispute;
         }
 
-        private async Task ValidateDisputeActions(string invoiceId, string employeeId, bool isMarkAction)
+        private async Task<(Invoice Invoice, Employee Employee)> ValidateDisputeActions(string invoiceId, string employeeId, bool isMarkAction)
         {
             Invoice invoice = await _invoiceRepository.FindByIdAsync(invoiceId);
 
@@ -1014,6 +1063,8 @@ namespace Lykke.Service.PayInvoice.Services
 
             if (invoice.ClientName != employee.MerchantId)
                 throw new InvalidOperationException("Only counterparty can mark or cancel an invoice as Dispute");
+
+            return (invoice, employee);
         }
     }
 }
