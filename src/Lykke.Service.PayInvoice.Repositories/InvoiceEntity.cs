@@ -15,6 +15,7 @@ namespace Lykke.Service.PayInvoice.Repositories
         private bool _dispute;
         private bool _hadDispute;
         private bool _hasMultiplePaymentrequests;
+        private decimal? _totalPaidAmountInSettlementAsset;
 
         public InvoiceEntity()
         {
@@ -76,6 +77,16 @@ namespace Lykke.Service.PayInvoice.Repositories
             {
                 _hasMultiplePaymentrequests = value;
                 MarkValueTypePropertyAsDirty(nameof(HasMultiplePaymentRequests));
+            }
+        }
+
+        public decimal? TotalPaidAmountInSettlementAsset
+        {
+            get => _totalPaidAmountInSettlementAsset;
+            set
+            {
+                _totalPaidAmountInSettlementAsset = value;
+                MarkValueTypePropertyAsDirty(nameof(TotalPaidAmountInSettlementAsset));
             }
         }
 

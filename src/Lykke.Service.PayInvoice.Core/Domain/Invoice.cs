@@ -68,6 +68,11 @@ namespace Lykke.Service.PayInvoice.Core.Domain
         public bool HasMultiplePaymentRequests { get; set; }
 
         /// <summary>
+        /// Gets or sets if invoice was underpaid
+        /// </summary>
+        public decimal? TotalPaidAmountInSettlementAsset { get; set; }
+
+        /// <summary>
         /// The identifier of merchant.
         /// </summary>
         public string MerchantId { get; set; }
