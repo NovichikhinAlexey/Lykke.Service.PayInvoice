@@ -364,6 +364,9 @@ namespace Lykke.Service.PayInvoice.Services
                 if (invoice.HasMultiplePaymentRequests || status == InvoiceStatus.Underpaid)
                 {
                     totalPaidAmountInSettlementAsset = await GetTotalPaidAmountInSettlementAsset(invoice, ignoreCurrentPaymentRequest: true);
+                    totalPaidAmountInSettlementAsset += message.SettlementAssetId == message.PaymentAssetId
+                        ? message.PaidAmount
+                        : message.PaidAmount * message.Order.ExchangeRate;
 
                     InvoiceStatus invoiceStatus;
 
@@ -814,6 +817,9 @@ namespace Lykke.Service.PayInvoice.Services
                     }
                 }
             }
+
+            if (ignoreCurrentPaymentRequest)
+                return paidInSettlementAsset;
 
             PaymentRequestModel currentPaymentRequest = await _payInternalClient.GetPaymentRequestAsync(invoice.MerchantId, invoice.PaymentRequestId);
             if (currentPaymentRequest.PaidAmount > 0)
