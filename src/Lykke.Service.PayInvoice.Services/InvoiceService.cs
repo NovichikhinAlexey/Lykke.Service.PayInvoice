@@ -357,21 +357,21 @@ namespace Lykke.Service.PayInvoice.Services
 
             InvoiceStatus status = StatusConverter.Convert(message.Status, message.ProcessingError);
 
-            decimal leftAmountToPayInSettlementAsset = 0;
+            decimal? totalPaidAmountInSettlementAsset = 0;
 
             if (status.IsPaidStatus())
             {
-                if (invoice.HasMultiplePaymentRequests)
+                if (invoice.HasMultiplePaymentRequests || status == InvoiceStatus.Underpaid)
                 {
-                    leftAmountToPayInSettlementAsset = await GetLeftAmountToPayInSettlementAsset(invoice);
+                    totalPaidAmountInSettlementAsset = await GetTotalPaidAmountInSettlementAsset(invoice);
 
                     InvoiceStatus invoiceStatus;
 
-                    if (leftAmountToPayInSettlementAsset > 0)
+                    if (totalPaidAmountInSettlementAsset < invoice.Amount)
                     {
                         invoiceStatus = InvoiceStatus.Underpaid;
                     }
-                    else if (leftAmountToPayInSettlementAsset < 0)
+                    else if (totalPaidAmountInSettlementAsset > invoice.Amount)
                     {
                         invoiceStatus = InvoiceStatus.Overpaid;
                     }
@@ -384,7 +384,7 @@ namespace Lykke.Service.PayInvoice.Services
                     {
                         message,
                         invoice.Id,
-                        leftAmountToPayInSettlementAsset,
+                        totalPaidAmountInSettlementAsset,
                         messageConvertedStatus = status.ToString(),
                         calculatedInvoiceStatus = invoiceStatus.ToString()
                     }, "Calculate status when HasMultiplePaymentRequests");
@@ -392,7 +392,7 @@ namespace Lykke.Service.PayInvoice.Services
                     status = invoiceStatus;
                 }
 
-                await _invoiceRepository.SetPaidAmountAsync(invoice.MerchantId, invoice.Id, message.PaidAmount);
+                await _invoiceRepository.SetPaidAmountAsync(invoice.MerchantId, invoice.Id, message.PaidAmount, totalPaidAmountInSettlementAsset);
             }
 
             if (invoice.Status == status && invoice.Status != InvoiceStatus.Underpaid)
@@ -474,8 +474,9 @@ namespace Lykke.Service.PayInvoice.Services
                 TxFirstSeen = transaction.FirstSeen
             };
 
-            if (status == InvoiceStatus.Underpaid && invoice.HasMultiplePaymentRequests)
+            if (status == InvoiceStatus.Underpaid && totalPaidAmountInSettlementAsset.HasValue)
             {
+                decimal leftAmountToPayInSettlementAsset = invoice.Amount - totalPaidAmountInSettlementAsset.Value;
                 invoiceConfirmationCommand.AmountLeftPaid = await GetCalculatedPaymentAmountAsync(invoice.SettlementAssetId, invoice.SettlementAssetId, leftAmountToPayInSettlementAsset, payerEmployee.MerchantId);
                 invoiceConfirmationCommand.AmountPaid = invoice.Amount - invoiceConfirmationCommand.AmountLeftPaid;
             }
@@ -770,7 +771,13 @@ namespace Lykke.Service.PayInvoice.Services
             // get payment request from PayInternal to check whether paid or not
             // in case there is PaidDate then add to paidInSettlementAsset
             // then substract paidInSettlementAsset from invoice Amount
+            var paidInSettlementAsset = await GetTotalPaidAmountInSettlementAsset(invoice);
 
+            return invoice.Amount - paidInSettlementAsset;
+        }
+
+        private async Task<decimal> GetTotalPaidAmountInSettlementAsset(Invoice invoice)
+        {
             decimal paidInSettlementAsset = 0;
 
             var invoiceHistoryLazy = new Lazy<IReadOnlyList<HistoryItem>>(
@@ -821,9 +828,7 @@ namespace Lykke.Service.PayInvoice.Services
                 }
             }
 
-            decimal leftToPayInSettlementAsset = invoice.Amount - paidInSettlementAsset;
-
-            return leftToPayInSettlementAsset;
+            return paidInSettlementAsset;
         }
 
         private async Task<string> GetOrUpdatePaymentRequestIdForPaying(string assetForPay, Invoice invoice, decimal leftAmountToPayInSettlementAsset)

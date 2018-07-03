@@ -28,7 +28,7 @@ namespace Lykke.Service.PayInvoice.Core.Repositories
 
         Task SetStatusAsync(string merchantId, string invoiceId, InvoiceStatus status);
 
-        Task SetPaidAmountAsync(string merchantId, string invoiceId, decimal paidAmount);
+        Task SetPaidAmountAsync(string merchantId, string invoiceId, decimal paidAmount, decimal? totalPaidAmountInSettlementAsset);
 
         Task DeleteAsync(string merchantId, string invoiceId);
 

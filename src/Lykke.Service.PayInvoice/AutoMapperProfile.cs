@@ -12,6 +12,7 @@ namespace Lykke.Service.PayInvoice
         public AutoMapperProfile()
         {
             CreateMap<Invoice, InvoiceModel>(MemberList.Source)
+                .ForSourceMember(src => src.TotalPaidAmountInSettlementAsset, opt => opt.Ignore())
                 .ForSourceMember(src => src.HasMultiplePaymentRequests, opt => opt.Ignore());
 
             CreateMap<CreateInvoiceModel, Invoice>(MemberList.Destination)
@@ -20,6 +21,7 @@ namespace Lykke.Service.PayInvoice
                 .ForMember(dest => dest.PaidAmount, opt => opt.Ignore())
                 .ForMember(dest => dest.PaymentRequestId, opt => opt.Ignore())
                 .ForMember(dest => dest.CreatedDate, opt => opt.Ignore())
+                .ForMember(dest => dest.TotalPaidAmountInSettlementAsset, opt => opt.Ignore())
                 .ForMember(dest => dest.HasMultiplePaymentRequests, opt => opt.Ignore());
 
             CreateMap<UpdateInvoiceModel, Invoice>(MemberList.Destination)
@@ -27,6 +29,7 @@ namespace Lykke.Service.PayInvoice
                 .ForMember(dest => dest.PaidAmount, opt => opt.Ignore())
                 .ForMember(dest => dest.PaymentRequestId, opt => opt.Ignore())
                 .ForMember(dest => dest.CreatedDate, opt => opt.Ignore())
+                .ForMember(dest => dest.TotalPaidAmountInSettlementAsset, opt => opt.Ignore())
                 .ForMember(dest => dest.HasMultiplePaymentRequests, opt => opt.Ignore());
 
             CreateMap<FileInfo, FileInfoModel>(MemberList.Source)

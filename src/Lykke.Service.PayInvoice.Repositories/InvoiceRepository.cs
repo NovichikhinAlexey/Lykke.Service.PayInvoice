@@ -228,11 +228,12 @@ namespace Lykke.Service.PayInvoice.Repositories
             });
         }
 
-        public async Task SetPaidAmountAsync(string merchantId, string invoiceId, decimal paidAmount)
+        public async Task SetPaidAmountAsync(string merchantId, string invoiceId, decimal paidAmount, decimal? totalPaidAmountInSettlementAsset)
         {
             await _storage.MergeAsync(GetPartitionKey(merchantId), GetRowKey(invoiceId), entity =>
             {
                 entity.PaidAmount = paidAmount;
+                entity.TotalPaidAmountInSettlementAsset = totalPaidAmountInSettlementAsset;
                 return entity;
             });
         }
