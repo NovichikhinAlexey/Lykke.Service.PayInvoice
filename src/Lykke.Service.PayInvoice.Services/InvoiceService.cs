@@ -363,7 +363,10 @@ namespace Lykke.Service.PayInvoice.Services
             {
                 if (invoice.HasMultiplePaymentRequests || status == InvoiceStatus.Underpaid)
                 {
-                    totalPaidAmountInSettlementAsset = await GetTotalPaidAmountInSettlementAsset(invoice);
+                    totalPaidAmountInSettlementAsset = await GetTotalPaidAmountInSettlementAsset(invoice, ignoreCurrentPaymentRequest: true);
+                    totalPaidAmountInSettlementAsset += message.SettlementAssetId == message.PaymentAssetId
+                        ? message.PaidAmount
+                        : message.PaidAmount * message.Order.ExchangeRate;
 
                     InvoiceStatus invoiceStatus;
 
@@ -776,12 +779,12 @@ namespace Lykke.Service.PayInvoice.Services
             // get payment request from PayInternal to check whether paid or not
             // in case there is PaidDate then add to paidInSettlementAsset
             // then substract paidInSettlementAsset from invoice Amount
-            var paidInSettlementAsset = await GetTotalPaidAmountInSettlementAsset(invoice);
+            var paidInSettlementAsset = await GetTotalPaidAmountInSettlementAsset(invoice, ignoreCurrentPaymentRequest: false);
 
             return invoice.Amount - paidInSettlementAsset;
         }
 
-        private async Task<decimal> GetTotalPaidAmountInSettlementAsset(Invoice invoice)
+        private async Task<decimal> GetTotalPaidAmountInSettlementAsset(Invoice invoice, bool ignoreCurrentPaymentRequest)
         {
             decimal paidInSettlementAsset = 0;
 
@@ -814,6 +817,9 @@ namespace Lykke.Service.PayInvoice.Services
                     }
                 }
             }
+
+            if (ignoreCurrentPaymentRequest)
+                return paidInSettlementAsset;
 
             PaymentRequestModel currentPaymentRequest = await _payInternalClient.GetPaymentRequestAsync(invoice.MerchantId, invoice.PaymentRequestId);
             if (currentPaymentRequest.PaidAmount > 0)
