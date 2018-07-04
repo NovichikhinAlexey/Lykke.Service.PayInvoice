@@ -37,6 +37,7 @@ namespace Lykke.Service.PayInvoice.Services
         private readonly IMerchantSettingService _merchantSettingService;
         private readonly IHistoryOperationService _historyOperationService;
         private readonly IInvoiceConfirmationService _invoiceConfirmationService;
+        private readonly IDistributedLocksService _paymentLocksService;
         private readonly IEmployeeRepository _employeeRepository;
         private readonly IInvoiceDisputeRepository _invoiceDisputeRepository;
         private readonly IInvoicePayerHistoryRepository _invoicePayerHistoryRepository;
@@ -53,6 +54,7 @@ namespace Lykke.Service.PayInvoice.Services
             IMerchantSettingService merchantSettingService,
             IHistoryOperationService historyOperationService,
             IInvoiceConfirmationService invoiceConfirmationService,
+            IDistributedLocksService paymentLocksService,
             IEmployeeRepository employeeRepository,
             IInvoiceDisputeRepository invoiceDisputeRepository,
             IInvoicePayerHistoryRepository invoicePayerHistoryRepository,
@@ -68,6 +70,7 @@ namespace Lykke.Service.PayInvoice.Services
             _merchantSettingService = merchantSettingService;
             _historyOperationService = historyOperationService;
             _invoiceConfirmationService = invoiceConfirmationService;
+            _paymentLocksService = paymentLocksService;
             _employeeRepository = employeeRepository;
             _invoiceDisputeRepository = invoiceDisputeRepository;
             _invoicePayerHistoryRepository = invoicePayerHistoryRepository;
@@ -355,6 +358,7 @@ namespace Lykke.Service.PayInvoice.Services
                     return;
             }
 
+            InvoiceStatus previousStatus = invoice.Status;
             InvoiceStatus status = StatusConverter.Convert(message.Status, message.ProcessingError);
 
             decimal? totalPaidAmountInSettlementAsset = 0;
@@ -405,6 +409,10 @@ namespace Lykke.Service.PayInvoice.Services
                 return;
 
             await _invoiceRepository.SetStatusAsync(invoice.MerchantId, invoice.Id, status);
+
+            // if we are updating status from "InProgress" to any other - we have to release the lock
+            if (previousStatus == InvoiceStatus.InProgress)
+                await _paymentLocksService.ReleaseLockAsync(invoice.Id, invoice.MerchantId);
 
             _log.WriteInfo(nameof(UpdateAsync), new
             {
@@ -576,6 +584,15 @@ namespace Lykke.Service.PayInvoice.Services
                 processedCount++;
                 decimal paymentAmountInAssetForPay = 0;
                 bool payResult = false;
+
+                //TODO redis locking mechanism
+                bool locked = await _paymentLocksService.TryAcquireLockAsync(invoice.Id, invoice.MerchantId, invoice.DueDate);
+                if (!locked)
+                {
+                    occuredErrorsCount++;
+                    _log.WriteError(nameof(PayInvoicesAsync), new { invoiceId = invoice.Id }, new Exception("Invoice is in progress and locked for paying"));
+                    continue;
+                }
 
                 switch (invoice.Status)
                 {
