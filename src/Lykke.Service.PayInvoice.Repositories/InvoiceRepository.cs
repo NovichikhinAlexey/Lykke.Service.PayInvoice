@@ -16,7 +16,7 @@ namespace Lykke.Service.PayInvoice.Repositories
 {
     public class InvoiceRepository : IInvoiceRepository
     {
-        private ConcurrentDictionary<string, string> partitionKeyByRowKey = new ConcurrentDictionary<string, string>();
+        private ConcurrentDictionary<string, string> _partitionKeyByRowKey = new ConcurrentDictionary<string, string>();
         private readonly INoSQLTableStorage<InvoiceEntity> _storage;
         private readonly INoSQLTableStorage<AzureIndex> _invoiceIdIndexStorage;
         private readonly INoSQLTableStorage<AzureIndex> _paymentRequestIdIndexStorage;
@@ -158,7 +158,7 @@ namespace Lykke.Service.PayInvoice.Repositories
             string partitionKey;
             string rowKey = GetRowKey(invoiceId);
 
-            if (!partitionKeyByRowKey.TryGetValue(rowKey, out partitionKey))
+            if (!_partitionKeyByRowKey.TryGetValue(rowKey, out partitionKey))
             {
                 AzureIndex index =
                 await _invoiceIdIndexStorage.GetDataAsync(GetInvoiceIdIndexPartitionKey(invoiceId), GetInvoiceIdIndexRowKey());
@@ -167,7 +167,7 @@ namespace Lykke.Service.PayInvoice.Repositories
                     return null;
 
                 partitionKey = index.PrimaryPartitionKey;
-                partitionKeyByRowKey.TryAdd(rowKey, partitionKey);
+                _partitionKeyByRowKey.TryAdd(rowKey, partitionKey);
             }
 
             InvoiceEntity entity = await _storage.GetDataAsync(partitionKey, rowKey);
