@@ -363,6 +363,8 @@ namespace Lykke.Service.PayInvoice.Services
             {
                 if (invoice.HasMultiplePaymentRequests || status == InvoiceStatus.Underpaid)
                 {
+                    // TODO: for future - if there will be multiple paid payment requests with at least one SettlementAssetId != PaymentAssetId  
+                    // then rounding is required to accuracy of SettlementAssetId for comparing calculated total with field Amount
                     totalPaidAmountInSettlementAsset = await GetTotalPaidAmountInSettlementAsset(invoice, ignoreCurrentPaymentRequest: true);
                     totalPaidAmountInSettlementAsset += message.SettlementAssetId == message.PaymentAssetId
                         ? message.PaidAmount
