@@ -358,6 +358,9 @@ namespace Lykke.Service.PayInvoice.Services
             InvoiceStatus status = StatusConverter.Convert(message.Status, message.ProcessingError);
 
             decimal? totalPaidAmountInSettlementAsset = 0;
+            decimal currentPaidAmountInSettlementAsset = message.SettlementAssetId == message.PaymentAssetId
+                ? message.PaidAmount
+                : message.PaidAmount * message.Order.ExchangeRate;
 
             if (status.IsPaidStatus())
             {
@@ -366,9 +369,7 @@ namespace Lykke.Service.PayInvoice.Services
                     // TODO: for future - if there will be multiple paid payment requests with at least one SettlementAssetId != PaymentAssetId  
                     // then rounding is required to accuracy of SettlementAssetId for comparing calculated total with field Amount
                     totalPaidAmountInSettlementAsset = await GetTotalPaidAmountInSettlementAsset(invoice, ignoreCurrentPaymentRequest: true);
-                    totalPaidAmountInSettlementAsset += message.SettlementAssetId == message.PaymentAssetId
-                        ? message.PaidAmount
-                        : message.PaidAmount * message.Order.ExchangeRate;
+                    totalPaidAmountInSettlementAsset += currentPaidAmountInSettlementAsset;
 
                     InvoiceStatus invoiceStatus;
 
@@ -488,7 +489,7 @@ namespace Lykke.Service.PayInvoice.Services
             {
                 decimal leftAmountToPayInSettlementAsset = invoice.Amount - totalPaidAmountInSettlementAsset.Value;
                 invoiceConfirmationCommand.AmountLeftPaid = await GetCalculatedPaymentAmountAsync(invoice.SettlementAssetId, invoice.SettlementAssetId, leftAmountToPayInSettlementAsset, payerEmployee.MerchantId);
-                invoiceConfirmationCommand.AmountPaid = invoice.Amount - invoiceConfirmationCommand.AmountLeftPaid;
+                invoiceConfirmationCommand.AmountPaid = currentPaidAmountInSettlementAsset;
             }
 
             await _invoiceConfirmationService.PublishInvoicePayment(invoiceConfirmationCommand);
