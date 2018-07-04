@@ -87,6 +87,16 @@ namespace Lykke.Service.PayInvoice.Client
             await _runner.RunAsync(() => _invoicesApi.DeleteAsync(invoiceId));
         }
 
+        public Task PayInvoicesAsync(PayInvoicesRequest model)
+        {
+            return _runner.RunAsync(() => _invoicesApi.PayInvoicesAsync(model));
+        }
+
+        public Task<decimal> GetSumToPayInvoicesAsync(GetSumToPayInvoicesRequest model)
+        {
+            return _runner.RunAsync(() => _invoicesApi.GetSumToPayInvoicesAsync(model));
+        }
+
         public async Task<IReadOnlyList<HistoryItemModel>> GetInvoiceHistoryAsync(string invoiceId)
         {
             return await _runner.RunAsync(() => _invoicesApi.GetHistoryAsync(invoiceId));

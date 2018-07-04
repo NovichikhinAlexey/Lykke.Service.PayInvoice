@@ -1,6 +1,8 @@
 ﻿using Autofac;
 using Common;
 using Common.Log;
+using Lykke.Service.PayCallback.Client;
+using Lykke.Service.PayHistory.Client;
 using Lykke.Service.PayInternal.Client;
 using Lykke.Service.PayInvoice.Rabbit.Subscribers;
 using Lykke.Service.PayInvoice.Settings;
@@ -28,7 +30,11 @@ namespace Lykke.Service.PayInvoice
             builder.RegisterInstance(new PayInternalClient(_settings.CurrentValue.PayInternalServiceClient))
                 .As<IPayInternalClient>()
                 .SingleInstance();
-            
+
+            builder.RegisterHistoryOperationPublisher(_settings.CurrentValue.PayHistoryServicePublisher, _log);
+
+            builder.RegisterInvoiceConfirmationPublisher(_settings.CurrentValue.InvoiceConfirmationPublisher, _log);
+
             builder.RegisterType<PaymentRequestSubscriber>()
                 .AsSelf()
                 .As<IStartable>()

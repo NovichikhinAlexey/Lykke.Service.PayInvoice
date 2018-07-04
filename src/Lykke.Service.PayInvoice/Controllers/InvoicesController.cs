@@ -13,6 +13,7 @@ using Lykke.Service.PayInvoice.Core.Exceptions;
 using Lykke.Service.PayInvoice.Core.Services;
 using Lykke.Service.PayInvoice.Extensions;
 using Lykke.Service.PayInvoice.Models.Invoice;
+using Lykke.Service.PayInvoice.Validation;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.SwaggerGen;
 
@@ -22,11 +23,22 @@ namespace Lykke.Service.PayInvoice.Controllers
     public class InvoicesController : Controller
     {
         private readonly IInvoiceService _invoiceService;
+        private readonly IMerchantService _merchantService;
+        private readonly IMerchantSettingService _merchantSettingService;
+        private readonly IEmployeeService _employeeService;
         private readonly ILog _log;
 
-        public InvoicesController(IInvoiceService invoiceService, ILog log)
+        public InvoicesController(
+            IInvoiceService invoiceService,
+            IMerchantService merchantService,
+            IMerchantSettingService merchantSettingService,
+            IEmployeeService employeeService,
+            ILog log)
         {
             _invoiceService = invoiceService;
+            _merchantService = merchantService;
+            _merchantSettingService = merchantSettingService;
+            _employeeService = employeeService;
             _log = log.CreateComponentScope(nameof(InvoicesController));
         }
 
@@ -275,6 +287,139 @@ namespace Lykke.Service.PayInvoice.Controllers
             var model = Mapper.Map<List<InvoiceModel>>(invoices);
 
             return Ok(model);
+        }
+
+        /// <summary>
+        /// Pay one or multiple invoices with certain amount
+        /// </summary>
+        /// <param name="model">Invoices ids and amount to pay</param>
+        /// <response code="200">Accepted for further processing</response>
+        /// <response code="400">Problem occured</response>
+        [HttpPost("pay")]
+        [SwaggerOperation("PayInvoices")]
+        [ValidateModel]
+        [ProducesResponseType((int)HttpStatusCode.Accepted)]
+        [ProducesResponseType(typeof(ErrorResponse), (int)HttpStatusCode.NotFound)]
+        [ProducesResponseType(typeof(ErrorResponse), (int)HttpStatusCode.BadRequest)]
+        public async Task<IActionResult> PayInvoices([FromBody] PayInvoicesRequest model)
+        {
+            var validationResult = await ValidateForPayingInvoicesAsync(model);
+
+            if (validationResult.HasError)
+                return validationResult.ActionResult;
+
+            try
+            {
+                await _invoiceService.PayInvoicesAsync(validationResult.Employee, validationResult.Invoices, validationResult.AssetForPay, model.Amount);
+            }
+            catch (InvalidOperationException ex)
+            {
+                _log.WriteError(nameof(PayInvoices), model, ex);
+                return BadRequest(ErrorResponse.Create(ex.Message));
+            }
+            catch (Exception ex)
+            {
+                _log.WriteError(nameof(PayInvoices), model, ex);
+                return BadRequest(ErrorResponse.Create("Internal error"));
+            }
+
+            return Accepted();
+        }
+
+        /// <summary>
+        /// Get sum for paying invoices
+        /// </summary>
+        /// <param name="model">Request model</param>
+        /// <response code="200">Sum for paying invoices</response>
+        /// <response code="400">Problem occured</response>
+        [HttpPost("sum")]
+        [SwaggerOperation("GetSumToPayInvoices")]
+        [ValidateModel]
+        [ProducesResponseType(typeof(decimal), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(ErrorResponse), (int)HttpStatusCode.NotFound)]
+        [ProducesResponseType(typeof(ErrorResponse), (int)HttpStatusCode.BadRequest)]
+        public async Task<IActionResult> GetSumToPayInvoices([FromBody] GetSumToPayInvoicesRequest model)
+        {
+            var validationResult = await ValidateForPayingInvoicesAsync(model);
+
+            if (validationResult.HasError)
+                return validationResult.ActionResult;
+
+            decimal sum;
+
+            try
+            {
+                 sum = await _invoiceService.GetSumInAssetForPayAsync(validationResult.Employee.MerchantId, validationResult.Invoices, validationResult.AssetForPay);
+            }
+            catch (InvalidOperationException ex)
+            {
+                _log.WriteError(nameof(GetSumToPayInvoices), model, ex);
+
+                return BadRequest(ErrorResponse.Create(ex.Message));
+            }
+            catch (Exception ex)
+            {
+                _log.WriteError(nameof(GetSumToPayInvoices), model, ex);
+                return BadRequest(ErrorResponse.Create("Internal error"));
+            }
+
+            return Ok(sum);
+        }
+
+        private async Task<(IReadOnlyList<Invoice> Invoices, string AssetForPay, Employee Employee, bool HasError, IActionResult ActionResult)> ValidateForPayingInvoicesAsync(GetSumToPayInvoicesRequest model)
+        {
+            IReadOnlyList<Invoice> invoices = null;
+            string assetForPay = null;
+            Employee employee = null;
+            bool hasError = false;
+            IActionResult actionResult = null;
+
+            try
+            {
+                employee = await _employeeService.GetByIdAsync(model.EmployeeId);
+
+                // choose the asset for pay
+                if (string.IsNullOrEmpty(model.AssetForPay))
+                {
+                    string baseAssetId = await _merchantSettingService.GetBaseAssetAsync(employee.MerchantId);
+
+                    if (string.IsNullOrEmpty(baseAssetId))
+                        throw new InvalidOperationException("BaseAsset for merchant is not found");
+
+                    assetForPay = baseAssetId;
+                }
+                else
+                {
+                    assetForPay = model.AssetForPay;
+                }
+
+                invoices = await _invoiceService.ValidateForPayingInvoicesAsync(employee.MerchantId, model.InvoicesIds, model.AssetForPay);
+            }
+            catch (Exception ex)
+            {
+                hasError = true;
+                _log.WriteError(nameof(ValidateForPayingInvoicesAsync), model, ex);
+
+                switch (ex)
+                {
+                    case EmployeeNotFoundException _:
+                    case MerchantNotFoundException _:
+                    case MerchantGroupNotFoundException _:
+                    case InvoiceNotFoundException _:
+                        actionResult = NotFound(ErrorResponse.Create(ex.Message));
+                        break;
+                    case InvoiceNotInsideGroupException _:
+                    case MerchantNotInvoiceClientException _:
+                    case AssetNotAvailableForMerchantException _:
+                    case InvalidOperationException _:
+                        actionResult = BadRequest(ErrorResponse.Create(ex.Message));
+                        break;
+                    default:
+                        throw;
+                }
+            }
+
+            return (invoices, assetForPay, employee, hasError, actionResult);
         }
 
         /// <summary>

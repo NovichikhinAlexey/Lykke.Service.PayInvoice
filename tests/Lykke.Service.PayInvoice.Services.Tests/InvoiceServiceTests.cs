@@ -4,6 +4,7 @@ using Common.Log;
 using Lykke.Service.PayInternal.Client;
 using Lykke.Service.PayInvoice.Core.Domain;
 using Lykke.Service.PayInvoice.Core.Repositories;
+using Lykke.Service.PayInvoice.Core.Services;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 
@@ -17,8 +18,13 @@ namespace Lykke.Service.PayInvoice.Services.Tests
         private readonly Mock<IFileRepository> _fileRepositoryMock = new Mock<IFileRepository>();
         private readonly Mock<IHistoryRepository> _historyRepositoryMock = new Mock<IHistoryRepository>();
         private readonly Mock<IPaymentRequestHistoryRepository> _paymentRequestHistoryRepository = new Mock<IPaymentRequestHistoryRepository>();
+        private readonly Mock<IMerchantService> _merchantService = new Mock<IMerchantService>();
+        private readonly Mock<IMerchantSettingService> _merchantSettingService = new Mock<IMerchantSettingService>();
+        private readonly Mock<IHistoryOperationService> _historyOperationService = new Mock<IHistoryOperationService>();
+        private readonly Mock<IInvoiceConfirmationService> _invoiceConfirmationService = new Mock<IInvoiceConfirmationService>();
         private readonly Mock<IEmployeeRepository> _employeeRepository = new Mock<IEmployeeRepository>();
         private readonly Mock<IInvoiceDisputeRepository> _invoiceDisputeRepository = new Mock<IInvoiceDisputeRepository>();
+        private readonly Mock<IInvoicePayerHistoryRepository> _invoicePayerHistoryRepository = new Mock<IInvoicePayerHistoryRepository>();
         private readonly Mock<IPayInternalClient> _payInternalClientMock = new Mock<IPayInternalClient>();
         private readonly Mock<ILog> _logMock = new Mock<ILog>();
 
@@ -33,8 +39,13 @@ namespace Lykke.Service.PayInvoice.Services.Tests
                 _fileRepositoryMock.Object,
                 _historyRepositoryMock.Object,
                 _paymentRequestHistoryRepository.Object,
+                _merchantService.Object,
+                _merchantSettingService.Object,
+                _historyOperationService.Object,
+                _invoiceConfirmationService.Object,
                 _employeeRepository.Object,
                 _invoiceDisputeRepository.Object,
+                _invoicePayerHistoryRepository.Object,
                 _payInternalClientMock.Object,
                 _logMock.Object);
         }

@@ -9,5 +9,7 @@ namespace Lykke.Service.PayInvoice.Settings
         public PayInvoiceSettings PayInvoiceService { get; set; }
         public SlackNotificationsSettings SlackNotifications { get; set; }
         public PayInternalServiceClientSettings PayInternalServiceClient { get; set; }
+        public PayHistory.Client.Publisher.RabbitMqPublisherSettings PayHistoryServicePublisher { get; set; }
+        public PayCallback.Client.InvoiceConfirmation.RabbitMqPublisherSettings InvoiceConfirmationPublisher { get; set; }
     }
 }

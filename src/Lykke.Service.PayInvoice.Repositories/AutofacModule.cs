@@ -32,6 +32,7 @@ namespace Lykke.Service.PayInvoice.Repositories
             const string merchantSettingTableName = "MerchantSettings";
             const string paymentRequestHistoryTableName = "PaymentRequestHistory";
             const string invoiceDisputeTableName = "InvoiceDispute";
+            const string invoicePayerHistoryTableName = "InvoicePayerHistory";
 
             builder.RegisterInstance<IFileRepository>(
                 new FileRepository(AzureBlobStorage.Create(_connectionString)));
@@ -59,6 +60,10 @@ namespace Lykke.Service.PayInvoice.Repositories
 
             builder.RegisterInstance<IInvoiceDisputeRepository>(
                 new InvoiceDisputeRepository(CreateTable<InvoiceDisputeEntity>(invoiceDisputeTableName)));
+
+            //InvoiceDisputeRepository
+            builder.RegisterInstance<IInvoicePayerHistoryRepository>(
+                new InvoicePayerHistoryRepository(CreateTable<InvoicePayerHistoryEntity>(invoicePayerHistoryTableName)));
         }
 
         private INoSQLTableStorage<T> CreateTable<T>(string name) where T : class, ITableEntity, new()

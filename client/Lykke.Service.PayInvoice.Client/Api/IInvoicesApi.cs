@@ -32,6 +32,12 @@ namespace Lykke.Service.PayInvoice.Client.Api
         [Delete("/api/invoices/{invoiceId}")]
         Task DeleteAsync(string invoiceId);
 
+        [Post("/api/invoices/pay")]
+        Task PayInvoicesAsync([Body] PayInvoicesRequest model);
+
+        [Post("/api/invoices/sum")]
+        Task<decimal> GetSumToPayInvoicesAsync([Body] GetSumToPayInvoicesRequest model);
+
         [Post("/api/invoices/dispute/mark")]
         Task MarkDisputeAsync([Body] MarkInvoiceDisputeRequest model);
 

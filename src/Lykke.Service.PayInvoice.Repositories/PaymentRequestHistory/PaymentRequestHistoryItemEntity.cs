@@ -11,6 +11,7 @@ namespace Lykke.Service.PayInvoice.Repositories.PaymentRequestHistory
     public class PaymentRequestHistoryItemEntity : AzureTableEntity
     {
         private DateTime _createdAt;
+        private bool _isPaid;
 
         public PaymentRequestHistoryItemEntity()
         {
@@ -31,6 +32,16 @@ namespace Lykke.Service.PayInvoice.Repositories.PaymentRequestHistory
             {
                 _createdAt = value;
                 MarkValueTypePropertyAsDirty(nameof(CreatedAt));
+            }
+        }
+
+        public bool IsPaid
+        {
+            get => _isPaid;
+            set
+            {
+                _isPaid = value;
+                MarkValueTypePropertyAsDirty(nameof(IsPaid));
             }
         }
     }

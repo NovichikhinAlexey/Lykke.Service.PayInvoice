@@ -14,6 +14,8 @@ namespace Lykke.Service.PayInvoice.Core.Repositories
 
         Task<Invoice> GetAsync(string merchantId, string invoiceId);
 
+        Task<IReadOnlyList<Invoice>> GetByIdsAsync(string merchantId, IEnumerable<string> invoiceIds);
+
         Task<IReadOnlyList<Invoice>> GetByFilterAsync(InvoiceFilter invoiceFilter);
 
         Task<Invoice> FindByIdAsync(string invoiceId);
@@ -26,7 +28,7 @@ namespace Lykke.Service.PayInvoice.Core.Repositories
 
         Task SetStatusAsync(string merchantId, string invoiceId, InvoiceStatus status);
 
-        Task SetPaidAmountAsync(string merchantId, string invoiceId, decimal paidAmount);
+        Task SetPaidAmountAsync(string merchantId, string invoiceId, decimal paidAmount, decimal? totalPaidAmountInSettlementAsset);
 
         Task DeleteAsync(string merchantId, string invoiceId);
 

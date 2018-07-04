@@ -14,6 +14,10 @@ namespace Lykke.Service.PayInvoice.Core.Services
 
         Task<Invoice> GetByIdAsync(string invoiceId);
 
+        Task<IReadOnlyList<Invoice>> GetByIdsAsync(string merchantId, IEnumerable<string> invoiceIds);
+
+        Task<IReadOnlyList<Invoice>> GetByIdsAsync(IEnumerable<string> invoiceIds);
+
         Task<IReadOnlyList<Invoice>> GetByFilterAsync(InvoiceFilter invoiceFilter);
 
         Task<IReadOnlyList<HistoryItem>> GetHistoryAsync(string invoiceId);
@@ -33,6 +37,12 @@ namespace Lykke.Service.PayInvoice.Core.Services
         Task UpdateAsync(PaymentRequestDetailsMessage message);
 
         Task DeleteAsync(string invoiceId);
+
+        Task<IReadOnlyList<Invoice>> ValidateForPayingInvoicesAsync(string merchantId, IEnumerable<string> invoicesIds, string assetForPay);
+
+        Task PayInvoicesAsync(Employee employee, IEnumerable<Invoice> invoices, string assetForPay, decimal amount);
+
+        Task<decimal> GetSumInAssetForPayAsync(string merchantId, IEnumerable<Invoice> invoices, string assetForPay);
 
         Task MarkDisputeAsync(string invoiceId, string reason, string employeeId);
 
