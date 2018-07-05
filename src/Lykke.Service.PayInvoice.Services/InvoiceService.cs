@@ -467,6 +467,7 @@ namespace Lykke.Service.PayInvoice.Services
             var historyOperationCommand = new HistoryOperationCommand
             {
                 InvoiceId = invoice.Id,
+                InvoiceStatus = invoice.Status.ToString(),
                 MerchantId = payerEmployee.MerchantId,
                 OppositeMerchantId = invoice.MerchantId,
                 EmployeeEmail = payerEmployee.Email,
