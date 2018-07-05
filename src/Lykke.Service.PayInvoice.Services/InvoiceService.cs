@@ -358,6 +358,7 @@ namespace Lykke.Service.PayInvoice.Services
                     return;
             }
 
+            bool isRevertingUnderpaidStatus = false;
             InvoiceStatus previousStatus = invoice.Status;
             InvoiceStatus status = StatusConverter.Convert(message.Status, message.ProcessingError);
 
@@ -408,6 +409,15 @@ namespace Lykke.Service.PayInvoice.Services
             if (invoice.Status == status && invoice.Status != InvoiceStatus.Underpaid)
                 return;
 
+            // check whether we need to revert to Underpaid status
+            if (previousStatus == InvoiceStatus.InProgress 
+                && status == InvoiceStatus.Unpaid
+                && invoice.HasMultiplePaymentRequests)
+            {
+                isRevertingUnderpaidStatus = true;
+                status = InvoiceStatus.Underpaid;
+            }
+
             await _invoiceRepository.SetStatusAsync(invoice.MerchantId, invoice.Id, status);
 
             // if we are updating status from "InProgress" to any other - we have to release the lock
@@ -420,7 +430,10 @@ namespace Lykke.Service.PayInvoice.Services
                 status = status.ToString(),
                 message
             }, "Status updated.");
-            
+
+            if (isRevertingUnderpaidStatus)
+                return;
+
             invoice.Status = status;
 
             var history = Mapper.Map<HistoryItem>(invoice);
