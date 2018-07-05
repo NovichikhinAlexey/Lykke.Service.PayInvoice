@@ -585,7 +585,7 @@ namespace Lykke.Service.PayInvoice.Services
                 decimal paymentAmountInAssetForPay = 0;
                 bool payResult = false;
 
-                //TODO redis locking mechanism
+                // redis locking mechanism
                 bool locked = await _paymentLocksService.TryAcquireLockAsync(invoice.Id, invoice.MerchantId, invoice.DueDate);
                 if (!locked)
                 {
