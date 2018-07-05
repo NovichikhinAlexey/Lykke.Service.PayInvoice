@@ -40,6 +40,8 @@ namespace Lykke.Service.PayInvoice
             CreateMap<CreateEmployeeModel, Employee>(MemberList.Destination)
                 .ForMember(dest => dest.Id, opt => opt.Ignore());
 
+            CreateMap<UpdateEmployeeModel, Employee>(MemberList.Destination);
+
             CreateMap<HistoryItem, HistoryItemModel>(MemberList.Source);
 
             CreateMap<SetMerchantSettingModel, MerchantSetting>(MemberList.Source);

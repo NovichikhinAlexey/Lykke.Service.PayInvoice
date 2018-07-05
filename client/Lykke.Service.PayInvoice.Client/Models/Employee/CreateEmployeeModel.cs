@@ -27,5 +27,9 @@
         /// Get or set blocked flag
         /// </summary>
         public bool IsBlocked { get; set; }
+        /// <summary>
+        /// Gets or sets an internal supervisor attribute
+        /// </summary>
+        public bool IsInternalSupervisor { get; set; }
     }
 }

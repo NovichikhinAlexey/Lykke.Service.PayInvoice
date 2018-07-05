@@ -33,5 +33,9 @@
         /// The employee block status
         /// </summary>
         public bool IsBlocked { get; set; }
+        /// <summary>
+        /// The employee internal supervisor attribute
+        /// </summary>
+        public bool IsInternalSupervisor { get; set; }
     }
 }

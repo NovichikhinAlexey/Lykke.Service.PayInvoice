@@ -11,6 +11,7 @@ using Lykke.Service.PayInvoice.Core.Exceptions;
 using Lykke.Service.PayInvoice.Core.Services;
 using Lykke.Service.PayInvoice.Extensions;
 using Lykke.Service.PayInvoice.Models.Employee;
+using Lykke.Service.PayInvoice.Validation;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.SwaggerGen;
 
@@ -27,7 +28,7 @@ namespace Lykke.Service.PayInvoice.Controllers
             ILog log)
         {
             _employeeService = employeeService;
-            _log = log;
+            _log = log.CreateComponentScope(nameof(EmployeesController));
         }
 
         /// <summary>
@@ -108,13 +109,11 @@ namespace Lykke.Service.PayInvoice.Controllers
         /// <response code="400">Invalid model.</response>
         [HttpPost]
         [SwaggerOperation("EmployeesAdd")]
+        [ValidateModel]
         [ProducesResponseType(typeof(EmployeeModel), (int) HttpStatusCode.OK)]
         [ProducesResponseType(typeof(ErrorResponse), (int) HttpStatusCode.BadRequest)]
         public async Task<IActionResult> AddAsync([FromBody] CreateEmployeeModel model)
         {
-            if (!ModelState.IsValid)
-                return BadRequest(new ErrorResponse().AddErrors(ModelState));
-
             try
             {
                 var employee = Mapper.Map<Employee>(model);
@@ -127,15 +126,13 @@ namespace Lykke.Service.PayInvoice.Controllers
             }
             catch (EmployeeExistException exception)
             {
-                await _log.WriteWarningAsync(nameof(EmployeesController), nameof(AddAsync),
-                    model.ToContext().ToJson(), exception.Message);
+                _log.WriteWarning(nameof(AddAsync), model.ToContext(), exception.Message);
 
                 return BadRequest(ErrorResponse.Create(exception.Message));
             }
             catch (Exception exception)
             {
-                await _log.WriteErrorAsync(nameof(EmployeesController), nameof(AddAsync),
-                    model.ToContext().ToJson(), exception);
+                _log.WriteError(nameof(AddAsync), model.ToContext(), exception);
 
                 throw;
             }
@@ -149,13 +146,11 @@ namespace Lykke.Service.PayInvoice.Controllers
         /// <response code="400">Invalid model.</response>
         [HttpPut]
         [SwaggerOperation("EmployeesUpdate")]
+        [ValidateModel]
         [ProducesResponseType(typeof(EmployeeModel), (int) HttpStatusCode.OK)]
         [ProducesResponseType(typeof(ErrorResponse), (int) HttpStatusCode.BadRequest)]
         public async Task<IActionResult> UpdateAsync([FromBody] UpdateEmployeeModel model)
         {
-            if (!ModelState.IsValid)
-                return BadRequest(new ErrorResponse().AddErrors(ModelState));
-
             try
             {
                 var employee = Mapper.Map<Employee>(model);
@@ -166,15 +161,13 @@ namespace Lykke.Service.PayInvoice.Controllers
             }
             catch (EmployeeNotFoundException exception)
             {
-                await _log.WriteWarningAsync(nameof(EmployeesController), nameof(UpdateAsync),
-                    model.ToContext().ToJson(), exception.Message);
+                _log.WriteWarning(nameof(UpdateAsync), model.ToContext(), exception.Message);
 
                 return BadRequest(ErrorResponse.Create(exception.Message));
             }
             catch (Exception exception)
             {
-                await _log.WriteErrorAsync(nameof(EmployeesController), nameof(UpdateAsync),
-                    model.ToContext().ToJson(), exception);
+                _log.WriteError(nameof(UpdateAsync), model.ToContext(), exception);
 
                 throw;
             }

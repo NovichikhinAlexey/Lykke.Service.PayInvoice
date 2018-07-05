@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using Lykke.Service.PayInvoice.Validation;
 
 namespace Lykke.Service.PayInvoice.Models.Employee
 {
@@ -15,8 +16,11 @@ namespace Lykke.Service.PayInvoice.Models.Employee
         public string LastName { get; set; }
 
         [Required]
+        [RowKey]
         public string MerchantId { get; set; }
-        [Required]
+
         public bool IsBlocked { get; set; }
+
+        public bool IsInternalSupervisor { get; set; }
     }
 }
