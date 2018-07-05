@@ -611,6 +611,7 @@ namespace Lykke.Service.PayInvoice.Services
                             catch (InvalidOperationException)
                             {
                                 occuredErrorsCount++;
+                                await _paymentLocksService.ReleaseLockAsync(invoice.Id, invoice.MerchantId);
                                 continue;
                             }
 
@@ -641,6 +642,7 @@ namespace Lykke.Service.PayInvoice.Services
                             catch (InvalidOperationException)
                             {
                                 occuredErrorsCount++;
+                                await _paymentLocksService.ReleaseLockAsync(invoice.Id, invoice.MerchantId);
                                 continue;
                             }
 
