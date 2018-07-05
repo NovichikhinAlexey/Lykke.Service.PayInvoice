@@ -6,6 +6,7 @@ using AutoMapper;
 using Common.Log;
 using Lykke.Common.Log;
 using Lykke.Service.PayHistory.Client.Publisher;
+using Lykke.Service.PayHistory.Core.Domain;
 using Lykke.Service.PayInvoice.Core.Domain.HistoryOperation;
 using Lykke.Service.PayInvoice.Core.Services;
 using Lykke.Service.PayInvoice.Core.Settings;
