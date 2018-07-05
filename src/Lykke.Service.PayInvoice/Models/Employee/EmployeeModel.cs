@@ -8,5 +8,6 @@
         public string LastName { get; set; }
         public string MerchantId { get; set; }
         public bool IsBlocked { get; set; }
+        public bool IsInternalSupervisor { get; set; }
     }
 }
