@@ -33,7 +33,7 @@ namespace Lykke.Service.PayInvoice
 
             builder.RegisterHistoryOperationPublisher(_settings.CurrentValue.PayHistoryServicePublisher, _log);
 
-            builder.RegisterInvoiceConfirmationPublisher(_settings.CurrentValue.InvoiceConfirmationPublisher, _log);
+            builder.RegisterInvoiceConfirmationPublisher(_settings.CurrentValue.PayInvoiceConfirmationPublisher, _log);
 
             builder.RegisterType<PaymentRequestSubscriber>()
                 .AsSelf()
