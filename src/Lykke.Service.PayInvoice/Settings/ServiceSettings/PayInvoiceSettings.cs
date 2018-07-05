@@ -9,5 +9,6 @@ namespace Lykke.Service.PayInvoice.Settings.ServiceSettings
         public DbSettings Db { get; set; }
         public RabbitSettings Rabbit { get; set; }
         public RetryPolicySettings RetryPolicy { get; set; }
+        public DistributedCacheSettings DistributedCacheSettings { get; set; }
     }
 }
