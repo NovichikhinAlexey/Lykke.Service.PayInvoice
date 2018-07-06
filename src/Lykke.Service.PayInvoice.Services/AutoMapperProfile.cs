@@ -17,6 +17,7 @@ namespace Lykke.Service.PayInvoice.Services
                 .ForSourceMember(src => src.Note, opt => opt.Ignore())
                 .ForSourceMember(src => src.CreatedDate, opt => opt.Ignore())
                 .ForSourceMember(src => src.TotalPaidAmountInSettlementAsset, opt => opt.Ignore())
+                .ForSourceMember(src => src.LeftAmountToPayInSettlementAsset, opt => opt.Ignore())
                 .ForSourceMember(src => src.HasMultiplePaymentRequests, opt => opt.Ignore());
 
             CreateMap<HistoryOperationCommand, HistoryOperation>(MemberList.Destination)
