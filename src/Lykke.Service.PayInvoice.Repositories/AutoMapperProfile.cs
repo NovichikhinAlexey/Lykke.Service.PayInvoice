@@ -19,10 +19,12 @@ namespace Lykke.Service.PayInvoice.Repositories
 
             CreateMap<InvoiceEntity, Invoice>(MemberList.Destination)
                 .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.RowKey))
+                .ForMember(dest => dest.LeftAmountToPayInSettlementAsset, opt => opt.Ignore())
                 .ForMember(dest => dest.Status,
                     opt => opt.MapFrom(src => (InvoiceStatus) Enum.Parse(typeof(InvoiceStatus), src.Status)));
 
             CreateMap<Invoice, InvoiceEntity>(MemberList.Source)
+                .ForSourceMember(src => src.LeftAmountToPayInSettlementAsset, opt => opt.Ignore())
                 .ForSourceMember(src => src.Id, opt => opt.Ignore());
 
             CreateMap<EmployeeEntity, Employee>(MemberList.Destination)

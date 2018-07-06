@@ -30,6 +30,11 @@ namespace Lykke.Service.PayInvoice.Client.Models.Invoice
         public decimal Amount { get; set; }
 
         /// <summary>
+        /// Gets or sets left amount to pay in settlement asset for underpaid
+        /// </summary>
+        public decimal LeftAmountToPayInSettlementAsset { get; set; }
+
+        /// <summary>
         /// Gets or sets invoice due date.
         /// </summary>
         public DateTime DueDate { get; set; }
