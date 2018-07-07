@@ -134,7 +134,22 @@ namespace Lykke.Service.PayInvoice.Services
                 filtered = filtered.Where(x => x.Amount <= invoiceFilter.LessThan.Value).ToList();
             }
 
+            FillLeftAmountToPayForUnderpaid(filtered);
+
             return filtered;
+        }
+
+        private void FillLeftAmountToPayForUnderpaid(IReadOnlyList<Invoice> invoices)
+        {
+            foreach (var invoice in invoices)
+            {
+                if (invoice.Status == InvoiceStatus.Underpaid && invoice.TotalPaidAmountInSettlementAsset.HasValue)
+                {
+                    // TODO: for future - if there will be multiple paid payment requests with at least one SettlementAssetId != PaymentAssetId  
+                    // then rounding is required to accuracy of SettlementAssetId for calculated total
+                    invoice.LeftAmountToPayInSettlementAsset = invoice.Amount - invoice.TotalPaidAmountInSettlementAsset.Value;
+                }
+            }
         }
 
         public Task<IReadOnlyList<HistoryItem>> GetHistoryAsync(string invoiceId)

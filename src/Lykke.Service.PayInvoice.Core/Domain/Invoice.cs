@@ -73,6 +73,11 @@ namespace Lykke.Service.PayInvoice.Core.Domain
         public decimal? TotalPaidAmountInSettlementAsset { get; set; }
 
         /// <summary>
+        /// Gets or sets left amount to pay in settlement asset for underpaid
+        /// </summary>
+        public decimal LeftAmountToPayInSettlementAsset { get; set; }
+
+        /// <summary>
         /// The identifier of merchant.
         /// </summary>
         public string MerchantId { get; set; }
