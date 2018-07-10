@@ -9,6 +9,8 @@ namespace Lykke.Service.PayInvoice.Core.Domain.InvoicePayerHistory
         public string InvoiceId { get; set; }
         public string PaymentRequestId { get; set; }
         public string EmployeeId { get; set; }
+        public string OutgoingHistoryOperationId { get; set; }
+        public string IncomingHistoryOperationId { get; set; }
         public DateTime CreatedAt { get; set; }
     }
 }

@@ -31,6 +31,8 @@ namespace Lykke.Service.PayInvoice
                 .As<IPayInternalClient>()
                 .SingleInstance();
 
+            builder.RegisterPayHistoryClient(_settings.CurrentValue.PayHistoryServiceClient, _log);
+
             builder.RegisterHistoryOperationPublisher(_settings.CurrentValue.PayHistoryServicePublisher, _log);
 
             builder.RegisterInvoiceConfirmationPublisher(_settings.CurrentValue.PayInvoiceConfirmationPublisher, _log);
