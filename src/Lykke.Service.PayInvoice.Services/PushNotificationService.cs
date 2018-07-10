@@ -38,29 +38,41 @@ namespace Lykke.Service.PayInvoice.Services
 
         public async Task PublishDisputeCancelled(DisputeCancelledPushNotificationCommand command)
         {
-            await _retryPolicy.ExecuteAsync(() => _pushNotificationPublisher.PublishAsync(new NotificationMessage
+            var notificationMessage = new NotificationMessage
             {
                 MerchantIds = new string[] { command.NotifiedMerchantId },
                 Message = "Dispute cancelled."
-            }));
+            };
+
+            await _retryPolicy.ExecuteAsync(() => _pushNotificationPublisher.PublishAsync(notificationMessage));
+
+            _log.WriteInfo(nameof(PublishDisputeCancelled), new { notificationMessage }, "Information sent to push notifications service");
         }
 
         public async Task PublishDisputeRaised(DisputeRaisedPushNotificationCommand command)
         {
-            await _retryPolicy.ExecuteAsync(() => _pushNotificationPublisher.PublishAsync(new NotificationMessage
+            var notificationMessage = new NotificationMessage
             {
                 MerchantIds = new string[] { command.NotifiedMerchantId },
                 Message = "Dispute raised."
-            }));
+            };
+
+            await _retryPolicy.ExecuteAsync(() => _pushNotificationPublisher.PublishAsync(notificationMessage));
+
+            _log.WriteInfo(nameof(PublishDisputeRaised), new { notificationMessage }, "Information sent to push notifications service");
         }
 
         public async Task PublishInvoicePayment(InvoicePaidPushNotificationCommand command)
         {
-            await _retryPolicy.ExecuteAsync(() => _pushNotificationPublisher.PublishAsync(new NotificationMessage
+            var notificationMessage = new NotificationMessage
             {
                 MerchantIds = new string[] { command.NotifiedMerchantId },
                 Message = $"Invoice has been paid by {command.PayerMerchantName}: {command.PaidAmount} USD received."
-            }));
+            };
+
+            await _retryPolicy.ExecuteAsync(() => _pushNotificationPublisher.PublishAsync(notificationMessage));
+
+            _log.WriteInfo(nameof(PublishInvoicePayment), new { notificationMessage }, "Information sent to push notifications service");
         }
     }
 }
