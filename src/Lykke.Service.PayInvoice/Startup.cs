@@ -20,11 +20,14 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Swashbuckle.AspNetCore.Swagger;
+using Lykke.MonitoringServiceApiCaller;
 
 namespace Lykke.Service.PayInvoice
 {
     public class Startup
     {
+        private string _monitoringServiceUrl;
+
         public IHostingEnvironment Environment { get; }
         public IContainer ApplicationContainer { get; private set; }
         public IConfigurationRoot Configuration { get; }
@@ -81,6 +84,9 @@ namespace Lykke.Service.PayInvoice
 
                 var builder = new ContainerBuilder();
                 var appSettings = Configuration.LoadSettings<AppSettings>();
+                if (appSettings.CurrentValue.MonitoringServiceClient != null)
+                    _monitoringServiceUrl = appSettings.CurrentValue.MonitoringServiceClient.MonitoringServiceUrl;
+
                 Log = CreateLogWithSlack(services, appSettings);
 
                 builder.RegisterModule(
@@ -146,6 +152,8 @@ namespace Lykke.Service.PayInvoice
                 await ApplicationContainer.Resolve<IStartupManager>().StartAsync();
 
                 await Log.WriteMonitorAsync("", $"Env: {Program.EnvInfo}", "Started");
+
+                await AutoRegistrationInMonitoring.RegisterAsync(Configuration, _monitoringServiceUrl, Log);
             }
             catch (Exception exception)
             {
