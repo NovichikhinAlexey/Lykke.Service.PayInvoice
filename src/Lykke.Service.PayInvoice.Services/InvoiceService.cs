@@ -18,7 +18,9 @@ using Lykke.Service.PayInvoice.Core.Domain.HistoryOperation;
 using Lykke.Service.PayInvoice.Core.Domain.InvoiceConfirmation;
 using Lykke.Service.PayInvoice.Core.Domain.InvoicePayerHistory;
 using Lykke.Service.PayInvoice.Core.Domain.PaymentRequest;
+using Lykke.Service.PayInvoice.Core.Domain.PushNotification;
 using Lykke.Service.PayInvoice.Core.Exceptions;
+using Lykke.Service.PayInvoice.Core.Extensions;
 using Lykke.Service.PayInvoice.Core.Repositories;
 using Lykke.Service.PayInvoice.Core.Services;
 using Lykke.Service.PayInvoice.Core.Utils;
@@ -37,6 +39,7 @@ namespace Lykke.Service.PayInvoice.Services
         private readonly IMerchantSettingService _merchantSettingService;
         private readonly IHistoryOperationService _historyOperationService;
         private readonly IInvoiceConfirmationService _invoiceConfirmationService;
+        private readonly IPushNotificationService _pushNotificationService;
         private readonly IDistributedLocksService _paymentLocksService;
         private readonly IEmployeeRepository _employeeRepository;
         private readonly IInvoiceDisputeRepository _invoiceDisputeRepository;
@@ -54,6 +57,7 @@ namespace Lykke.Service.PayInvoice.Services
             IMerchantSettingService merchantSettingService,
             IHistoryOperationService historyOperationService,
             IInvoiceConfirmationService invoiceConfirmationService,
+            IPushNotificationService pushNotificationService,
             IDistributedLocksService paymentLocksService,
             IEmployeeRepository employeeRepository,
             IInvoiceDisputeRepository invoiceDisputeRepository,
@@ -70,6 +74,7 @@ namespace Lykke.Service.PayInvoice.Services
             _merchantSettingService = merchantSettingService;
             _historyOperationService = historyOperationService;
             _invoiceConfirmationService = invoiceConfirmationService;
+            _pushNotificationService = pushNotificationService;
             _paymentLocksService = paymentLocksService;
             _employeeRepository = employeeRepository;
             _invoiceDisputeRepository = invoiceDisputeRepository;
@@ -533,6 +538,14 @@ namespace Lykke.Service.PayInvoice.Services
 
             invoiceConfirmationCommand.EmployeeEmail = invoiceConfirmationCommand.EmployeeEmail.SanitizeEmail();
             _log.WriteInfo(nameof(UpdateAsync), new { message, invoiceConfirmationCommand }, "Information sent to callback service");
+
+            // send push notifications
+            await _pushNotificationService.PublishInvoicePayment(new InvoicePaidPushNotificationCommand
+            {
+                NotifiedMerchantId = invoice.MerchantId,
+                PaidAmount = message.PaidAmount.ToString(),
+                PayerMerchantName = await _merchantService.GetMerchantNameAsync(payerEmployee.MerchantId)
+            });
         }
 
         public async Task<IReadOnlyList<Invoice>> ValidateForPayingInvoicesAsync(string merchantId, IEnumerable<string> invoicesIds, string assetForPay)
@@ -569,7 +582,7 @@ namespace Lykke.Service.PayInvoice.Services
                 }
             }
 
-            IReadOnlyList<string> groupMerchants = await _merchantService.GetGroupMerchants(merchantId);
+            IReadOnlyList<string> groupMerchants = await _merchantService.GetGroupMerchantsAsync(merchantId);
 
             var invoices = await GetByIdsAsync(invoicesIds);
 
@@ -1086,6 +1099,12 @@ namespace Lykke.Service.PayInvoice.Services
                 Reason = reason,
                 DateTime = now
             });
+
+            // send push notifications
+            await _pushNotificationService.PublishDisputeRaised(new DisputeRaisedPushNotificationCommand
+            {
+                NotifiedMerchantId = validationResult.Invoice.MerchantId
+            });
         }
 
         public async Task CancelDisputeAsync(string invoiceId, string employeeId)
@@ -1100,6 +1119,13 @@ namespace Lykke.Service.PayInvoice.Services
                 InvoiceNumber = validationResult.Invoice.Number,
                 EmployeeEmail = validationResult.Employee.Email,
                 DateTime = DateTime.UtcNow
+            });
+
+            // send push notifications
+            await _pushNotificationService.PublishDisputeCancelled(new DisputeCancelledPushNotificationCommand
+            {
+                NotifiedMerchantId = validationResult.Invoice.MerchantId,
+                EmployeeFullName = validationResult.Employee.FullName()
             });
         }
 

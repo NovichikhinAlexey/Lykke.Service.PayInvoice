@@ -11,5 +11,6 @@ namespace Lykke.Service.PayInvoice.Settings
         public PayInternalServiceClientSettings PayInternalServiceClient { get; set; }
         public PayHistory.Client.Publisher.RabbitMqPublisherSettings PayHistoryServicePublisher { get; set; }
         public PayCallback.Client.InvoiceConfirmation.RabbitMqPublisherSettings PayInvoiceConfirmationPublisher { get; set; }
+        public PayPushNotifications.Client.Publisher.RabbitMqPublisherSettings PayPushNotificationsServicePublisher { get; set; }
     }
 }

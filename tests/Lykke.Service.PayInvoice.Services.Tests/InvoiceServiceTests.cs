@@ -22,6 +22,7 @@ namespace Lykke.Service.PayInvoice.Services.Tests
         private readonly Mock<IMerchantSettingService> _merchantSettingService = new Mock<IMerchantSettingService>();
         private readonly Mock<IHistoryOperationService> _historyOperationService = new Mock<IHistoryOperationService>();
         private readonly Mock<IInvoiceConfirmationService> _invoiceConfirmationService = new Mock<IInvoiceConfirmationService>();
+        private readonly Mock<IPushNotificationService> _pushNotificationService = new Mock<IPushNotificationService>();
         private readonly Mock<IDistributedLocksService> _paymentLocksService = new Mock<IDistributedLocksService>();
         private readonly Mock<IEmployeeRepository> _employeeRepository = new Mock<IEmployeeRepository>();
         private readonly Mock<IInvoiceDisputeRepository> _invoiceDisputeRepository = new Mock<IInvoiceDisputeRepository>();
@@ -44,6 +45,7 @@ namespace Lykke.Service.PayInvoice.Services.Tests
                 _merchantSettingService.Object,
                 _historyOperationService.Object,
                 _invoiceConfirmationService.Object,
+                _pushNotificationService.Object,
                 _paymentLocksService.Object,
                 _employeeRepository.Object,
                 _invoiceDisputeRepository.Object,

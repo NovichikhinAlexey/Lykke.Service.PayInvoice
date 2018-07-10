@@ -13,5 +13,6 @@
     <PackageReference Include="Lykke.Service.PayHistory.Client" Version="1.0.6" />
     <PackageReference Include="Lykke.Service.PayInternal.Client" Version="2.0.16" />
     <PackageReference Include="Lykke.Service.PayInternal.Contract" Version="2.0.2" />
+    <PackageReference Include="Lykke.Service.PayPushNotifications.Client" Version="1.0.2" />
   </ItemGroup>
 </Project>

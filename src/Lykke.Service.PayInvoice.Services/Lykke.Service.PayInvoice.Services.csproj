@@ -14,4 +14,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Lykke.Service.PayInvoice.Core\Lykke.Service.PayInvoice.Core.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Resources\" />
+  </ItemGroup>
 </Project>

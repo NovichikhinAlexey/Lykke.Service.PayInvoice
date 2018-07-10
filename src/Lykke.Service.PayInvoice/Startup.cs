@@ -87,6 +87,7 @@ namespace Lykke.Service.PayInvoice
                     new Repositories.AutofacModule(appSettings.Nested(o => o.PayInvoiceService.Db.DataConnectionString),
                         Log));
                 builder.RegisterModule(new Services.AutofacModule(
+                    appSettings.CurrentValue.PayInvoiceService.CacheExpirationPeriods,
                     appSettings.CurrentValue.PayInvoiceService.DistributedCacheSettings,
                     appSettings.CurrentValue.PayInvoiceService.RetryPolicy));
                 builder.RegisterModule(new AutofacModule(appSettings, Log));

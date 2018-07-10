@@ -9,13 +9,16 @@ namespace Lykke.Service.PayInvoice.Services
 {
     public class AutofacModule : Module
     {
+        private readonly CacheExpirationPeriodsSettings _cacheExpirationPeriods;
         private readonly DistributedCacheSettings _distributedCacheSettings;
         private readonly RetryPolicySettings _retryPolicySettings;
 
         public AutofacModule(
+            CacheExpirationPeriodsSettings cacheExpirationPeriods,
             DistributedCacheSettings distributedCacheSettings,
             RetryPolicySettings retryPolicySettings)
         {
+            _cacheExpirationPeriods = cacheExpirationPeriods;
             _distributedCacheSettings = distributedCacheSettings;
             _retryPolicySettings = retryPolicySettings;
         }
@@ -39,7 +42,8 @@ namespace Lykke.Service.PayInvoice.Services
                 .As<IEmployeeService>();
 
             builder.RegisterType<MerchantService>()
-                .As<IMerchantService>();
+                .As<IMerchantService>()
+                .WithParameter(TypedParameter.From(_cacheExpirationPeriods));
 
             builder.RegisterType<MerchantSettingService>()
                 .As<IMerchantSettingService>();
@@ -51,6 +55,10 @@ namespace Lykke.Service.PayInvoice.Services
             builder.RegisterType<InvoiceConfirmationService>()
                 .WithParameter(TypedParameter.From(_retryPolicySettings))
                 .As<IInvoiceConfirmationService>();
+
+            builder.RegisterType<PushNotificationService>()
+                .WithParameter(TypedParameter.From(_retryPolicySettings))
+                .As<IPushNotificationService>();
 
             builder.Register(c => ConnectionMultiplexer.Connect(_distributedCacheSettings.RedisConfiguration))
                 .As<IConnectionMultiplexer>()
