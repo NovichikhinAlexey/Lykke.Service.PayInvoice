@@ -652,72 +652,81 @@ namespace Lykke.Service.PayInvoice.Services
                     continue;
                 }
 
-                switch (invoice.Status)
+                try
                 {
-                    case InvoiceStatus.Unpaid:
-                        {
-                            var paymentInfo = await GetPaymentInfoForUnpaid(invoice, assetForPay, employee.MerchantId, isPaying: true);
-                            
-                            paymentAmountInAssetForPay = GetPaymentAmount(leftAmountInAssetForPay, paymentInfo.AmountToPayInAssetForPay);
-                            paymentRequestIdForPaying = paymentInfo.PaymentRequestIdForPaying;
-
-                            await CheckoutOrderAsync(invoice.MerchantId, paymentInfo.PaymentRequestIdForPaying);
-
-                            try
+                    switch (invoice.Status)
+                    {
+                        case InvoiceStatus.Unpaid:
                             {
-                                await PayPaymentRequestAsync(invoice.MerchantId, employee.MerchantId, paymentRequestIdForPaying, paymentAmountInAssetForPay);
+                                var paymentInfo = await GetPaymentInfoForUnpaid(invoice, assetForPay, employee.MerchantId, isPaying: true);
+
+                                paymentAmountInAssetForPay = GetPaymentAmount(leftAmountInAssetForPay, paymentInfo.AmountToPayInAssetForPay);
+                                paymentRequestIdForPaying = paymentInfo.PaymentRequestIdForPaying;
+
+                                await CheckoutOrderAsync(invoice.MerchantId, paymentInfo.PaymentRequestIdForPaying);
+
+                                try
+                                {
+                                    await PayPaymentRequestAsync(invoice.MerchantId, employee.MerchantId, paymentRequestIdForPaying, paymentAmountInAssetForPay);
+                                }
+                                catch (InvalidOperationException)
+                                {
+                                    occuredErrorsCount++;
+                                    await _paymentLocksService.ReleaseLockAsync(invoice.Id, invoice.MerchantId);
+                                    continue;
+                                }
+
+                                await _invoiceRepository.SetStatusAsync(invoice.MerchantId, invoice.Id, InvoiceStatus.InProgress);
+
+                                _log.WriteInfo(nameof(PayInvoicesAsync), new
+                                {
+                                    InvoiceId = invoice.Id,
+                                    invoice.MerchantId,
+                                    PayerMerchantId = employee.MerchantId,
+                                    paymentRequestIdForPaying,
+                                    leftAmountInAssetForPay,
+                                    paymentInfo.AmountToPayInAssetForPay
+                                }, "Paid Unpaid invoice");
                             }
-                            catch (InvalidOperationException)
+                            break;
+                        case InvoiceStatus.Underpaid:
                             {
-                                occuredErrorsCount++;
-                                await _paymentLocksService.ReleaseLockAsync(invoice.Id, invoice.MerchantId);
-                                continue;
+                                var paymentInfo = await GetPaymentInfoForUnderpaid(invoice, assetForPay, employee.MerchantId, isPaying: true);
+
+                                paymentAmountInAssetForPay = GetPaymentAmount(leftAmountInAssetForPay, paymentInfo.LeftAmountToPayInAssetForPay);
+                                paymentRequestIdForPaying = paymentInfo.PaymentRequestIdForPaying;
+
+                                try
+                                {
+                                    await PayPaymentRequestAsync(invoice.MerchantId, employee.MerchantId, paymentRequestIdForPaying, paymentAmountInAssetForPay);
+                                }
+                                catch (InvalidOperationException)
+                                {
+                                    occuredErrorsCount++;
+                                    await _paymentLocksService.ReleaseLockAsync(invoice.Id, invoice.MerchantId);
+                                    continue;
+                                }
+
+                                await _invoiceRepository.SetStatusAsync(invoice.MerchantId, invoice.Id, InvoiceStatus.InProgress);
+
+                                _log.WriteInfo(nameof(PayInvoicesAsync), new
+                                {
+                                    InvoiceId = invoice.Id,
+                                    invoice.MerchantId,
+                                    PayerMerchantId = employee.MerchantId,
+                                    paymentRequestIdForPaying,
+                                    leftAmountInAssetForPay,
+                                    paymentInfo.LeftAmountToPayInAssetForPay
+                                }, "Paid Underpaid invoice");
                             }
-
-                            await _invoiceRepository.SetStatusAsync(invoice.MerchantId, invoice.Id, InvoiceStatus.InProgress);
-
-                            _log.WriteInfo(nameof(PayInvoicesAsync), new
-                            {
-                                InvoiceId = invoice.Id,
-                                invoice.MerchantId,
-                                PayerMerchantId = employee.MerchantId,
-                                paymentRequestIdForPaying,
-                                leftAmountInAssetForPay,
-                                paymentInfo.AmountToPayInAssetForPay
-                            }, "Paid Unpaid invoice");
-                        }
-                        break;
-                    case InvoiceStatus.Underpaid:
-                        {
-                            var paymentInfo = await GetPaymentInfoForUnderpaid(invoice, assetForPay, employee.MerchantId, isPaying: true);
-
-                            paymentAmountInAssetForPay = GetPaymentAmount(leftAmountInAssetForPay, paymentInfo.LeftAmountToPayInAssetForPay);
-                            paymentRequestIdForPaying = paymentInfo.PaymentRequestIdForPaying;
-
-                            try
-                            {
-                                await PayPaymentRequestAsync(invoice.MerchantId, employee.MerchantId, paymentRequestIdForPaying, paymentAmountInAssetForPay);
-                            }
-                            catch (InvalidOperationException)
-                            {
-                                occuredErrorsCount++;
-                                await _paymentLocksService.ReleaseLockAsync(invoice.Id, invoice.MerchantId);
-                                continue;
-                            }
-
-                            await _invoiceRepository.SetStatusAsync(invoice.MerchantId, invoice.Id, InvoiceStatus.InProgress);
-
-                            _log.WriteInfo(nameof(PayInvoicesAsync), new
-                            {
-                                InvoiceId = invoice.Id,
-                                invoice.MerchantId,
-                                PayerMerchantId = employee.MerchantId,
-                                paymentRequestIdForPaying,
-                                leftAmountInAssetForPay,
-                                paymentInfo.LeftAmountToPayInAssetForPay
-                            }, "Paid Underpaid invoice");
-                        }
-                        break;
+                            break;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    occuredErrorsCount++;
+                    await _paymentLocksService.ReleaseLockAsync(invoice.Id, invoice.MerchantId);
+                    continue;
                 }
 
                 // send info to history service
