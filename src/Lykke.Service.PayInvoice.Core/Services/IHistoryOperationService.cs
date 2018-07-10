@@ -5,7 +5,8 @@ namespace Lykke.Service.PayInvoice.Core.Services
 {
     public interface IHistoryOperationService
     {
-        Task PublishOutgoingInvoicePayment(HistoryOperationCommand command);
-        Task PublishIncomingInvoicePayment(HistoryOperationCommand command);
+        Task<string> PublishOutgoingInvoicePayment(HistoryOperationCommand command);
+        Task<string> PublishIncomingInvoicePayment(HistoryOperationCommand command);
+        Task RemoveAsync(string id);
     }
 }

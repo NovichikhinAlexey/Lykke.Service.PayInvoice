@@ -373,7 +373,7 @@ namespace Lykke.Service.PayInvoice.Services
                     return;
             }
 
-            bool isRevertingUnderpaidStatus = false;
+            bool isRevertingStatus = false;
             InvoiceStatus previousStatus = invoice.Status;
             InvoiceStatus status = StatusConverter.Convert(message.Status, message.ProcessingError);
 
@@ -426,11 +426,14 @@ namespace Lykke.Service.PayInvoice.Services
 
             // check whether we need to revert to Underpaid status
             if (previousStatus == InvoiceStatus.InProgress 
-                && status == InvoiceStatus.Unpaid
-                && invoice.HasMultiplePaymentRequests)
+                && status == InvoiceStatus.Unpaid)
             {
-                isRevertingUnderpaidStatus = true;
-                status = InvoiceStatus.Underpaid;
+                isRevertingStatus = true;
+
+                if (invoice.HasMultiplePaymentRequests)
+                {
+                    status = InvoiceStatus.Underpaid;
+                }
             }
 
             await _invoiceRepository.SetStatusAsync(invoice.MerchantId, invoice.Id, status);
@@ -446,8 +449,18 @@ namespace Lykke.Service.PayInvoice.Services
                 message
             }, "Status updated.");
 
-            if (isRevertingUnderpaidStatus)
+            // if some error occured during payment then status reverted and we need to remove history operation
+            if (isRevertingStatus)
+            {
+                var invoicePayerHistory = await _invoicePayerHistoryRepository.GetAsync(invoice.Id, paymentRequestId);
+
+                if (invoicePayerHistory != null)
+                {
+                    await RemoveHistoryOperations(message, invoicePayerHistory);
+                }
+
                 return;
+            }
 
             invoice.Status = status;
 
@@ -533,6 +546,22 @@ namespace Lykke.Service.PayInvoice.Services
 
             invoiceConfirmationCommand.EmployeeEmail = invoiceConfirmationCommand.EmployeeEmail.SanitizeEmail();
             _log.WriteInfo(nameof(UpdateAsync), new { message, invoiceConfirmationCommand }, "Information sent to callback service");
+
+            // removing at the end as this is the longer operation comparing to putting messages to rabbit
+            await RemoveHistoryOperations(message, invoicePayerHistoryItem);
+        }
+
+        private async Task RemoveHistoryOperations(PaymentRequestDetailsMessage message, InvoicePayerHistoryItem invoicePayerHistory)
+        {
+            try
+            {
+                await Task.WhenAll(_historyOperationService.RemoveAsync(invoicePayerHistory.OutgoingHistoryOperationId),
+                    _historyOperationService.RemoveAsync(invoicePayerHistory.IncomingHistoryOperationId));
+            }
+            catch (Exception ex)
+            {
+                _log.WriteError(nameof(RemoveHistoryOperations), new { message, invoicePayerHistory }, ex);
+            }
         }
 
         public async Task<IReadOnlyList<Invoice>> ValidateForPayingInvoicesAsync(string merchantId, IEnumerable<string> invoicesIds, string assetForPay)
@@ -612,7 +641,7 @@ namespace Lykke.Service.PayInvoice.Services
             {
                 processedCount++;
                 decimal paymentAmountInAssetForPay = 0;
-                bool payResult = false;
+                string paymentRequestIdForPaying = string.Empty;
 
                 // redis locking mechanism
                 bool locked = await _paymentLocksService.TryAcquireLockAsync(invoice.Id, invoice.MerchantId, invoice.DueDate);
@@ -630,12 +659,13 @@ namespace Lykke.Service.PayInvoice.Services
                             var paymentInfo = await GetPaymentInfoForUnpaid(invoice, assetForPay, employee.MerchantId, isPaying: true);
                             
                             paymentAmountInAssetForPay = GetPaymentAmount(leftAmountInAssetForPay, paymentInfo.AmountToPayInAssetForPay);
+                            paymentRequestIdForPaying = paymentInfo.PaymentRequestIdForPaying;
 
                             await CheckoutOrderAsync(invoice.MerchantId, paymentInfo.PaymentRequestIdForPaying);
 
                             try
                             {
-                                payResult = await PayPaymentRequestAsync(invoice.MerchantId, employee.MerchantId, paymentInfo.PaymentRequestIdForPaying, paymentAmountInAssetForPay);
+                                await PayPaymentRequestAsync(invoice.MerchantId, employee.MerchantId, paymentRequestIdForPaying, paymentAmountInAssetForPay);
                             }
                             catch (InvalidOperationException)
                             {
@@ -645,14 +675,13 @@ namespace Lykke.Service.PayInvoice.Services
                             }
 
                             await _invoiceRepository.SetStatusAsync(invoice.MerchantId, invoice.Id, InvoiceStatus.InProgress);
-                            await WriteInvoicePayerHistory(invoice.Id, employee.Id, paymentInfo.PaymentRequestIdForPaying);
 
                             _log.WriteInfo(nameof(PayInvoicesAsync), new
                             {
                                 InvoiceId = invoice.Id,
                                 invoice.MerchantId,
                                 PayerMerchantId = employee.MerchantId,
-                                paymentInfo.PaymentRequestIdForPaying,
+                                paymentRequestIdForPaying,
                                 leftAmountInAssetForPay,
                                 paymentInfo.AmountToPayInAssetForPay
                             }, "Paid Unpaid invoice");
@@ -663,10 +692,11 @@ namespace Lykke.Service.PayInvoice.Services
                             var paymentInfo = await GetPaymentInfoForUnderpaid(invoice, assetForPay, employee.MerchantId, isPaying: true);
 
                             paymentAmountInAssetForPay = GetPaymentAmount(leftAmountInAssetForPay, paymentInfo.LeftAmountToPayInAssetForPay);
+                            paymentRequestIdForPaying = paymentInfo.PaymentRequestIdForPaying;
 
                             try
                             {
-                                payResult = await PayPaymentRequestAsync(invoice.MerchantId, employee.MerchantId, paymentInfo.PaymentRequestIdForPaying, paymentAmountInAssetForPay);
+                                await PayPaymentRequestAsync(invoice.MerchantId, employee.MerchantId, paymentRequestIdForPaying, paymentAmountInAssetForPay);
                             }
                             catch (InvalidOperationException)
                             {
@@ -676,20 +706,39 @@ namespace Lykke.Service.PayInvoice.Services
                             }
 
                             await _invoiceRepository.SetStatusAsync(invoice.MerchantId, invoice.Id, InvoiceStatus.InProgress);
-                            await WriteInvoicePayerHistory(invoice.Id, employee.Id, paymentInfo.PaymentRequestIdForPaying);
 
                             _log.WriteInfo(nameof(PayInvoicesAsync), new
                             {
                                 InvoiceId = invoice.Id,
                                 invoice.MerchantId,
                                 PayerMerchantId = employee.MerchantId,
-                                paymentInfo.PaymentRequestIdForPaying,
+                                paymentRequestIdForPaying,
                                 leftAmountInAssetForPay,
                                 paymentInfo.LeftAmountToPayInAssetForPay
                             }, "Paid Underpaid invoice");
                         }
                         break;
                 }
+
+                // send info to history service
+                var historyOperationCommand = new HistoryOperationCommand
+                {
+                    InvoiceId = invoice.Id,
+                    InvoiceStatus = InvoiceStatus.InProgress.ToString(),
+                    MerchantId = employee.MerchantId,
+                    OppositeMerchantId = invoice.MerchantId,
+                    EmployeeEmail = employee.Email,
+                    Amount = paymentAmountInAssetForPay,
+                    AssetId = assetForPay,
+                    CreatedOn = DateTime.UtcNow
+                };
+                string outgoingHistoryOperationId = await _historyOperationService.PublishOutgoingInvoicePayment(historyOperationCommand);
+
+                historyOperationCommand.MerchantId = invoice.MerchantId;
+                historyOperationCommand.OppositeMerchantId = employee.MerchantId;
+                string incomingHistoryOperationId = await _historyOperationService.PublishIncomingInvoicePayment(historyOperationCommand);
+
+                await WriteInvoicePayerHistory(invoice.Id, employee.Id, paymentRequestIdForPaying, outgoingHistoryOperationId, incomingHistoryOperationId);
 
                 leftAmountInAssetForPay -= paymentAmountInAssetForPay;
                 paidCount++;
@@ -723,13 +772,15 @@ namespace Lykke.Service.PayInvoice.Services
             }
         }
 
-        private async Task WriteInvoicePayerHistory(string invoiceId, string employeeId, string paymentRequestIdForPaying)
+        private async Task WriteInvoicePayerHistory(string invoiceId, string employeeId, string paymentRequestIdForPaying, string outgoingHistoryOperationId, string incomingHistoryOperationId)
         {
             await _invoicePayerHistoryRepository.InsertAsync(new InvoicePayerHistoryItem
             {
                 InvoiceId = invoiceId,
                 PaymentRequestId = paymentRequestIdForPaying,
                 EmployeeId = employeeId,
+                OutgoingHistoryOperationId = outgoingHistoryOperationId,
+                IncomingHistoryOperationId = incomingHistoryOperationId,
                 CreatedAt = DateTime.UtcNow
             });
         }
@@ -928,7 +979,7 @@ namespace Lykke.Service.PayInvoice.Services
             return isNeedToCreateNewPaymentRequest;
         }
 
-        private async Task<bool> PayPaymentRequestAsync(string merchantIdOfInvoice, string payerMerchantId, string paymentRequestId, decimal amount)
+        private async Task PayPaymentRequestAsync(string merchantIdOfInvoice, string payerMerchantId, string paymentRequestId, decimal amount)
         {
             try
             {
@@ -939,7 +990,6 @@ namespace Lykke.Service.PayInvoice.Services
                     PaymentRequestId = paymentRequestId,
                     Amount = amount
                 });
-                return true;
             }
             catch (DefaultErrorResponseException ex)
             {
