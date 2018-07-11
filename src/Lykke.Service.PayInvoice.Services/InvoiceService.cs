@@ -627,6 +627,13 @@ namespace Lykke.Service.PayInvoice.Services
                 decimal paymentAmountInAssetForPay = 0;
                 bool payResult = false;
 
+                if (DateTime.UtcNow > invoice.DueDate)
+                {
+                    occuredErrorsCount++;
+                    _log.WriteError(nameof(PayInvoicesAsync), new { invoice = invoice.Sanitize() }, new Exception("Invoice has passed DueDate"));
+                    continue;
+                }
+
                 // redis locking mechanism
                 bool locked = await _paymentLocksService.TryAcquireLockAsync(invoice.Id, invoice.MerchantId, invoice.DueDate);
                 if (!locked)
