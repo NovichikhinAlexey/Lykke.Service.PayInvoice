@@ -22,6 +22,7 @@ namespace Lykke.Service.PayInvoice.Services
 
             CreateMap<HistoryOperationCommand, HistoryOperation>(MemberList.Destination)
                 .ForMember(dest => dest.Id, opt => opt.Ignore())
+                .ForMember(dest => dest.DesiredAssetId, opt => opt.Ignore())
                 .ForMember(dest => dest.Type, opt => opt.Ignore());
         }
     }

@@ -45,6 +45,8 @@ namespace Lykke.Service.PayInvoice.Repositories.PaymentRequestHistory
                 RowKey = GetRowKey(historyItem.CreatedAt),
                 PaymentRequestId = historyItem.PaymentRequestId,
                 EmployeeId = historyItem.EmployeeId,
+                OutgoingHistoryOperationId = historyItem.OutgoingHistoryOperationId,
+                IncomingHistoryOperationId = historyItem.IncomingHistoryOperationId,
                 CreatedAt = historyItem.CreatedAt
             };
 
