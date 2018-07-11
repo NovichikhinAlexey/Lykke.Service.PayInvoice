@@ -6,6 +6,7 @@ using Lykke.Service.PayHistory.Client;
 using Lykke.Service.PayInternal.Client;
 using Lykke.Service.PayInvoice.Rabbit.Subscribers;
 using Lykke.Service.PayInvoice.Settings;
+using Lykke.Service.PayPushNotifications.Client;
 using Lykke.SettingsReader;
 
 namespace Lykke.Service.PayInvoice
@@ -36,6 +37,8 @@ namespace Lykke.Service.PayInvoice
             builder.RegisterHistoryOperationPublisher(_settings.CurrentValue.PayHistoryServicePublisher, _log);
 
             builder.RegisterInvoiceConfirmationPublisher(_settings.CurrentValue.PayInvoiceConfirmationPublisher, _log);
+
+            builder.RegisterPayPushNotificationPublisher(_settings.CurrentValue.PayPushNotificationsServicePublisher, _log);
 
             builder.RegisterType<PaymentRequestSubscriber>()
                 .AsSelf()
