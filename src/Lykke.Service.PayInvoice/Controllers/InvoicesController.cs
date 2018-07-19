@@ -7,9 +7,11 @@ using AutoMapper;
 using Common;
 using Common.Log;
 using Lykke.Common.Api.Contract.Responses;
+using Lykke.Common.Log;
 using Lykke.Service.PayInvoice.Core.Domain;
 using Lykke.Service.PayInvoice.Core.Domain.PaymentRequest;
 using Lykke.Service.PayInvoice.Core.Exceptions;
+using Lykke.Service.PayInvoice.Core.Extensions;
 using Lykke.Service.PayInvoice.Core.Services;
 using Lykke.Service.PayInvoice.Extensions;
 using Lykke.Service.PayInvoice.Models.Invoice;
@@ -33,13 +35,13 @@ namespace Lykke.Service.PayInvoice.Controllers
             IMerchantService merchantService,
             IMerchantSettingService merchantSettingService,
             IEmployeeService employeeService,
-            ILog log)
+            ILogFactory logFactory)
         {
             _invoiceService = invoiceService;
             _merchantService = merchantService;
             _merchantSettingService = merchantSettingService;
             _employeeService = employeeService;
-            _log = log.CreateComponentScope(nameof(InvoicesController));
+            _log = logFactory.CreateLog(this);
         }
 
         /// <summary>
@@ -89,7 +91,7 @@ namespace Lykke.Service.PayInvoice.Controllers
             }
             catch (InvalidOperationException ex)
             {
-                _log.WriteError(nameof(CreateAsync), model.ToContext(), ex);
+                _log.Error(ex, model.Sanitize());
 
                 return BadRequest(ErrorResponse.Create(ex.Message));
             }
@@ -120,13 +122,13 @@ namespace Lykke.Service.PayInvoice.Controllers
             }
             catch (InvoiceNotFoundException ex)
             {
-                _log.WriteError(nameof(CreateFromDraftAsync), new { invoiceId }, ex);
+                _log.Error(ex, new { invoiceId });
 
                 return NotFound();
             }
             catch (InvalidOperationException ex)
             {
-                _log.WriteError(nameof(CreateFromDraftAsync), new { invoiceId }, ex);
+                _log.Error(ex, new { invoiceId });
 
                 return BadRequest(ErrorResponse.Create(ex.Message));
             }
@@ -155,13 +157,13 @@ namespace Lykke.Service.PayInvoice.Controllers
             }
             catch (InvoiceNotFoundException ex)
             {
-                _log.WriteError(nameof(ChangePaymentAssetAsync), new { invoiceId }, ex);
+                _log.Error(ex, new { invoiceId });
 
                 return NotFound();
             }
             catch (InvalidOperationException ex)
             {
-                _log.WriteError(nameof(ChangePaymentAssetAsync), new { invoiceId, paymentAssetId }, ex);
+                _log.Error(ex, new { invoiceId, paymentAssetId });
 
                 return BadRequest(ErrorResponse.Create(ex.Message));
             }
@@ -232,7 +234,8 @@ namespace Lykke.Service.PayInvoice.Controllers
             }
             catch (InvoiceNotFoundException ex)
             {
-                _log.WriteError(nameof(GetPaymentRequestsAsync), new { invoiceId }, ex);
+                _log.Error(ex, new { invoiceId });
+
                 return NotFound(ErrorResponse.Create("Invoice not found"));
             }
         }
@@ -314,13 +317,9 @@ namespace Lykke.Service.PayInvoice.Controllers
             }
             catch (InvalidOperationException ex)
             {
-                _log.WriteError(nameof(PayInvoices), model, ex);
+                _log.Error(ex, model);
+
                 return BadRequest(ErrorResponse.Create(ex.Message));
-            }
-            catch (Exception ex)
-            {
-                _log.WriteError(nameof(PayInvoices), model, ex);
-                return BadRequest(ErrorResponse.Create("Internal error"));
             }
 
             return Accepted();
@@ -353,14 +352,9 @@ namespace Lykke.Service.PayInvoice.Controllers
             }
             catch (InvalidOperationException ex)
             {
-                _log.WriteError(nameof(GetSumToPayInvoices), model, ex);
+                _log.Error(ex, model);
 
                 return BadRequest(ErrorResponse.Create(ex.Message));
-            }
-            catch (Exception ex)
-            {
-                _log.WriteError(nameof(GetSumToPayInvoices), model, ex);
-                return BadRequest(ErrorResponse.Create("Internal error"));
             }
 
             return Ok(sum);
@@ -398,7 +392,7 @@ namespace Lykke.Service.PayInvoice.Controllers
             catch (Exception ex)
             {
                 hasError = true;
-                _log.WriteError(nameof(ValidateForPayingInvoicesAsync), model, ex);
+                _log.Error(ex, model);
 
                 switch (ex)
                 {
@@ -456,7 +450,7 @@ namespace Lykke.Service.PayInvoice.Controllers
             }
             catch (InvalidOperationException ex)
             {
-                _log.WriteError(nameof(MarkDispute), model, ex);
+                _log.Error(ex, model);
 
                 return BadRequest(ErrorResponse.Create(ex.Message));
             }
@@ -496,7 +490,7 @@ namespace Lykke.Service.PayInvoice.Controllers
             }
             catch (InvalidOperationException ex)
             {
-                _log.WriteError(nameof(CancelDispute), model, ex);
+                _log.Error(ex, model);
 
                 return BadRequest(ErrorResponse.Create(ex.Message));
             }

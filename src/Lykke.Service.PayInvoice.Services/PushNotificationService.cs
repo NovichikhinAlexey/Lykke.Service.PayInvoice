@@ -24,16 +24,16 @@ namespace Lykke.Service.PayInvoice.Services
         public PushNotificationService(
             NotificationPublisher pushNotificationPublisher,
             RetryPolicySettings retryPolicySettings,
-            ILog log)
+            ILogFactory logFactory)
         {
             _pushNotificationPublisher = pushNotificationPublisher;
-            _log = log.CreateComponentScope(nameof(PushNotificationService));
+            _log = logFactory.CreateLog(this);
             _retryPolicy = Policy
                 .Handle<Exception>()
                 .WaitAndRetryAsync(
                     retryPolicySettings.DefaultAttempts,
                     attempt => TimeSpan.FromSeconds(Math.Pow(2, attempt)),
-                    (ex, timespan) => _log.Error("Publish confirmations to callback with retry", ex));
+                    (ex, timespan) => _log.Error(ex, "Publish confirmations to callback with retry"));
         }
 
         public async Task PublishDisputeCancelled(DisputeCancelledPushNotificationCommand command)
@@ -46,7 +46,7 @@ namespace Lykke.Service.PayInvoice.Services
 
             await _retryPolicy.ExecuteAsync(() => _pushNotificationPublisher.PublishAsync(notificationMessage));
 
-            _log.WriteInfo(nameof(PublishDisputeCancelled), new { notificationMessage }, "Information sent to push notifications service");
+            _log.Info("Information sent to push notifications service", new { notificationMessage });
         }
 
         public async Task PublishDisputeRaised(DisputeRaisedPushNotificationCommand command)
@@ -59,7 +59,7 @@ namespace Lykke.Service.PayInvoice.Services
 
             await _retryPolicy.ExecuteAsync(() => _pushNotificationPublisher.PublishAsync(notificationMessage));
 
-            _log.WriteInfo(nameof(PublishDisputeRaised), new { notificationMessage }, "Information sent to push notifications service");
+            _log.Info("Information sent to push notifications service", new { notificationMessage });
         }
 
         public async Task PublishInvoicePayment(InvoicePaidPushNotificationCommand command)
@@ -72,7 +72,7 @@ namespace Lykke.Service.PayInvoice.Services
 
             await _retryPolicy.ExecuteAsync(() => _pushNotificationPublisher.PublishAsync(notificationMessage));
 
-            _log.WriteInfo(nameof(PublishInvoicePayment), new { notificationMessage }, "Information sent to push notifications service");
+            _log.Info("Information sent to push notifications service", new { notificationMessage });
         }
     }
 }
