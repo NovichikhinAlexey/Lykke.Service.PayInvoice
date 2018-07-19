@@ -25,17 +25,17 @@ namespace Lykke.Service.PayInvoice.Services
             HistoryOperationPublisher historyOperationPublisher,
             IPayHistoryClient payHistoryClient,
             RetryPolicySettings retryPolicySettings,
-            ILog log)
+            ILogFactory logFactory)
         {
             _historyOperationPublisher = historyOperationPublisher;
             _payHistoryClient = payHistoryClient;
-            _log = log.CreateComponentScope(nameof(HistoryOperationService));
+            _log = logFactory.CreateLog(this);
             _retryPolicy = Policy
                 .Handle<Exception>()
                 .WaitAndRetryAsync(
                     retryPolicySettings.DefaultAttempts,
                     attempt => TimeSpan.FromSeconds(Math.Pow(2, attempt)),
-                    (ex, timespan) => _log.WriteError("Publish invoice payment to history with retry", ex));
+                    (ex, timespan) => _log.Error(ex, "Publish invoice payment to history with retry"));
         }
 
         public async Task<string> PublishOutgoingInvoicePayment(HistoryOperationCommand command)

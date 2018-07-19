@@ -1,10 +1,13 @@
 ﻿using System;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 
 namespace Lykke.Service.PayInvoice.Core.Domain
 {
     /// <summary>
     /// Represents an invoice.
     /// </summary>
+    [JsonConverter(typeof(StringEnumConverter))]
     public class Invoice
     {
         /// <summary>

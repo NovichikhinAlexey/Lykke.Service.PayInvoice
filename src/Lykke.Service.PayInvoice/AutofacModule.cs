@@ -14,31 +14,25 @@ namespace Lykke.Service.PayInvoice
     public class AutofacModule : Module
     {
         private readonly IReloadingManager<AppSettings> _settings;
-        private readonly ILog _log;
 
-        public AutofacModule(IReloadingManager<AppSettings> settings, ILog log)
+        public AutofacModule(IReloadingManager<AppSettings> settings)
         {
             _settings = settings;
-            _log = log;
         }
 
         protected override void Load(ContainerBuilder builder)
         {
-            builder.RegisterInstance(_log)
-                .As<ILog>()
-                .SingleInstance();
-            
             builder.RegisterInstance(new PayInternalClient(_settings.CurrentValue.PayInternalServiceClient))
                 .As<IPayInternalClient>()
                 .SingleInstance();
 
-            builder.RegisterPayHistoryClient(_settings.CurrentValue.PayHistoryServiceClient, _log);
+            builder.RegisterPayHistoryClient(_settings.CurrentValue.PayHistoryServiceClient.ServiceUrl);
 
-            builder.RegisterHistoryOperationPublisher(_settings.CurrentValue.PayHistoryServicePublisher, _log);
+            builder.RegisterHistoryOperationPublisher(_settings.CurrentValue.PayHistoryServicePublisher);
 
-            builder.RegisterInvoiceConfirmationPublisher(_settings.CurrentValue.PayInvoiceConfirmationPublisher, _log);
+            builder.RegisterInvoiceConfirmationPublisher(_settings.CurrentValue.PayInvoiceConfirmationPublisher);
 
-            builder.RegisterPayPushNotificationPublisher(_settings.CurrentValue.PayPushNotificationsServicePublisher, _log);
+            builder.RegisterPayPushNotificationPublisher(_settings.CurrentValue.PayPushNotificationsServicePublisher);
 
             builder.RegisterType<PaymentRequestSubscriber>()
                 .AsSelf()
