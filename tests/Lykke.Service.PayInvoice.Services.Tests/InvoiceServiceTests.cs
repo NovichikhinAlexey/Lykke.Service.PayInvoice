@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 using Common.Log;
 using Lykke.Common.Log;
+using Lykke.Logs.Loggers.LykkeConsole;
 using Lykke.Service.PayInternal.Client;
 using Lykke.Service.PayInvoice.Core.Domain;
 using Lykke.Service.PayInvoice.Core.Repositories;
@@ -12,7 +13,7 @@ using Moq;
 namespace Lykke.Service.PayInvoice.Services.Tests
 {
     [TestClass]
-    public class InvoiceServiceTests
+    public class InvoiceServiceTests : IDisposable
     {
         private readonly Mock<IInvoiceRepository> _invoiceRepositoryMock = new Mock<IInvoiceRepository>();
         private readonly Mock<IFileInfoRepository> _fileInfoRepositoryMock = new Mock<IFileInfoRepository>();
@@ -29,7 +30,19 @@ namespace Lykke.Service.PayInvoice.Services.Tests
         private readonly Mock<IInvoiceDisputeRepository> _invoiceDisputeRepository = new Mock<IInvoiceDisputeRepository>();
         private readonly Mock<IInvoicePayerHistoryRepository> _invoicePayerHistoryRepository = new Mock<IInvoicePayerHistoryRepository>();
         private readonly Mock<IPayInternalClient> _payInternalClientMock = new Mock<IPayInternalClient>();
-        private readonly Mock<ILogFactory> _logFactoryMock = new Mock<ILogFactory>();
+
+        // https://github.com/LykkeCity/Lykke.Logs/blob/master/migration-to-v5.md
+        private readonly ILogFactory _logFactory;
+
+        public InvoiceServiceTests()
+        {
+            _logFactory = Lykke.Logs.LogFactory.Create().AddUnbufferedConsole();
+        }
+
+        public void Dispose()
+        {
+            _logFactory.Dispose();
+        }
 
         private InvoiceService _service;
 
@@ -52,7 +65,7 @@ namespace Lykke.Service.PayInvoice.Services.Tests
                 _invoiceDisputeRepository.Object,
                 _invoicePayerHistoryRepository.Object,
                 _payInternalClientMock.Object,
-                _logFactoryMock.Object);
+                _logFactory);
         }
 
         [TestMethod]
