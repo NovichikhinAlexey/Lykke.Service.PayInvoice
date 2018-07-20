@@ -1,6 +1,7 @@
 ﻿using System.Linq;
 using System.Threading.Tasks;
 using Common.Log;
+using Lykke.Common.Log;
 using Lykke.Service.PayInternal.Client;
 using Lykke.Service.PayInvoice.Core.Domain;
 using Lykke.Service.PayInvoice.Core.Exceptions;
@@ -18,11 +19,11 @@ namespace Lykke.Service.PayInvoice.Services
         public MerchantSettingService(
             IMerchantSettingRepository merchantSettingRepository,
             IPayInternalClient payInternalClient,
-            ILog log)
+            ILogFactory logFactory)
         {
             _merchantSettingRepository = merchantSettingRepository;
             _payInternalClient = payInternalClient;
-            _log = log.CreateComponentScope(nameof(MerchantSettingService));
+            _log = logFactory.CreateLog(this);
         }
 
         public async Task<MerchantSetting> GetByIdAsync(string merchantId)
@@ -47,7 +48,7 @@ namespace Lykke.Service.PayInvoice.Services
 
             await _merchantSettingRepository.SetAsync(model);
 
-            _log.WriteInfo(nameof(SetAsync), model, "Merchant settings updated.");
+            _log.Info("Merchant settings updated.", model);
 
             return model;
         }

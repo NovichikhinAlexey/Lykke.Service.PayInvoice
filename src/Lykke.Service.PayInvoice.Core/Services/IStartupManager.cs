@@ -4,6 +4,6 @@ namespace Lykke.Service.PayInvoice.Core.Services
 {
     public interface IStartupManager
     {
-        Task StartAsync();
+        void Start();
     }
 }

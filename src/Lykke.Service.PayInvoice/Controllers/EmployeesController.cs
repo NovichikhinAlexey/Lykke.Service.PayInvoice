@@ -6,8 +6,10 @@ using AutoMapper;
 using Common;
 using Common.Log;
 using Lykke.Common.Api.Contract.Responses;
+using Lykke.Common.Log;
 using Lykke.Service.PayInvoice.Core.Domain;
 using Lykke.Service.PayInvoice.Core.Exceptions;
+using Lykke.Service.PayInvoice.Core.Extensions;
 using Lykke.Service.PayInvoice.Core.Services;
 using Lykke.Service.PayInvoice.Extensions;
 using Lykke.Service.PayInvoice.Models.Employee;
@@ -25,10 +27,10 @@ namespace Lykke.Service.PayInvoice.Controllers
 
         public EmployeesController(
             IEmployeeService employeeService,
-            ILog log)
+            ILogFactory logFactory)
         {
             _employeeService = employeeService;
-            _log = log.CreateComponentScope(nameof(EmployeesController));
+            _log = logFactory.CreateLog(this);
         }
 
         /// <summary>
@@ -124,17 +126,11 @@ namespace Lykke.Service.PayInvoice.Controllers
 
                 return Ok(employeeModel);
             }
-            catch (EmployeeExistException exception)
+            catch (EmployeeExistException ex)
             {
-                _log.WriteWarning(nameof(AddAsync), model.ToContext(), exception.Message);
+                _log.Warning(ex.Message, model.Sanitize());
 
-                return BadRequest(ErrorResponse.Create(exception.Message));
-            }
-            catch (Exception exception)
-            {
-                _log.WriteError(nameof(AddAsync), model.ToContext(), exception);
-
-                throw;
+                return BadRequest(ErrorResponse.Create(ex.Message));
             }
         }
 
@@ -159,17 +155,11 @@ namespace Lykke.Service.PayInvoice.Controllers
 
                 return NoContent();
             }
-            catch (EmployeeNotFoundException exception)
+            catch (EmployeeNotFoundException ex)
             {
-                _log.WriteWarning(nameof(UpdateAsync), model.ToContext(), exception.Message);
+                _log.Warning(ex.Message, model.Sanitize());
 
-                return BadRequest(ErrorResponse.Create(exception.Message));
-            }
-            catch (Exception exception)
-            {
-                _log.WriteError(nameof(UpdateAsync), model.ToContext(), exception);
-
-                throw;
+                return BadRequest(ErrorResponse.Create(ex.Message));
             }
         }
 

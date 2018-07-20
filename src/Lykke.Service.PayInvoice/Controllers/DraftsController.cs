@@ -4,8 +4,10 @@ using System.Threading.Tasks;
 using AutoMapper;
 using Common.Log;
 using Lykke.Common.Api.Contract.Responses;
+using Lykke.Common.Log;
 using Lykke.Service.PayInvoice.Core.Domain;
 using Lykke.Service.PayInvoice.Core.Exceptions;
+using Lykke.Service.PayInvoice.Core.Extensions;
 using Lykke.Service.PayInvoice.Core.Services;
 using Lykke.Service.PayInvoice.Extensions;
 using Lykke.Service.PayInvoice.Models.Invoice;
@@ -20,10 +22,12 @@ namespace Lykke.Service.PayInvoice.Controllers
         private readonly IInvoiceService _invoiceService;
         private readonly ILog _log;
 
-        public DraftsController(IInvoiceService invoiceService, ILog log)
+        public DraftsController(
+            IInvoiceService invoiceService, 
+            ILogFactory logFactory)
         {
             _invoiceService = invoiceService;
-            _log = log;
+            _log = logFactory.CreateLog(this);
         }
 
         /// <summary>
@@ -71,19 +75,17 @@ namespace Lykke.Service.PayInvoice.Controllers
 
                 return NoContent();
             }
-            catch (InvoiceNotFoundException exception)
+            catch (InvoiceNotFoundException ex)
             {
-                await _log.WriteErrorAsync(nameof(DraftsController), nameof(UpdateAsync),
-                    model.ToContext(), exception);
+                _log.Error(ex, model.Sanitize());
 
                 return NotFound();
             }
-            catch (InvalidOperationException exception)
+            catch (InvalidOperationException ex)
             {
-                await _log.WriteErrorAsync(nameof(DraftsController), nameof(UpdateAsync),
-                    model.ToContext(), exception);
+                _log.Error(ex, model.Sanitize());
 
-                return BadRequest(ErrorResponse.Create(exception.Message));
+                return BadRequest(ErrorResponse.Create(ex.Message));
             }
         }
     }

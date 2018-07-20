@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 using Common;
 using Common.Log;
+using Lykke.Common.Log;
 using Lykke.Service.PayInvoice.Core.Domain;
 using Lykke.Service.PayInvoice.Core.Exceptions;
 using Lykke.Service.PayInvoice.Core.Repositories;
@@ -18,10 +19,10 @@ namespace Lykke.Service.PayInvoice.Services
 
         public EmployeeService(
             IEmployeeRepository employeeRepository,
-            ILog log)
+            ILogFactory logFactory)
         {
             _employeeRepository = employeeRepository;
-            _log = log;
+            _log = logFactory.CreateLog(this);
         }
 
         public Task<IReadOnlyList<Employee>> GetAllAsync()
@@ -58,8 +59,7 @@ namespace Lykke.Service.PayInvoice.Services
                 
             Employee createdEmployee = await _employeeRepository.InsertAsync(employee);
 
-            await _log.WriteInfoAsync(nameof(EmployeeService), nameof(AddAsync),
-                employee.ToContext().ToJson(), "Employee added.");
+            _log.Info("Employee added.", employee.Sanitize());
             
             return createdEmployee;
         }
@@ -73,17 +73,14 @@ namespace Lykke.Service.PayInvoice.Services
                 
             await _employeeRepository.UpdateAsync(employee);
             
-            await _log.WriteInfoAsync(nameof(EmployeeService), nameof(AddAsync),
-                employee.ToContext().ToJson(), "Employee updated.");
+            _log.Info("Employee updated.", employee.Sanitize());
         }
 
         public async Task DeleteAsync(string employeeId)
         {
             await _employeeRepository.DeleteAsync(employeeId);
             
-            await _log.WriteInfoAsync(nameof(EmployeeService), nameof(AddAsync),
-                employeeId.ToContext(nameof(employeeId))
-                    .ToJson(), "Employee deleted.");
+            _log.Info("Employee deleted.", new { employeeId });
         }
     }
 }
