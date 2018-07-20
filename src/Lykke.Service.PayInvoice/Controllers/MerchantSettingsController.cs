@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using AutoMapper;
 using Common.Log;
 using Lykke.Common.Api.Contract.Responses;
+using Lykke.Common.Log;
 using Lykke.Service.PayInternal.Client;
 using Lykke.Service.PayInvoice.Core.Domain;
 using Lykke.Service.PayInvoice.Core.Exceptions;
@@ -24,10 +25,10 @@ namespace Lykke.Service.PayInvoice.Controllers
 
         public MerchantSettingsController(
             IMerchantSettingService merchantSettingService,
-            ILog log)
+            ILogFactory logFactory)
         {
             _merchantSettingService = merchantSettingService;
-            _log = log.CreateComponentScope(nameof(MerchantSettingsController));
+            _log = logFactory.CreateLog(this);
         }
 
         /// <summary>

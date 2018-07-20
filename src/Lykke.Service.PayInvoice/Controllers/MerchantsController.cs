@@ -9,6 +9,7 @@ using Lykke.Service.PayInvoice.Models.Invoice;
 using Lykke.Service.PayInvoice.Models.Employee;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.SwaggerGen;
+using Lykke.Common.Log;
 
 namespace Lykke.Service.PayInvoice.Controllers
 {
@@ -22,11 +23,11 @@ namespace Lykke.Service.PayInvoice.Controllers
         public MerchantsController(
             IInvoiceService invoiceService,
             IEmployeeService employeeService,
-            ILog log)
+            ILogFactory logFactory)
         {
              _invoiceService = invoiceService;
             _employeeService = employeeService;
-            _log = log;
+            _log = logFactory.CreateLog(this);
         }
 
         /// <summary>

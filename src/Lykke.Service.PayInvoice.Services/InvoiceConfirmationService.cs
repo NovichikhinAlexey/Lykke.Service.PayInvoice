@@ -22,16 +22,16 @@ namespace Lykke.Service.PayInvoice.Services
         public InvoiceConfirmationService(
             InvoiceConfirmationPublisher invoiceConfirmationPublisher,
             RetryPolicySettings retryPolicySettings,
-            ILog log)
+            ILogFactory logFactory)
         {
             _invoiceConfirmationPublisher = invoiceConfirmationPublisher;
-            _log = log.CreateComponentScope(nameof(InvoiceConfirmationService));
+            _log = logFactory.CreateLog(this);
             _retryPolicy = Policy
                 .Handle<Exception>()
                 .WaitAndRetryAsync(
                     retryPolicySettings.DefaultAttempts,
                     attempt => TimeSpan.FromSeconds(Math.Pow(2, attempt)),
-                    (ex, timespan) => _log.Error("Publish confirmations to callback with retry", ex));
+                    (ex, timespan) => _log.Error(ex, "Publish confirmations to callback with retry"));
         }
 
         public async Task PublishDisputeCancelled(DisputeCancelledConfirmationCommand command)
