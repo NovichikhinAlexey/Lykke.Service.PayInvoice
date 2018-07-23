@@ -385,7 +385,7 @@ namespace Lykke.Service.PayInvoice.Services
             decimal? totalPaidAmountInSettlementAsset = 0;
             decimal currentPaidAmountInSettlementAsset = message.SettlementAssetId == message.PaymentAssetId
                 ? message.PaidAmount
-                : message.PaidAmount * message.Order.ExchangeRate;
+                : message.Order != null ? message.PaidAmount * message.Order.ExchangeRate : 0;
 
             if (status.IsPaidStatus())
             {
