@@ -1,0 +1,62 @@
+{
+  "MonitoringServiceClient": 
+  {
+    "MonitoringServiceUrl": "${MonitoringServiceUrl}"
+  },
+  "PayHistoryServiceClient": 
+  {
+    "ServiceUrl": "${PayHistoryServiceUrl}:[Tag]"
+  },
+  "PayHistoryServicePublisher": 
+  {
+    "ConnectionString": "${GeneralRabbitMqConnectionString}:[RabbitMq]",
+    "ExchangeName": "${PayHistoryExchangeName}:[Tag]"
+  },
+  "PayInternalServiceClient": 
+  {
+    "ServiceUrl": "${PayInternalServiceUrl}:[Tag]"
+  },
+  "PayInvoiceConfirmationPublisher": 
+  {
+    "ConnectionString": "${GeneralRabbitMqConnectionString}:[RabbitMq]",
+    "ExchangeName": "${PayInvoiceConfirmationExchangeName}:[Tag]"
+  },
+  "PayInvoiceService": 
+  {
+    "Db": 
+    {
+      "DataConnectionString": "${PayInvoiceService-DataConnString}:[AzureTableStorage, Tag]",
+      "LogsConnectionString": "${PayInvoiceService-LogsConnString}:[AzureTableStorage, Tag]"
+    },
+    "Rabbit": 
+    {
+      "ConnectionString": "${GeneralRabbitMqConnectionString}:[RabbitMq]",
+      "PaymentRequestsExchangeName": "${LykkePay-PaymentRequestsExchangeName}:[Tag]"
+    },
+    "RetryPolicy": 
+    {
+      "DefaultAttempts": 5
+    },
+    "DistributedCacheSettings": 
+    {
+      "RedisConfiguration": "${RedisConfiguration}",
+      "PaymentLocksCacheKeyPattern": "${PayInvoiceService-DistributedCacheSettings-PaymentLocksCacheKeyPattern}:[Tag]"
+    },
+    "CacheExpirationPeriods": 
+    {
+      "MerchantName": "${PayInvoiceService-CacheExpirationPeriods-MerchantName}:[Tag]"
+    }
+  },
+  "PayPushNotificationsServicePublisher": 
+  {
+    "ConnectionString": "${GeneralRabbitMqConnectionString}:[RabbitMq]",
+    "ExchangeName": "${PayPushNotificationsExchangeName}:[Tag]"
+  },
+  "SlackNotifications": {
+    "AzureQueue": {
+      "ConnectionString": "${SlackNotificationsConnString}:[AzureTableStorage]",
+      "QueueName": "slack-notifications"
+    },
+    "ThrottlingLimitSeconds": "${SlackNotificationsThrottlingLimit}"
+  }
+}
