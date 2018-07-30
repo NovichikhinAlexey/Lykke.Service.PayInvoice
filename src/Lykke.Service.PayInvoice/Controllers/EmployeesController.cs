@@ -128,7 +128,7 @@ namespace Lykke.Service.PayInvoice.Controllers
             }
             catch (EmployeeExistException ex)
             {
-                _log.Warning(ex.Message, model.Sanitize());
+                _log.WarningWithDetails(ex.Message, model.Sanitize());
 
                 return BadRequest(ErrorResponse.Create(ex.Message));
             }
@@ -157,7 +157,7 @@ namespace Lykke.Service.PayInvoice.Controllers
             }
             catch (EmployeeNotFoundException ex)
             {
-                _log.Warning(ex.Message, model.Sanitize());
+                _log.WarningWithDetails(ex.Message, model.Sanitize());
 
                 return BadRequest(ErrorResponse.Create(ex.Message));
             }

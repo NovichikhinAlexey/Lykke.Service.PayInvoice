@@ -77,13 +77,13 @@ namespace Lykke.Service.PayInvoice.Controllers
             }
             catch (InvoiceNotFoundException ex)
             {
-                _log.Error(ex, model.Sanitize());
+                _log.ErrorWithDetails(ex, model.Sanitize());
 
                 return NotFound();
             }
             catch (InvalidOperationException ex)
             {
-                _log.Error(ex, model.Sanitize());
+                _log.ErrorWithDetails(ex, model.Sanitize());
 
                 return BadRequest(ErrorResponse.Create(ex.Message));
             }
