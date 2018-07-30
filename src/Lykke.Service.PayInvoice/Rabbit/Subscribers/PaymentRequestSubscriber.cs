@@ -70,7 +70,7 @@ namespace Lykke.Service.PayInvoice.Rabbit.Subscribers
             }
             catch (Exception ex)
             {
-                _log.Error(ex, message);
+                _log.ErrorWithDetails(ex, message);
             }
         }
     }
