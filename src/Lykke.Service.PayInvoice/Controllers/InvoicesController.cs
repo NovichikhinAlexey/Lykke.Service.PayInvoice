@@ -16,6 +16,7 @@ using Lykke.Service.PayInvoice.Core.Extensions;
 using Lykke.Service.PayInvoice.Core.Services;
 using Lykke.Service.PayInvoice.Extensions;
 using Lykke.Service.PayInvoice.Models.Invoice;
+using Lykke.Service.PayInvoice.Validation;
 using LykkePay.Common.Validation;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.SwaggerGen;
@@ -93,9 +94,17 @@ namespace Lykke.Service.PayInvoice.Controllers
         {
             try
             {
+                model.ValidateDueDate();
+
                 Invoice invoice = await _invoiceService.CreateAsync(Mapper.Map<Invoice>(model));
 
                 return Ok(Mapper.Map<InvoiceModel>(invoice));
+            }
+            catch (InvoiceDueDateException ex)
+            {
+                _log.WarningWithDetails(ex.Message, model.Sanitize());
+
+                return BadRequest(ErrorResponse.Create(ex.Message));
             }
             catch (InvalidOperationException ex)
             {
