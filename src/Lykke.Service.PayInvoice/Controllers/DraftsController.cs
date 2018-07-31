@@ -11,6 +11,7 @@ using Lykke.Service.PayInvoice.Core.Extensions;
 using Lykke.Service.PayInvoice.Core.Services;
 using Lykke.Service.PayInvoice.Extensions;
 using Lykke.Service.PayInvoice.Models.Invoice;
+using Lykke.Service.PayInvoice.Validation;
 using LykkePay.Common.Validation;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.SwaggerGen;
@@ -44,9 +45,20 @@ namespace Lykke.Service.PayInvoice.Controllers
         [ValidateModel]
         public async Task<IActionResult> CreateAsync([FromBody] CreateInvoiceModel model)
         {
-            Invoice invoice = await _invoiceService.CreateDraftAsync(Mapper.Map<Invoice>(model));
+            try
+            {
+                model.ValidateDueDate();
 
-            return Ok(Mapper.Map<InvoiceModel>(invoice));
+                Invoice invoice = await _invoiceService.CreateDraftAsync(Mapper.Map<Invoice>(model));
+
+                return Ok(Mapper.Map<InvoiceModel>(invoice));
+            }
+            catch (InvoiceDueDateException ex)
+            {
+                _log.WarningWithDetails(ex.Message, model.Sanitize());
+
+                return BadRequest(ErrorResponse.Create(ex.Message));
+            }
         }
 
         /// <summary>
@@ -66,11 +78,19 @@ namespace Lykke.Service.PayInvoice.Controllers
         {
             try
             {
+                model.ValidateDueDate();
+
                 var invoice = Mapper.Map<Invoice>(model);
 
                 await _invoiceService.UpdateDraftAsync(invoice);
 
                 return NoContent();
+            }
+            catch (InvoiceDueDateException ex)
+            {
+                _log.WarningWithDetails(ex.Message, model.Sanitize());
+
+                return BadRequest(ErrorResponse.Create(ex.Message));
             }
             catch (InvoiceNotFoundException ex)
             {
