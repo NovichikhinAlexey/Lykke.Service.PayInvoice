@@ -12,7 +12,7 @@ namespace Lykke.Service.PayInvoice.Core.Exceptions
         /// <summary>
         /// Initializes a new instance of the <see cref="InvoiceNotFoundException"/> class.
         /// </summary>
-        public InvoiceNotFoundException()
+        public InvoiceNotFoundException() : base("Invoice not found")
         {
         }
 

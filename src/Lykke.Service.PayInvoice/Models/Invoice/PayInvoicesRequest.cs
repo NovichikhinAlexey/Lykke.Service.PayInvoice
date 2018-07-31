@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Text;
-using Lykke.Service.PayInvoice.Validation;
+﻿using Lykke.Service.PayInvoice.Validation;
 
 namespace Lykke.Service.PayInvoice.Models.Invoice
 {
