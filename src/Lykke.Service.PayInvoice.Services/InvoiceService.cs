@@ -96,7 +96,12 @@ namespace Lykke.Service.PayInvoice.Services
 
         public async Task<Invoice> GetByIdAsync(string invoiceId)
         {
-            return await _invoiceRepository.FindByIdAsync(invoiceId);
+            var invoice = await _invoiceRepository.FindByIdAsync(invoiceId);
+
+            if (invoice == null)
+                throw new InvoiceNotFoundException(invoiceId);
+
+            return invoice;
         }
 
         public async Task<IReadOnlyList<Invoice>> GetByIdsAsync(string merchantId, IEnumerable<string> invoiceIds)
@@ -326,7 +331,7 @@ namespace Lykke.Service.PayInvoice.Services
             Invoice invoice = await _invoiceRepository.FindByIdAsync(invoiceId);
 
             if (invoice == null)
-                return;
+                throw new InvoiceNotFoundException(invoiceId);
 
             if (invoice.Status == InvoiceStatus.Draft)
             {

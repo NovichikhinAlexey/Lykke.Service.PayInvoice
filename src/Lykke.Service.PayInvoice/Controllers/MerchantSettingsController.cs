@@ -1,4 +1,5 @@
 ﻿using System;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
@@ -9,9 +10,11 @@ using Lykke.Common.Log;
 using Lykke.Service.PayInternal.Client;
 using Lykke.Service.PayInvoice.Core.Domain;
 using Lykke.Service.PayInvoice.Core.Exceptions;
+using Lykke.Service.PayInvoice.Core.Extensions;
 using Lykke.Service.PayInvoice.Core.Services;
 using Lykke.Service.PayInvoice.Extensions;
 using Lykke.Service.PayInvoice.Models.MerchantSetting;
+using LykkePay.Common.Validation;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.SwaggerGen;
 
@@ -42,7 +45,8 @@ namespace Lykke.Service.PayInvoice.Controllers
         [SwaggerOperation("MerchantSettingGetById")]
         [ProducesResponseType(typeof(MerchantSetting), (int)HttpStatusCode.OK)]
         [ProducesResponseType(typeof(ErrorResponse), (int)HttpStatusCode.NotFound)]
-        public async Task<IActionResult> GetByIdAsync(string merchantId)
+        [ValidateModel]
+        public async Task<IActionResult> GetByIdAsync([Required][RowKey] string merchantId)
         {
             try
             {
@@ -52,6 +56,8 @@ namespace Lykke.Service.PayInvoice.Controllers
             }
             catch (MerchantSettingNotFoundException ex)
             {
+                _log.WarningWithDetails(ex.Message, new { merchantId });
+
                 return NotFound(ErrorResponse.Create(ex.Message));
             }
         }
@@ -61,16 +67,16 @@ namespace Lykke.Service.PayInvoice.Controllers
         /// </summary>
         /// <param name="model">The merchant setting info</param>
         /// <response code="200">Successfully created</response>
+        /// <response code="404">Merchant not found</response>
         /// <response code="400">Invalid model</response>
         [HttpPost]
         [SwaggerOperation("MerchantSettingSet")]
         [ProducesResponseType(typeof(MerchantSetting), (int) HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(ErrorResponse), (int)HttpStatusCode.NotFound)]
         [ProducesResponseType(typeof(ErrorResponse), (int) HttpStatusCode.BadRequest)]
+        [ValidateModel]
         public async Task<IActionResult> SetAsync([FromBody] SetMerchantSettingModel model)
         {
-            if (!ModelState.IsValid)
-                return BadRequest(new ErrorResponse().AddErrors(ModelState));
-
             try
             {
                 var merchantSettingModel = Mapper.Map<MerchantSetting>(model);
@@ -79,8 +85,16 @@ namespace Lykke.Service.PayInvoice.Controllers
 
                 return Ok(merchantSetting);
             }
+            catch (MerchantNotFoundException ex)
+            {
+                _log.WarningWithDetails(ex.Message, new { ex.MerchantId });
+
+                return NotFound(ErrorResponse.Create(ex.Message));
+            }
             catch (AssetNotAvailableForMerchantException ex)
             {
+                _log.WarningWithDetails(ex.Message, model);
+
                 return BadRequest(ErrorResponse.Create(ex.Message));
             }
         }
@@ -96,7 +110,8 @@ namespace Lykke.Service.PayInvoice.Controllers
         [SwaggerOperation("GetBaseAssetById")]
         [ProducesResponseType(typeof(string), (int)HttpStatusCode.OK)]
         [ProducesResponseType(typeof(ErrorResponse), (int)HttpStatusCode.NotFound)]
-        public async Task<IActionResult> GetBaseAssetByIdAsync(string merchantId)
+        [ValidateModel]
+        public async Task<IActionResult> GetBaseAssetByIdAsync([Required][RowKey] string merchantId)
         {
             try
             {
@@ -106,6 +121,8 @@ namespace Lykke.Service.PayInvoice.Controllers
             }
             catch (MerchantSettingNotFoundException ex)
             {
+                _log.WarningWithDetails(ex.Message, new { merchantId });
+
                 return NotFound(ErrorResponse.Create(ex.Message));
             }
         }
@@ -122,11 +139,9 @@ namespace Lykke.Service.PayInvoice.Controllers
         [ProducesResponseType(typeof(void), (int)HttpStatusCode.OK)]
         [ProducesResponseType(typeof(ErrorResponse), (int)HttpStatusCode.NotFound)]
         [ProducesResponseType(typeof(ErrorResponse), (int)HttpStatusCode.BadRequest)]
+        [ValidateModel]
         public async Task<IActionResult> SetBaseAssetAsync([FromBody] UpdateBaseAssetRequest model)
         {
-            if (!ModelState.IsValid)
-                return BadRequest(new ErrorResponse().AddErrors(ModelState));
-
             try
             {
                 MerchantSetting merchantSettings = await _merchantSettingService.GetByIdAsync(model.MerchantId);
@@ -139,10 +154,14 @@ namespace Lykke.Service.PayInvoice.Controllers
             }
             catch (MerchantSettingNotFoundException ex)
             {
+                _log.WarningWithDetails(ex.Message, model);
+
                 return NotFound(ErrorResponse.Create(ex.Message));
             }
             catch (AssetNotAvailableForMerchantException ex)
             {
+                _log.WarningWithDetails(ex.Message, model);
+
                 return BadRequest(ErrorResponse.Create(ex.Message));
             }
         }

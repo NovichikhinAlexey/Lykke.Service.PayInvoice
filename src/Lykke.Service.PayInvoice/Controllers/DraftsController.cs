@@ -11,6 +11,7 @@ using Lykke.Service.PayInvoice.Core.Extensions;
 using Lykke.Service.PayInvoice.Core.Services;
 using Lykke.Service.PayInvoice.Extensions;
 using Lykke.Service.PayInvoice.Models.Invoice;
+using LykkePay.Common.Validation;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.SwaggerGen;
 
@@ -40,11 +41,9 @@ namespace Lykke.Service.PayInvoice.Controllers
         [SwaggerOperation("DraftsAdd")]
         [ProducesResponseType(typeof(InvoiceModel), (int)HttpStatusCode.OK)]
         [ProducesResponseType(typeof(ErrorResponse), (int)HttpStatusCode.BadRequest)]
+        [ValidateModel]
         public async Task<IActionResult> CreateAsync([FromBody] CreateInvoiceModel model)
         {
-            if (!ModelState.IsValid)
-                return BadRequest(new ErrorResponse().AddErrors(ModelState));
-
             Invoice invoice = await _invoiceService.CreateDraftAsync(Mapper.Map<Invoice>(model));
 
             return Ok(Mapper.Map<InvoiceModel>(invoice));
@@ -61,12 +60,10 @@ namespace Lykke.Service.PayInvoice.Controllers
         [SwaggerOperation("InvoicesUpdateDraft")]
         [ProducesResponseType((int)HttpStatusCode.NoContent)]
         [ProducesResponseType(typeof(ErrorResponse), (int)HttpStatusCode.BadRequest)]
-        [ProducesResponseType((int)HttpStatusCode.NotFound)]
+        [ProducesResponseType(typeof(ErrorResponse), (int)HttpStatusCode.NotFound)]
+        [ValidateModel]
         public async Task<IActionResult> UpdateAsync([FromBody] UpdateInvoiceModel model)
         {
-            if (!ModelState.IsValid)
-                return BadRequest(new ErrorResponse().AddErrors(ModelState));
-
             try
             {
                 var invoice = Mapper.Map<Invoice>(model);
@@ -77,13 +74,13 @@ namespace Lykke.Service.PayInvoice.Controllers
             }
             catch (InvoiceNotFoundException ex)
             {
-                _log.ErrorWithDetails(ex, model.Sanitize());
+                _log.WarningWithDetails(ex.Message, model.Sanitize());
 
-                return NotFound();
+                return NotFound(ErrorResponse.Create("Invoice with such Id and MerchantId not found"));
             }
             catch (InvalidOperationException ex)
             {
-                _log.ErrorWithDetails(ex, model.Sanitize());
+                _log.WarningWithDetails(ex.Message, model.Sanitize());
 
                 return BadRequest(ErrorResponse.Create(ex.Message));
             }

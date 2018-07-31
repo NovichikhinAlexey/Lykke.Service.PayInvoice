@@ -1,8 +1,10 @@
 ﻿using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
 using Common.Log;
 using Lykke.Common.Log;
 using Lykke.Service.PayInternal.Client;
+using Lykke.Service.PayInternal.Client.Exceptions;
 using Lykke.Service.PayInvoice.Core.Domain;
 using Lykke.Service.PayInvoice.Core.Exceptions;
 using Lykke.Service.PayInvoice.Core.Repositories;
@@ -44,6 +46,15 @@ namespace Lykke.Service.PayInvoice.Services
 
         public async Task<MerchantSetting> SetAsync(MerchantSetting model)
         {
+            try
+            {
+                var merchant = await _payInternalClient.GetMerchantByIdAsync(model.MerchantId);
+            }
+            catch (DefaultErrorResponseException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
+            {
+                throw new MerchantNotFoundException(model.MerchantId);
+            }
+
             await ValidateAssetAsync(model.MerchantId, model.BaseAsset);
 
             await _merchantSettingRepository.SetAsync(model);
@@ -62,12 +73,19 @@ namespace Lykke.Service.PayInvoice.Services
 
         private async Task ValidateAssetAsync(string merchantId, string baseAsset)
         {
-            var settlementAssetsResponse = await _payInternalClient.GetAvailableSettlementAssetsAsync(merchantId);
+            try
+            {
+                var settlementAssetsResponse = await _payInternalClient.GetAvailableSettlementAssetsAsync(merchantId);
 
-            bool isValidAsset = settlementAssetsResponse.Assets.ToList().Contains(baseAsset);
+                bool isValidAsset = settlementAssetsResponse.Assets.ToList().Contains(baseAsset);
 
-            if (!isValidAsset)
+                if (!isValidAsset)
+                    throw new AssetNotAvailableForMerchantException();
+            }
+            catch (DefaultErrorResponseException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
+            {
                 throw new AssetNotAvailableForMerchantException();
+            }
         }
     }
 }
