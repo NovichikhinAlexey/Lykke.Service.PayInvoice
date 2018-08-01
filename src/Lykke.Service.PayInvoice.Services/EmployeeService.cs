@@ -40,9 +40,14 @@ namespace Lykke.Service.PayInvoice.Services
             return employee;
         }
 
-        public Task<Employee> GetByEmailAsync(string email)
+        public async Task<Employee> GetByEmailAsync(string email)
         {
-            return _employeeRepository.FindAsync(email);
+            var employee = await _employeeRepository.FindAsync(email);
+
+            if (employee == null)
+                throw new EmployeeNotFoundException();
+
+            return employee;
         }
 
         public Task<IReadOnlyList<Employee>> GetByMerchantIdAsync(string merchantId)
@@ -69,7 +74,7 @@ namespace Lykke.Service.PayInvoice.Services
             Employee existingEmployee = await _employeeRepository.GetByIdAsync(employee.Id);
             
             if(existingEmployee == null)
-                throw new EmployeeNotFoundException();
+                throw new EmployeeNotFoundException(employee.Id);
                 
             await _employeeRepository.UpdateAsync(employee);
             
@@ -78,6 +83,11 @@ namespace Lykke.Service.PayInvoice.Services
 
         public async Task DeleteAsync(string employeeId)
         {
+            Employee existingEmployee = await _employeeRepository.GetByIdAsync(employeeId);
+
+            if (existingEmployee == null)
+                throw new EmployeeNotFoundException(employeeId);
+
             await _employeeRepository.DeleteAsync(employeeId);
             
             _log.Info("Employee deleted.", new { employeeId });
