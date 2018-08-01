@@ -167,6 +167,12 @@ namespace Lykke.Service.PayInvoice.Controllers
 
                 return NoContent();
             }
+            catch (EmployeeExistException ex)
+            {
+                _log.WarningWithDetails(ex.Message, model.Sanitize());
+
+                return BadRequest(ErrorResponse.Create(ex.Message));
+            }
             catch (EmployeeNotFoundException ex)
             {
                 _log.WarningWithDetails(ex.Message, model.Sanitize());
