@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
@@ -16,6 +17,7 @@ using Lykke.Service.PayInvoice.Core.Services;
 using Lykke.Service.PayInvoice.Extensions;
 using Lykke.Service.PayInvoice.Models.Invoice;
 using Lykke.Service.PayInvoice.Validation;
+using LykkePay.Common.Validation;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.SwaggerGen;
 
@@ -51,21 +53,30 @@ namespace Lykke.Service.PayInvoice.Controllers
         /// <returns>The invoice.</returns>
         /// <response code="200">The invoice.</response>
         /// <response code="404">Invoice not found.</response>
+        /// <response code="400">Invalid model.</response>
         [HttpGet]
         [Route("{invoiceId}")]
         [SwaggerOperation("InvoicesGet")]
         [ProducesResponseType(typeof(InvoiceModel), (int)HttpStatusCode.OK)]
-        [ProducesResponseType((int)HttpStatusCode.NotFound)]
-        public async Task<IActionResult> GetAsync(string invoiceId)
+        [ProducesResponseType(typeof(ErrorResponse), (int)HttpStatusCode.NotFound)]
+        [ProducesResponseType(typeof(ErrorResponse), (int)HttpStatusCode.BadRequest)]
+        [ValidateModel]
+        public async Task<IActionResult> GetAsync([Required][Guid] string invoiceId)
         {
-            Invoice invoice = await _invoiceService.GetByIdAsync(invoiceId);
+            try
+            {
+                Invoice invoice = await _invoiceService.GetByIdAsync(invoiceId);
 
-            if (invoice == null)
-                return NotFound();
+                var model = Mapper.Map<InvoiceModel>(invoice);
 
-            var model = Mapper.Map<InvoiceModel>(invoice);
+                return Ok(model);
+            }
+            catch (InvoiceNotFoundException ex)
+            {
+                _log.ErrorWithDetails(ex, new { invoiceId });
 
-            return Ok(model);
+                return NotFound(ErrorResponse.Create(ex.Message));
+            }
         }
 
         /// <summary>
@@ -78,16 +89,22 @@ namespace Lykke.Service.PayInvoice.Controllers
         [SwaggerOperation("InvoicesCreate")]
         [ProducesResponseType(typeof(InvoiceModel), (int)HttpStatusCode.OK)]
         [ProducesResponseType(typeof(ErrorResponse), (int)HttpStatusCode.BadRequest)]
+        [ValidateModel]
         public async Task<IActionResult> CreateAsync([FromBody]CreateInvoiceModel model)
         {
-            if (!ModelState.IsValid)
-                return BadRequest(new ErrorResponse().AddErrors(ModelState));
-
             try
             {
+                model.ValidateDueDate();
+
                 Invoice invoice = await _invoiceService.CreateAsync(Mapper.Map<Invoice>(model));
 
                 return Ok(Mapper.Map<InvoiceModel>(invoice));
+            }
+            catch (InvoiceDueDateException ex)
+            {
+                _log.WarningWithDetails(ex.Message, model.Sanitize());
+
+                return BadRequest(ErrorResponse.Create(ex.Message));
             }
             catch (InvalidOperationException ex)
             {
@@ -103,17 +120,16 @@ namespace Lykke.Service.PayInvoice.Controllers
         /// <param name="invoiceId">The invoice id.</param>
         /// <response code="200">Created invoice.</response>
         /// <response code="404">Draft invoice not found.</response>
+        /// <response code="400">Invalid model.</response>
         [HttpPost]
         [Route("{invoiceId}")]
         [SwaggerOperation("InvoicesCreateFromDraft")]
         [ProducesResponseType(typeof(InvoiceModel), (int)HttpStatusCode.OK)]
         [ProducesResponseType(typeof(ErrorResponse), (int)HttpStatusCode.BadRequest)]
-        [ProducesResponseType((int)HttpStatusCode.NotFound)]
-        public async Task<IActionResult> CreateFromDraftAsync(string invoiceId)
+        [ProducesResponseType(typeof(ErrorResponse), (int)HttpStatusCode.NotFound)]
+        [ValidateModel]
+        public async Task<IActionResult> CreateFromDraftAsync([Required][Guid] string invoiceId)
         {
-            if (!ModelState.IsValid)
-                return BadRequest(new ErrorResponse().AddErrors(ModelState));
-
             try
             {
                 Invoice invoice = await _invoiceService.CreateFromDraftAsync(invoiceId);
@@ -124,7 +140,7 @@ namespace Lykke.Service.PayInvoice.Controllers
             {
                 _log.ErrorWithDetails(ex, new { invoiceId });
 
-                return NotFound();
+                return NotFound(ErrorResponse.Create(ex.Message));
             }
             catch (InvalidOperationException ex)
             {
@@ -140,14 +156,16 @@ namespace Lykke.Service.PayInvoice.Controllers
         /// <param name="invoiceId">The invoice id</param>
         /// <param name="paymentAssetId">The payment asset id</param>
         /// <response code="200">Updated invoice</response>
+        /// <response code="404">Invoice not found.</response>
         /// <response code="400">Invalid model</response>
         [HttpPost]
         [Route("{invoiceId}/{paymentAssetId}")]
         [SwaggerOperation("ChangePaymentAsset")]
         [ProducesResponseType(typeof(InvoiceModel), (int)HttpStatusCode.OK)]
         [ProducesResponseType(typeof(ErrorResponse), (int)HttpStatusCode.BadRequest)]
-        [ProducesResponseType((int)HttpStatusCode.NotFound)]
-        public async Task<IActionResult> ChangePaymentAssetAsync(string invoiceId, string paymentAssetId)
+        [ProducesResponseType(typeof(ErrorResponse), (int)HttpStatusCode.NotFound)]
+        [ValidateModel]
+        public async Task<IActionResult> ChangePaymentAssetAsync([Required][Guid] string invoiceId, [Required] string paymentAssetId)
         {
             try
             {
@@ -159,7 +177,7 @@ namespace Lykke.Service.PayInvoice.Controllers
             {
                 _log.ErrorWithDetails(ex, new { invoiceId });
 
-                return NotFound();
+                return NotFound(ErrorResponse.Create(ex.Message));
             }
             catch (InvalidOperationException ex)
             {
@@ -174,17 +192,26 @@ namespace Lykke.Service.PayInvoice.Controllers
         /// </summary>
         /// <param name="invoiceId">The invoice id.</param>
         /// <response code="204">Invoice successfully deleted.</response>
+        /// <response code="404">Invoice not found.</response>
         /// <response code="400">Problem occured.</response>
         [HttpDelete]
         [Route("{invoiceId}")]
         [SwaggerOperation("InvoicesDelete")]
         [ProducesResponseType((int)HttpStatusCode.NoContent)]
+        [ProducesResponseType(typeof(ErrorResponse), (int)HttpStatusCode.NotFound)]
         [ProducesResponseType(typeof(ErrorResponse), (int)HttpStatusCode.BadRequest)]
-        public async Task<IActionResult> DeleteAsync(string invoiceId)
+        [ValidateModel]
+        public async Task<IActionResult> DeleteAsync([Required][Guid] string invoiceId)
         {
             try
             {
                 await _invoiceService.DeleteAsync(invoiceId);
+            }
+            catch (InvoiceNotFoundException ex)
+            {
+                _log.ErrorWithDetails(ex, new { invoiceId });
+
+                return NotFound(ErrorResponse.Create(ex.Message));
             }
             catch (InvalidOperationException ex)
             {
@@ -200,11 +227,14 @@ namespace Lykke.Service.PayInvoice.Controllers
         /// <param name="invoiceId">The invoice id.</param>
         /// <returns>A collection of invoice history items.</returns>
         /// <response code="200">A collection of invoice history items.</response>
+        /// <response code="400">Invalid model</response>
         [HttpGet]
         [Route("{invoiceId}/history")]
         [SwaggerOperation("InvoicesGetHistory")]
         [ProducesResponseType(typeof(IEnumerable<HistoryItemModel>), (int)HttpStatusCode.OK)]
-        public async Task<IActionResult> GetHistoryAsync(string invoiceId)
+        [ProducesResponseType(typeof(ErrorResponse), (int)HttpStatusCode.BadRequest)]
+        [ValidateModel]
+        public async Task<IActionResult> GetHistoryAsync([Required][Guid] string invoiceId)
         {
             IReadOnlyList<HistoryItem> history = await _invoiceService.GetHistoryAsync(invoiceId);
 
@@ -219,12 +249,16 @@ namespace Lykke.Service.PayInvoice.Controllers
         /// <param name="invoiceId">The invoice id</param>
         /// <returns>A collection of invoice's payment requests</returns>
         /// <response code="200">A collection of invoice's payment requests</response>
+        /// <response code="404">Invoice not found.</response>
+        /// <response code="400">Invalid model</response>
         [HttpGet]
         [Route("{invoiceId}/paymentrequests")]
         [SwaggerOperation("InvoicesGetPaymentRequests")]
         [ProducesResponseType(typeof(IEnumerable<PaymentRequestHistoryItem>), (int)HttpStatusCode.OK)]
         [ProducesResponseType(typeof(ErrorResponse), (int)HttpStatusCode.NotFound)]
-        public async Task<IActionResult> GetPaymentRequestsAsync(string invoiceId)
+        [ProducesResponseType(typeof(ErrorResponse), (int)HttpStatusCode.BadRequest)]
+        [ValidateModel]
+        public async Task<IActionResult> GetPaymentRequestsAsync([Required][Guid] string invoiceId)
         {
             try
             {
@@ -236,7 +270,7 @@ namespace Lykke.Service.PayInvoice.Controllers
             {
                 _log.ErrorWithDetails(ex, new { invoiceId });
 
-                return NotFound(ErrorResponse.Create("Invoice not found"));
+                return NotFound(ErrorResponse.Create(ex.Message));
             }
         }
 
@@ -257,7 +291,8 @@ namespace Lykke.Service.PayInvoice.Controllers
         [SwaggerOperation("InvoicesGetByFilter")]
         [ProducesResponseType(typeof(IEnumerable<InvoiceModel>), (int)HttpStatusCode.OK)]
         [ProducesResponseType(typeof(ErrorResponse), (int)HttpStatusCode.BadRequest)]
-        public async Task<IActionResult> GetByFilter(IEnumerable<string> merchantIds, IEnumerable<string> clientMerchantIds, IEnumerable<string> statuses, bool? dispute, IEnumerable<string> billingCategories, decimal? greaterThan, decimal? lessThan)
+        [ValidateModel]
+        public async Task<IActionResult> GetByFilter([RowKey] IEnumerable<string> merchantIds, [RowKey] IEnumerable<string> clientMerchantIds, IEnumerable<string> statuses, bool? dispute, IEnumerable<string> billingCategories, decimal? greaterThan, decimal? lessThan)
         {
             var statusesConverted = new List<InvoiceStatus>();
 
@@ -429,11 +464,9 @@ namespace Lykke.Service.PayInvoice.Controllers
         [ProducesResponseType(typeof(void), (int)HttpStatusCode.OK)]
         [ProducesResponseType(typeof(ErrorResponse), (int)HttpStatusCode.NotFound)]
         [ProducesResponseType(typeof(ErrorResponse), (int)HttpStatusCode.BadRequest)]
+        [ValidateModel]
         public async Task<IActionResult> MarkDispute([FromBody] MarkInvoiceDisputeRequest model)
         {
-            if (!ModelState.IsValid)
-                return BadRequest(new ErrorResponse().AddErrors(ModelState));
-
             try
             {
                 await _invoiceService.MarkDisputeAsync(model.InvoiceId, model.Reason, model.EmployeeId);
@@ -442,10 +475,14 @@ namespace Lykke.Service.PayInvoice.Controllers
             }
             catch (InvoiceNotFoundException ex)
             {
+                _log.WarningWithDetails(ex.Message, model);
+
                 return NotFound(ErrorResponse.Create(ex.Message));
             }
             catch (EmployeeNotFoundException ex)
             {
+                _log.WarningWithDetails(ex.Message, model);
+
                 return NotFound(ErrorResponse.Create(ex.Message));
             }
             catch (InvalidOperationException ex)
@@ -469,11 +506,9 @@ namespace Lykke.Service.PayInvoice.Controllers
         [ProducesResponseType(typeof(void), (int)HttpStatusCode.OK)]
         [ProducesResponseType(typeof(ErrorResponse), (int)HttpStatusCode.NotFound)]
         [ProducesResponseType(typeof(ErrorResponse), (int)HttpStatusCode.BadRequest)]
+        [ValidateModel]
         public async Task<IActionResult> CancelDispute([FromBody] CancelInvoiceDisputeRequest model)
         {
-            if (!ModelState.IsValid)
-                return BadRequest(new ErrorResponse().AddErrors(ModelState));
-
             try
             {
                 await _invoiceService.CancelDisputeAsync(model.InvoiceId, model.EmployeeId);
@@ -482,10 +517,14 @@ namespace Lykke.Service.PayInvoice.Controllers
             }
             catch (InvoiceNotFoundException ex)
             {
+                _log.WarningWithDetails(ex.Message, model);
+
                 return NotFound(ErrorResponse.Create(ex.Message));
             }
             catch (EmployeeNotFoundException ex)
             {
+                _log.WarningWithDetails(ex.Message, model);
+
                 return NotFound(ErrorResponse.Create(ex.Message));
             }
             catch (InvalidOperationException ex)
@@ -508,7 +547,9 @@ namespace Lykke.Service.PayInvoice.Controllers
         [SwaggerOperation(nameof(GetInvoiceDisputeInfo))]
         [ProducesResponseType(typeof(InvoiceDispute), (int)HttpStatusCode.OK)]
         [ProducesResponseType(typeof(ErrorResponse), (int)HttpStatusCode.NotFound)]
-        public async Task<IActionResult> GetInvoiceDisputeInfo(string invoiceId)
+        [ProducesResponseType(typeof(ErrorResponse), (int)HttpStatusCode.BadRequest)]
+        [ValidateModel]
+        public async Task<IActionResult> GetInvoiceDisputeInfo([Required][Guid] string invoiceId)
         {
             try
             {
@@ -518,6 +559,8 @@ namespace Lykke.Service.PayInvoice.Controllers
             }
             catch (InvoiceDisputeNotFoundException ex)
             {
+                _log.WarningWithDetails(ex.Message, new { invoiceId });
+
                 return NotFound(ErrorResponse.Create(ex.Message));
             }
         }

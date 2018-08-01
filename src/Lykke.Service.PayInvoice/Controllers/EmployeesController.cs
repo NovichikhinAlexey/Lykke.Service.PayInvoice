@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Net;
 using System.Threading.Tasks;
 using AutoMapper;
@@ -13,7 +14,7 @@ using Lykke.Service.PayInvoice.Core.Extensions;
 using Lykke.Service.PayInvoice.Core.Services;
 using Lykke.Service.PayInvoice.Extensions;
 using Lykke.Service.PayInvoice.Models.Employee;
-using Lykke.Service.PayInvoice.Validation;
+using LykkePay.Common.Validation;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.SwaggerGen;
 
@@ -57,21 +58,28 @@ namespace Lykke.Service.PayInvoice.Controllers
         /// <returns>The employee.</returns>
         /// <response code="200">The employee.</response>
         /// <response code="404">Employee not found.</response>
+        /// <response code="400">Invalid model.</response>
         [HttpGet]
         [Route("{employeeId}")]
         [SwaggerOperation("EmployeesGetById")]
         [ProducesResponseType(typeof(EmployeeModel), (int)HttpStatusCode.OK)]
-        [ProducesResponseType((int)HttpStatusCode.NotFound)]
-        public async Task<IActionResult> GetByIdAsync(string employeeId)
+        [ProducesResponseType(typeof(ErrorResponse), (int)HttpStatusCode.NotFound)]
+        [ProducesResponseType(typeof(ErrorResponse), (int)HttpStatusCode.BadRequest)]
+        [ValidateModel]
+        public async Task<IActionResult> GetByIdAsync([Required][Guid] string employeeId)
         {
-            Employee employee = await _employeeService.GetByIdAsync(employeeId);
+            try
+            {
+                Employee employee = await _employeeService.GetByIdAsync(employeeId);
 
-            if (employee == null)
-                return NotFound();
+                return Ok(Mapper.Map<EmployeeModel>(employee));
+            }
+            catch (EmployeeNotFoundException ex)
+            {
+                _log.WarningWithDetails(ex.Message, new { employeeId });
 
-            var model = Mapper.Map<EmployeeModel>(employee);
-
-            return Ok(model);
+                return NotFound(ErrorResponse.Create(ex.Message));
+            }
         }
 
         /// <summary>
@@ -88,19 +96,21 @@ namespace Lykke.Service.PayInvoice.Controllers
         [ProducesResponseType(typeof(EmployeeModel), (int)HttpStatusCode.OK)]
         [ProducesResponseType(typeof(ErrorResponse), (int)HttpStatusCode.NotFound)]
         [ProducesResponseType(typeof(ErrorResponse), (int)HttpStatusCode.BadRequest)]
-        public async Task<IActionResult> GetByEmail(string email)
+        [ValidateModel]
+        public async Task<IActionResult> GetByEmail([Required][EmailAndRowKey] string email)
         {
-            email = Uri.UnescapeDataString(email);
+            try
+            {
+                Employee employee = await _employeeService.GetByEmailAsync(email);
 
-            if (!email.IsValidEmailAndRowKey())
-                return BadRequest(ErrorResponse.Create("Email value is invalid"));
+                return Ok(Mapper.Map<EmployeeModel>(employee));
+            }
+            catch (EmployeeNotFoundException ex)
+            {
+                _log.WarningWithDetails(ex.Message, new { email });
 
-            Employee employee = await _employeeService.GetByEmailAsync(email);
-
-            if (employee == null)
-                return NotFound(ErrorResponse.Create("Employee not found"));
-
-            return Ok(Mapper.Map<EmployeeModel>(employee));
+                return NotFound(ErrorResponse.Create(ex.Message));
+            }
         }
 
         /// <summary>
@@ -108,11 +118,13 @@ namespace Lykke.Service.PayInvoice.Controllers
         /// </summary>
         /// <param name="model">The employee info.</param>
         /// <response code="200">The employee successfully created.</response>
+        /// <response code="404">Merchant not found.</response>
         /// <response code="400">Invalid model.</response>
         [HttpPost]
         [SwaggerOperation("EmployeesAdd")]
         [ValidateModel]
         [ProducesResponseType(typeof(EmployeeModel), (int) HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(ErrorResponse), (int)HttpStatusCode.NotFound)]
         [ProducesResponseType(typeof(ErrorResponse), (int) HttpStatusCode.BadRequest)]
         public async Task<IActionResult> AddAsync([FromBody] CreateEmployeeModel model)
         {
@@ -125,6 +137,12 @@ namespace Lykke.Service.PayInvoice.Controllers
                 var employeeModel = Mapper.Map<EmployeeModel>(createdEmployee);
 
                 return Ok(employeeModel);
+            }
+            catch (MerchantNotFoundException ex)
+            {
+                _log.WarningWithDetails(ex.Message, new { ex.MerchantId });
+
+                return NotFound(ErrorResponse.Create(ex.Message));
             }
             catch (EmployeeExistException ex)
             {
@@ -139,11 +157,13 @@ namespace Lykke.Service.PayInvoice.Controllers
         /// </summary>
         /// <param name="model">The employee info.</param>
         /// <response code="200">The employee successfully updated.</response>
+        /// <response code="404">Employee not found.</response>
         /// <response code="400">Invalid model.</response>
         [HttpPut]
         [SwaggerOperation("EmployeesUpdate")]
         [ValidateModel]
         [ProducesResponseType(typeof(EmployeeModel), (int) HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(ErrorResponse), (int)HttpStatusCode.NotFound)]
         [ProducesResponseType(typeof(ErrorResponse), (int) HttpStatusCode.BadRequest)]
         public async Task<IActionResult> UpdateAsync([FromBody] UpdateEmployeeModel model)
         {
@@ -155,11 +175,17 @@ namespace Lykke.Service.PayInvoice.Controllers
 
                 return NoContent();
             }
-            catch (EmployeeNotFoundException ex)
+            catch (EmployeeExistException ex)
             {
                 _log.WarningWithDetails(ex.Message, model.Sanitize());
 
                 return BadRequest(ErrorResponse.Create(ex.Message));
+            }
+            catch (EmployeeNotFoundException ex)
+            {
+                _log.WarningWithDetails(ex.Message, model.Sanitize());
+
+                return NotFound(ErrorResponse.Create(ex.Message));
             }
         }
 
@@ -168,15 +194,29 @@ namespace Lykke.Service.PayInvoice.Controllers
         /// </summary>
         /// <param name="employeeId">The employee id.</param>
         /// <response code="204">Invoice successfully deleted.</response>
+        /// <response code="404">Employee not found.</response>
+        /// <response code="400">Invalid model.</response>
         [HttpDelete]
         [Route("{employeeId}")]
         [SwaggerOperation("EmployeesDelete")]
         [ProducesResponseType((int) HttpStatusCode.NoContent)]
-        public async Task<IActionResult> DeleteAsync(string employeeId)
+        [ProducesResponseType(typeof(ErrorResponse), (int)HttpStatusCode.NotFound)]
+        [ProducesResponseType(typeof(ErrorResponse), (int)HttpStatusCode.BadRequest)]
+        [ValidateModel]
+        public async Task<IActionResult> DeleteAsync([Required][Guid] string employeeId)
         {
-            await _employeeService.DeleteAsync(employeeId);
+            try
+            {
+                await _employeeService.DeleteAsync(employeeId);
 
-            return NoContent();
+                return NoContent();
+            }
+            catch (EmployeeNotFoundException ex)
+            {
+                _log.WarningWithDetails(ex.Message, new { employeeId });
+
+                return NotFound(ErrorResponse.Create(ex.Message));
+            }
         }
     }
 }

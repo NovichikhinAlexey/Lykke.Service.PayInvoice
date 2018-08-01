@@ -1,12 +1,12 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using Lykke.Service.PayInvoice.Validation;
+using LykkePay.Common.Validation;
 
 namespace Lykke.Service.PayInvoice.Models.Employee
 {
     public class CreateEmployeeModel
     {
         [Required]
-        [EmailAddress]
+        [EmailAndRowKey]
         public string Email { get; set; }
         
         [Required]

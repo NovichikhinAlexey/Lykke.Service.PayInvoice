@@ -12,7 +12,7 @@ namespace Lykke.Service.PayInvoice.Core.Exceptions
         /// <summary>
         /// Initializes a new instance of the <see cref="EmployeeNotFoundException"/> class.
         /// </summary>
-        public EmployeeNotFoundException()
+        public EmployeeNotFoundException() : base("Employee not found")
         {
         }
 

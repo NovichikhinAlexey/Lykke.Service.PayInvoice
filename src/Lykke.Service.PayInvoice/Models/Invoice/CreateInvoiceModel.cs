@@ -1,5 +1,7 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
+using Lykke.Service.PayInvoice.Validation;
+using LykkePay.Common.Validation;
 
 namespace Lykke.Service.PayInvoice.Models.Invoice
 {
@@ -9,6 +11,7 @@ namespace Lykke.Service.PayInvoice.Models.Invoice
         public string Number { get; set; }
         
         [Required]
+        [GreaterThan(0)]
         public decimal Amount { get; set; }
         
         [Required]
@@ -21,14 +24,17 @@ namespace Lykke.Service.PayInvoice.Models.Invoice
         public string ClientName { get; set; }
         
         [Required]
+        [Email]
         public string ClientEmail { get; set; }
-        
+
+        [Required]
+        [Guid]
         public string EmployeeId { get; set; }
 
         [Required]
+        [RowKey]
         public string MerchantId { get; set; }
 
-        [Required]
         public DateTime DueDate { get; set; }
 
         public string Note { get; set; }
