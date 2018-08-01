@@ -1,9 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Net;
 using System.Threading.Tasks;
 using Common;
 using Common.Log;
 using Lykke.Common.Log;
+using Lykke.Service.PayInternal.Client;
+using Lykke.Service.PayInternal.Client.Exceptions;
 using Lykke.Service.PayInvoice.Core.Domain;
 using Lykke.Service.PayInvoice.Core.Exceptions;
 using Lykke.Service.PayInvoice.Core.Repositories;
@@ -16,13 +19,16 @@ namespace Lykke.Service.PayInvoice.Services
     public class EmployeeService : IEmployeeService
     {
         private readonly IEmployeeRepository _employeeRepository;
+        private readonly IPayInternalClient _payInternalClient;
         private readonly ILog _log;
 
         public EmployeeService(
             IEmployeeRepository employeeRepository,
+            IPayInternalClient payInternalClient,
             ILogFactory logFactory)
         {
             _employeeRepository = employeeRepository;
+            _payInternalClient = payInternalClient;
             _log = logFactory.CreateLog(this);
         }
 
@@ -58,6 +64,15 @@ namespace Lykke.Service.PayInvoice.Services
 
         public async Task<Employee> AddAsync(Employee employee)
         {
+            try
+            {
+                var merchant = await _payInternalClient.GetMerchantByIdAsync(employee.MerchantId);
+            }
+            catch (DefaultErrorResponseException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
+            {
+                throw new MerchantNotFoundException(employee.MerchantId);
+            }
+
             Employee existingEmployee = await _employeeRepository.FindAsync(employee.Email);
             
             if(existingEmployee != null)
@@ -72,10 +87,10 @@ namespace Lykke.Service.PayInvoice.Services
 
         public async Task UpdateAsync(Employee employee)
         {
-            Employee existingEmployee = await _employeeRepository.GetByIdAsync(employee.Id);
+            Employee existingEmployee = await _employeeRepository.GetAsync(employee.Id, employee.MerchantId);
 
             if (existingEmployee == null)
-                throw new EmployeeNotFoundException(employee.Id);
+                throw new EmployeeNotFoundException();
 
             // check for the same email
             Employee sameEmailEmployee = await _employeeRepository.FindAsync(employee.Email);
