@@ -6,7 +6,7 @@ namespace Lykke.Service.PayInvoice.Core.Exceptions
     [Serializable]
     public class MerchantNotFoundException : Exception
     {
-        public MerchantNotFoundException()
+        public MerchantNotFoundException() : base("Merchant not found")
         {
         }
 

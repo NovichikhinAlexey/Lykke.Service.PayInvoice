@@ -32,6 +32,13 @@ namespace Lykke.Service.PayInvoice.Repositories
             return employees;
         }
 
+        public async Task<Employee> GetAsync(string employeeId, string merchantId)
+        {
+            var entity = await _storage.GetDataAsync(GetPartitionKey(merchantId), GetRowKey(employeeId));
+
+            return Mapper.Map<Employee>(entity);
+        }
+
         public async Task<Employee> GetByIdAsync(string employeeId)
         {
             IEnumerable<EmployeeEntity> entities =
