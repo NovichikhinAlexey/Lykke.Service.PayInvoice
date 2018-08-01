@@ -16,7 +16,7 @@ namespace Lykke.Service.PayInvoice.Core.Repositories
         
         Task<Employee> InsertAsync(Employee employee);
         
-        Task UpdateAsync(Employee employee);
+        Task UpdateAsync(Employee employee, string previousEmail);
 
         Task DeleteAsync(string employeeId);
     }

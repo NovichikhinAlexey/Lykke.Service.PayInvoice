@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Common;
 using Common.Log;
@@ -72,11 +73,17 @@ namespace Lykke.Service.PayInvoice.Services
         public async Task UpdateAsync(Employee employee)
         {
             Employee existingEmployee = await _employeeRepository.GetByIdAsync(employee.Id);
-            
-            if(existingEmployee == null)
+
+            if (existingEmployee == null)
                 throw new EmployeeNotFoundException(employee.Id);
+
+            // check for the same email
+            Employee sameEmailEmployee = await _employeeRepository.FindAsync(employee.Email);
+
+            if (sameEmailEmployee != null)
+                throw new EmployeeExistException();
                 
-            await _employeeRepository.UpdateAsync(employee);
+            await _employeeRepository.UpdateAsync(employee, existingEmployee.Email);
             
             _log.Info("Employee updated.", employee.Sanitize());
         }
