@@ -13,7 +13,7 @@ namespace Lykke.Service.PayInvoice.Core.Exceptions
         /// Initializes a new instance of the <see cref="EmployeeExistException"/> class.
         /// </summary>
         public EmployeeExistException()
-            : base("Employee with same email already exists.")
+            : base("Employee with the same email already exists.")
         {
         }
 
