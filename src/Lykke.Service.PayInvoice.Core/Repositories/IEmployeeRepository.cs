@@ -8,6 +8,8 @@ namespace Lykke.Service.PayInvoice.Core.Repositories
     {
         Task<IReadOnlyList<Employee>> GetAsync();
 
+        Task<Employee> GetAsync(string employeeId, string merchantId);
+
         Task<Employee> GetByIdAsync(string employeeId);
 
         Task<IReadOnlyList<Employee>> GetByMerchantIdAsync(string merchantId);

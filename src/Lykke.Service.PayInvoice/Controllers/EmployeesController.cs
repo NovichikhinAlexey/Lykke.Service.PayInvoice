@@ -118,11 +118,13 @@ namespace Lykke.Service.PayInvoice.Controllers
         /// </summary>
         /// <param name="model">The employee info.</param>
         /// <response code="200">The employee successfully created.</response>
+        /// <response code="404">Merchant not found.</response>
         /// <response code="400">Invalid model.</response>
         [HttpPost]
         [SwaggerOperation("EmployeesAdd")]
         [ValidateModel]
         [ProducesResponseType(typeof(EmployeeModel), (int) HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(ErrorResponse), (int)HttpStatusCode.NotFound)]
         [ProducesResponseType(typeof(ErrorResponse), (int) HttpStatusCode.BadRequest)]
         public async Task<IActionResult> AddAsync([FromBody] CreateEmployeeModel model)
         {
@@ -135,6 +137,12 @@ namespace Lykke.Service.PayInvoice.Controllers
                 var employeeModel = Mapper.Map<EmployeeModel>(createdEmployee);
 
                 return Ok(employeeModel);
+            }
+            catch (MerchantNotFoundException ex)
+            {
+                _log.WarningWithDetails(ex.Message, new { ex.MerchantId });
+
+                return NotFound(ErrorResponse.Create(ex.Message));
             }
             catch (EmployeeExistException ex)
             {
