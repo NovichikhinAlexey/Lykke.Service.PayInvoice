@@ -92,11 +92,14 @@ namespace Lykke.Service.PayInvoice.Services
             if (existingEmployee == null)
                 throw new EmployeeNotFoundException();
 
-            // check for the same email
-            Employee sameEmailEmployee = await _employeeRepository.FindAsync(employee.Email);
+            if (!employee.Email.Equals(existingEmployee.Email, StringComparison.InvariantCultureIgnoreCase))
+            {
+                // check for the same email
+                Employee sameEmailEmployee = await _employeeRepository.FindAsync(employee.Email);
 
-            if (sameEmailEmployee != null)
-                throw new EmployeeExistException();
+                if (sameEmailEmployee != null)
+                    throw new EmployeeExistException();
+            }
                 
             await _employeeRepository.UpdateAsync(employee, existingEmployee.Email);
             
