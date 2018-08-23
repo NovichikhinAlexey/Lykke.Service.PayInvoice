@@ -9,6 +9,7 @@ using Lykke.Service.PayInvoice.Core.Domain;
 using Lykke.Service.PayInvoice.Core.Exceptions;
 using Lykke.Service.PayInvoice.Core.Repositories;
 using Lykke.Service.PayInvoice.Core.Services;
+using Lykke.Service.PayMerchant.Client;
 
 namespace Lykke.Service.PayInvoice.Services
 {
@@ -16,14 +17,17 @@ namespace Lykke.Service.PayInvoice.Services
     {
         private readonly IMerchantSettingRepository _merchantSettingRepository;
         private readonly IPayInternalClient _payInternalClient;
+        private readonly IPayMerchantClient _payMerchantClient;
         private readonly ILog _log;
 
         public MerchantSettingService(
             IMerchantSettingRepository merchantSettingRepository,
             IPayInternalClient payInternalClient,
-            ILogFactory logFactory)
+            ILogFactory logFactory, 
+            IPayMerchantClient payMerchantClient)
         {
             _merchantSettingRepository = merchantSettingRepository;
+            _payMerchantClient = payMerchantClient;
             _payInternalClient = payInternalClient;
             _log = logFactory.CreateLog(this);
         }
@@ -48,7 +52,7 @@ namespace Lykke.Service.PayInvoice.Services
         {
             try
             {
-                var merchant = await _payInternalClient.GetMerchantByIdAsync(model.MerchantId);
+                await _payMerchantClient.Api.GetByIdAsync(model.MerchantId);
             }
             catch (DefaultErrorResponseException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
             {

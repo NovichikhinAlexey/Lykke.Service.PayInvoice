@@ -4,7 +4,7 @@ namespace Lykke.Service.PayInvoice.Settings.MonitoringService
 {
     public class MonitoringServiceClientSettings
     {
-        [HttpCheck("api/isalive", false)]
+        [HttpCheck("api/isalive")]
         public string MonitoringServiceUrl { get; set; }
     }
 }

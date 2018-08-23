@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using AutoMapper;
@@ -27,20 +26,17 @@ namespace Lykke.Service.PayInvoice.Controllers
     public class InvoicesController : Controller
     {
         private readonly IInvoiceService _invoiceService;
-        private readonly IMerchantService _merchantService;
         private readonly IMerchantSettingService _merchantSettingService;
         private readonly IEmployeeService _employeeService;
         private readonly ILog _log;
 
         public InvoicesController(
             IInvoiceService invoiceService,
-            IMerchantService merchantService,
             IMerchantSettingService merchantSettingService,
             IEmployeeService employeeService,
             ILogFactory logFactory)
         {
             _invoiceService = invoiceService;
-            _merchantService = merchantService;
             _merchantSettingService = merchantSettingService;
             _employeeService = employeeService;
             _log = logFactory.CreateLog(this);
