@@ -3,7 +3,7 @@ using AzureStorage;
 using AzureStorage.Blob;
 using AzureStorage.Tables;
 using AzureStorage.Tables.Templates.Index;
-using Common.Log;
+using Lykke.Common.Log;
 using Lykke.Service.PayInvoice.Core.Repositories;
 using Lykke.Service.PayInvoice.Repositories.InvoiceDisputes;
 using Lykke.Service.PayInvoice.Repositories.PaymentRequestHistory;
@@ -15,12 +15,10 @@ namespace Lykke.Service.PayInvoice.Repositories
     public class AutofacModule : Module
     {
         private readonly IReloadingManager<string> _connectionString;
-        private readonly ILog _log;
 
-        public AutofacModule(IReloadingManager<string> connectionString, ILog log)
+        public AutofacModule(IReloadingManager<string> connectionString)
         {
             _connectionString = connectionString;
-            _log = log;
         }
 
         protected override void Load(ContainerBuilder builder)
@@ -34,41 +32,58 @@ namespace Lykke.Service.PayInvoice.Repositories
             const string invoiceDisputeTableName = "InvoiceDispute";
             const string invoicePayerHistoryTableName = "InvoicePayerHistory";
 
-            builder.RegisterInstance<IFileRepository>(
-                new FileRepository(AzureBlobStorage.Create(_connectionString)));
+            builder.Register(c =>
+                new FileRepository(AzureBlobStorage.Create(_connectionString)))
+                .As<IFileRepository>()
+                .SingleInstance();
 
-            builder.RegisterInstance<IFileInfoRepository>(
-                new FileInfoRepository(CreateTable<FileInfoEntity>(invoiceFilesTableName)));
+            builder.Register(c =>
+                new FileInfoRepository(CreateTable<FileInfoEntity>(invoiceFilesTableName, c.Resolve<ILogFactory>())))
+                .As<IFileInfoRepository>()
+                .SingleInstance();
 
-            builder.RegisterInstance<IInvoiceRepository>(
-                new InvoiceRepository(CreateTable<InvoiceEntity>(invoicesTableName),
-                    CreateTable<AzureIndex>(invoicesTableName),
-                    CreateTable<AzureIndex>(invoicesTableName)));
+            builder.Register(c =>
+                new InvoiceRepository(CreateTable<InvoiceEntity>(invoicesTableName, c.Resolve<ILogFactory>()),
+                    CreateTable<AzureIndex>(invoicesTableName, c.Resolve<ILogFactory>()),
+                    CreateTable<AzureIndex>(invoicesTableName, c.Resolve<ILogFactory>())))
+                .As<IInvoiceRepository>()
+                .SingleInstance();
 
-            builder.RegisterInstance<IEmployeeRepository>(
-                new EmployeeRepository(CreateTable<EmployeeEntity>(employeesTableName),
-                    CreateTable<AzureIndex>(employeesTableName)));
+            builder.Register(c =>
+                new EmployeeRepository(CreateTable<EmployeeEntity>(employeesTableName, c.Resolve<ILogFactory>()),
+                    CreateTable<AzureIndex>(employeesTableName, c.Resolve<ILogFactory>())))
+                .As<IEmployeeRepository>()
+                .SingleInstance();
 
-            builder.RegisterInstance<IHistoryRepository>(
-                new HistoryRepository(CreateTable<HistoryItemEntity>(invoiceHistoryTableName)));
+            builder.Register(c =>
+                new HistoryRepository(CreateTable<HistoryItemEntity>(invoiceHistoryTableName, c.Resolve<ILogFactory>())))
+                .As<IHistoryRepository>()
+                .SingleInstance();
 
-            builder.RegisterInstance<IMerchantSettingRepository>(
-                new MerchantSettingRepository(CreateTable<MerchantSettingEntity>(merchantSettingTableName)));
+            builder.Register(c =>
+                new MerchantSettingRepository(CreateTable<MerchantSettingEntity>(merchantSettingTableName, c.Resolve<ILogFactory>())))
+                .As<IMerchantSettingRepository>()
+                .SingleInstance();
 
-            builder.RegisterInstance<IPaymentRequestHistoryRepository>(
-                new PaymentRequestHistoryRepository(CreateTable<PaymentRequestHistoryItemEntity>(paymentRequestHistoryTableName)));
+            builder.Register(c =>
+                new PaymentRequestHistoryRepository(CreateTable<PaymentRequestHistoryItemEntity>(paymentRequestHistoryTableName, c.Resolve<ILogFactory>())))
+                .As<IPaymentRequestHistoryRepository>()
+                .SingleInstance();
 
-            builder.RegisterInstance<IInvoiceDisputeRepository>(
-                new InvoiceDisputeRepository(CreateTable<InvoiceDisputeEntity>(invoiceDisputeTableName)));
+            builder.Register(c =>
+                new InvoiceDisputeRepository(CreateTable<InvoiceDisputeEntity>(invoiceDisputeTableName, c.Resolve<ILogFactory>())))
+                .As<IInvoiceDisputeRepository>()
+                .SingleInstance();
 
-            //InvoiceDisputeRepository
-            builder.RegisterInstance<IInvoicePayerHistoryRepository>(
-                new InvoicePayerHistoryRepository(CreateTable<InvoicePayerHistoryEntity>(invoicePayerHistoryTableName)));
+            builder.Register(c =>
+                new InvoicePayerHistoryRepository(CreateTable<InvoicePayerHistoryEntity>(invoicePayerHistoryTableName, c.Resolve<ILogFactory>())))
+                .As<IInvoicePayerHistoryRepository>()
+                .SingleInstance();
         }
 
-        private INoSQLTableStorage<T> CreateTable<T>(string name) where T : class, ITableEntity, new()
+        private INoSQLTableStorage<T> CreateTable<T>(string name, ILogFactory logFactory) where T : class, ITableEntity, new()
         {
-            return AzureTableStorage<T>.Create(_connectionString, name, _log);
+            return AzureTableStorage<T>.Create(_connectionString, name, logFactory);
         }
     }
 }

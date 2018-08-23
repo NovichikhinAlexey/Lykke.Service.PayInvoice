@@ -8,12 +8,15 @@ using System.Threading.Tasks;
 using Lykke.Service.PayInternal.Contract.PaymentRequest;
 using Lykke.Service.PayInvoice.Core.Services;
 using Lykke.Service.PayInvoice.Settings.ServiceSettings.Rabbit;
+using Lykke.Common.Log;
+using Lykke.Service.PayInvoice.Core.Extensions;
 
 namespace Lykke.Service.PayInvoice.Rabbit.Subscribers
 {
     public class PaymentRequestSubscriber : IStartable, IStopable
     {
         private readonly RabbitSettings _settings;
+        private readonly ILogFactory _logFactory;
         private readonly IInvoiceService _invoiceService;
         private readonly ILog _log;
         private RabbitMqSubscriber<PaymentRequestDetailsMessage> _subscriber;
@@ -21,11 +24,12 @@ namespace Lykke.Service.PayInvoice.Rabbit.Subscribers
         public PaymentRequestSubscriber(
             IInvoiceService invoiceService,
             RabbitSettings settings,
-            ILog log)
+            ILogFactory logFactory)
         {
             _invoiceService = invoiceService;
-            _log = log;
+            _log = logFactory.CreateLog(this);
             _settings = settings;
+            _logFactory = logFactory;
         }
 
         public void Start()
@@ -36,14 +40,15 @@ namespace Lykke.Service.PayInvoice.Rabbit.Subscribers
 
             settings.DeadLetterExchangeName = null;
 
-            _subscriber = new RabbitMqSubscriber<PaymentRequestDetailsMessage>(settings,
-                    new ResilientErrorHandlingStrategy(_log, settings,
+            _subscriber = new RabbitMqSubscriber<PaymentRequestDetailsMessage>(
+                    _logFactory,
+                    settings,
+                    new ResilientErrorHandlingStrategy(_logFactory, settings,
                         TimeSpan.FromSeconds(10)))
                 .SetMessageDeserializer(new JsonMessageDeserializer<PaymentRequestDetailsMessage>())
                 .SetMessageReadStrategy(new MessageReadQueueStrategy())
                 .Subscribe(ProcessMessageAsync)
                 .CreateDefaultBinding()
-                .SetLogger(_log)
                 .Start();
         }
 
@@ -63,11 +68,9 @@ namespace Lykke.Service.PayInvoice.Rabbit.Subscribers
             {
                 await _invoiceService.UpdateAsync(message);
             }
-            catch (Exception exception)
+            catch (Exception ex)
             {
-                await _log.WriteErrorAsync(nameof(PaymentRequestSubscriber), nameof(ProcessMessageAsync),
-                    message.ToJson(), exception);
-                throw;
+                _log.ErrorWithDetails(ex, message);
             }
         }
     }

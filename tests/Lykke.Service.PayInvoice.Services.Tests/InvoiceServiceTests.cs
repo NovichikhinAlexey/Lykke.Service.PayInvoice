@@ -1,17 +1,19 @@
 ﻿using System;
 using System.Threading.Tasks;
-using Common.Log;
+using Lykke.Common.Log;
+using Lykke.Logs.Loggers.LykkeConsole;
 using Lykke.Service.PayInternal.Client;
 using Lykke.Service.PayInvoice.Core.Domain;
 using Lykke.Service.PayInvoice.Core.Repositories;
 using Lykke.Service.PayInvoice.Core.Services;
+using Lykke.Service.PayMerchant.Client;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 
 namespace Lykke.Service.PayInvoice.Services.Tests
 {
     [TestClass]
-    public class InvoiceServiceTests
+    public class InvoiceServiceTests : IDisposable
     {
         private readonly Mock<IInvoiceRepository> _invoiceRepositoryMock = new Mock<IInvoiceRepository>();
         private readonly Mock<IFileInfoRepository> _fileInfoRepositoryMock = new Mock<IFileInfoRepository>();
@@ -22,12 +24,26 @@ namespace Lykke.Service.PayInvoice.Services.Tests
         private readonly Mock<IMerchantSettingService> _merchantSettingService = new Mock<IMerchantSettingService>();
         private readonly Mock<IHistoryOperationService> _historyOperationService = new Mock<IHistoryOperationService>();
         private readonly Mock<IInvoiceConfirmationService> _invoiceConfirmationService = new Mock<IInvoiceConfirmationService>();
+        private readonly Mock<IPushNotificationService> _pushNotificationService = new Mock<IPushNotificationService>();
         private readonly Mock<IDistributedLocksService> _paymentLocksService = new Mock<IDistributedLocksService>();
         private readonly Mock<IEmployeeRepository> _employeeRepository = new Mock<IEmployeeRepository>();
         private readonly Mock<IInvoiceDisputeRepository> _invoiceDisputeRepository = new Mock<IInvoiceDisputeRepository>();
         private readonly Mock<IInvoicePayerHistoryRepository> _invoicePayerHistoryRepository = new Mock<IInvoicePayerHistoryRepository>();
         private readonly Mock<IPayInternalClient> _payInternalClientMock = new Mock<IPayInternalClient>();
-        private readonly Mock<ILog> _logMock = new Mock<ILog>();
+        private readonly Mock<IPayMerchantClient> _payMerchantClientMock = new Mock<IPayMerchantClient>();
+
+        // https://github.com/LykkeCity/Lykke.Logs/blob/master/migration-to-v5.md
+        private readonly ILogFactory _logFactory;
+
+        public InvoiceServiceTests()
+        {
+            _logFactory = Logs.LogFactory.Create().AddUnbufferedConsole();
+        }
+
+        public void Dispose()
+        {
+            _logFactory.Dispose();
+        }
 
         private InvoiceService _service;
 
@@ -44,12 +60,14 @@ namespace Lykke.Service.PayInvoice.Services.Tests
                 _merchantSettingService.Object,
                 _historyOperationService.Object,
                 _invoiceConfirmationService.Object,
+                _pushNotificationService.Object,
                 _paymentLocksService.Object,
                 _employeeRepository.Object,
                 _invoiceDisputeRepository.Object,
                 _invoicePayerHistoryRepository.Object,
                 _payInternalClientMock.Object,
-                _logMock.Object);
+                _logFactory,
+                _payMerchantClientMock.Object);
         }
 
         [TestMethod]

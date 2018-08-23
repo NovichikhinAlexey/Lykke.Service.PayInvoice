@@ -13,18 +13,8 @@ namespace Lykke.Service.PayInvoice.Services
 
     public class StartupManager : IStartupManager
     {
-        private readonly ILog _log;
-
-        public StartupManager(ILog log)
+        public void Start()
         {
-            _log = log;
-        }
-
-        public async Task StartAsync()
-        {
-            // TODO: Implement your startup logic here. Good idea is to log every step
-
-            await Task.CompletedTask;
         }
     }
 }

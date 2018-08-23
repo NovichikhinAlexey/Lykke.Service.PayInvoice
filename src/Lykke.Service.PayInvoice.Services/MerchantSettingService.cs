@@ -1,11 +1,15 @@
 ﻿using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
 using Common.Log;
+using Lykke.Common.Log;
 using Lykke.Service.PayInternal.Client;
+using Lykke.Service.PayInternal.Client.Exceptions;
 using Lykke.Service.PayInvoice.Core.Domain;
 using Lykke.Service.PayInvoice.Core.Exceptions;
 using Lykke.Service.PayInvoice.Core.Repositories;
 using Lykke.Service.PayInvoice.Core.Services;
+using Lykke.Service.PayMerchant.Client;
 
 namespace Lykke.Service.PayInvoice.Services
 {
@@ -13,16 +17,19 @@ namespace Lykke.Service.PayInvoice.Services
     {
         private readonly IMerchantSettingRepository _merchantSettingRepository;
         private readonly IPayInternalClient _payInternalClient;
+        private readonly IPayMerchantClient _payMerchantClient;
         private readonly ILog _log;
 
         public MerchantSettingService(
             IMerchantSettingRepository merchantSettingRepository,
             IPayInternalClient payInternalClient,
-            ILog log)
+            ILogFactory logFactory, 
+            IPayMerchantClient payMerchantClient)
         {
             _merchantSettingRepository = merchantSettingRepository;
+            _payMerchantClient = payMerchantClient;
             _payInternalClient = payInternalClient;
-            _log = log.CreateComponentScope(nameof(MerchantSettingService));
+            _log = logFactory.CreateLog(this);
         }
 
         public async Task<MerchantSetting> GetByIdAsync(string merchantId)
@@ -44,11 +51,20 @@ namespace Lykke.Service.PayInvoice.Services
 
         public async Task<MerchantSetting> SetAsync(MerchantSetting model)
         {
+            try
+            {
+                await _payMerchantClient.Api.GetByIdAsync(model.MerchantId);
+            }
+            catch (DefaultErrorResponseException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
+            {
+                throw new MerchantNotFoundException(model.MerchantId);
+            }
+
             await ValidateAssetAsync(model.MerchantId, model.BaseAsset);
 
             await _merchantSettingRepository.SetAsync(model);
 
-            _log.WriteInfo(nameof(SetAsync), model, "Merchant settings updated.");
+            _log.Info("Merchant settings updated.", model);
 
             return model;
         }
@@ -62,12 +78,19 @@ namespace Lykke.Service.PayInvoice.Services
 
         private async Task ValidateAssetAsync(string merchantId, string baseAsset)
         {
-            var settlementAssetsResponse = await _payInternalClient.GetAvailableSettlementAssetsAsync(merchantId);
+            try
+            {
+                var settlementAssetsResponse = await _payInternalClient.GetAvailableSettlementAssetsAsync(merchantId);
 
-            bool isValidAsset = settlementAssetsResponse.Assets.ToList().Contains(baseAsset);
+                bool isValidAsset = settlementAssetsResponse.Assets.ToList().Contains(baseAsset);
 
-            if (!isValidAsset)
+                if (!isValidAsset)
+                    throw new AssetNotAvailableForMerchantException();
+            }
+            catch (DefaultErrorResponseException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
+            {
                 throw new AssetNotAvailableForMerchantException();
+            }
         }
     }
 }

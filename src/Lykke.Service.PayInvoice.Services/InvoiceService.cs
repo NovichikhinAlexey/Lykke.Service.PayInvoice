@@ -1,13 +1,13 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Diagnostics;
+using System.Globalization;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using AutoMapper;
 using Common;
 using Common.Log;
+using Lykke.Common.Log;
 using Lykke.Service.PayInternal.Client;
 using Lykke.Service.PayInternal.Client.Exceptions;
 using Lykke.Service.PayInternal.Client.Models.Order;
@@ -18,11 +18,13 @@ using Lykke.Service.PayInvoice.Core.Domain.HistoryOperation;
 using Lykke.Service.PayInvoice.Core.Domain.InvoiceConfirmation;
 using Lykke.Service.PayInvoice.Core.Domain.InvoicePayerHistory;
 using Lykke.Service.PayInvoice.Core.Domain.PaymentRequest;
+using Lykke.Service.PayInvoice.Core.Domain.PushNotification;
 using Lykke.Service.PayInvoice.Core.Exceptions;
+using Lykke.Service.PayInvoice.Core.Extensions;
 using Lykke.Service.PayInvoice.Core.Repositories;
 using Lykke.Service.PayInvoice.Core.Services;
-using Lykke.Service.PayInvoice.Core.Utils;
 using Lykke.Service.PayInvoice.Services.Extensions;
+using Lykke.Service.PayMerchant.Client;
 
 namespace Lykke.Service.PayInvoice.Services
 {
@@ -37,11 +39,13 @@ namespace Lykke.Service.PayInvoice.Services
         private readonly IMerchantSettingService _merchantSettingService;
         private readonly IHistoryOperationService _historyOperationService;
         private readonly IInvoiceConfirmationService _invoiceConfirmationService;
+        private readonly IPushNotificationService _pushNotificationService;
         private readonly IDistributedLocksService _paymentLocksService;
         private readonly IEmployeeRepository _employeeRepository;
         private readonly IInvoiceDisputeRepository _invoiceDisputeRepository;
         private readonly IInvoicePayerHistoryRepository _invoicePayerHistoryRepository;
         private readonly IPayInternalClient _payInternalClient;
+        private readonly IPayMerchantClient _payMerchantClient;
         private readonly ILog _log;
 
         public InvoiceService(
@@ -54,12 +58,14 @@ namespace Lykke.Service.PayInvoice.Services
             IMerchantSettingService merchantSettingService,
             IHistoryOperationService historyOperationService,
             IInvoiceConfirmationService invoiceConfirmationService,
+            IPushNotificationService pushNotificationService,
             IDistributedLocksService paymentLocksService,
             IEmployeeRepository employeeRepository,
             IInvoiceDisputeRepository invoiceDisputeRepository,
             IInvoicePayerHistoryRepository invoicePayerHistoryRepository,
             IPayInternalClient payInternalClient,
-            ILog log)
+            ILogFactory logFactory, 
+            IPayMerchantClient payMerchantClient)
         {
             _invoiceRepository = invoiceRepository;
             _fileInfoRepository = fileInfoRepository;
@@ -70,12 +76,14 @@ namespace Lykke.Service.PayInvoice.Services
             _merchantSettingService = merchantSettingService;
             _historyOperationService = historyOperationService;
             _invoiceConfirmationService = invoiceConfirmationService;
+            _pushNotificationService = pushNotificationService;
             _paymentLocksService = paymentLocksService;
             _employeeRepository = employeeRepository;
             _invoiceDisputeRepository = invoiceDisputeRepository;
             _invoicePayerHistoryRepository = invoicePayerHistoryRepository;
             _payInternalClient = payInternalClient;
-            _log = log.CreateComponentScope(nameof(InvoiceService));
+            _payMerchantClient = payMerchantClient;
+            _log = logFactory.CreateLog(this);
         }
 
         public async Task<IReadOnlyList<Invoice>> GetAsync(string merchantId)
@@ -90,7 +98,12 @@ namespace Lykke.Service.PayInvoice.Services
 
         public async Task<Invoice> GetByIdAsync(string invoiceId)
         {
-            return await _invoiceRepository.FindByIdAsync(invoiceId);
+            var invoice = await _invoiceRepository.FindByIdAsync(invoiceId);
+
+            if (invoice == null)
+                throw new InvoiceNotFoundException(invoiceId);
+
+            return invoice;
         }
 
         public async Task<IReadOnlyList<Invoice>> GetByIdsAsync(string merchantId, IEnumerable<string> invoiceIds)
@@ -191,7 +204,7 @@ namespace Lykke.Service.PayInvoice.Services
 
             Invoice createdInvoice = await _invoiceRepository.InsertAsync(invoice);
 
-            _log.WriteInfo(nameof(CreateDraftAsync), invoice.Sanitize(), "Invoice draft created");
+            _log.InfoWithDetails("Invoice draft created", invoice.Sanitize());
 
             await WriteHistory(createdInvoice, "Invoice draft created");
 
@@ -213,7 +226,7 @@ namespace Lykke.Service.PayInvoice.Services
             
             await _invoiceRepository.UpdateAsync(invoice);
 
-            _log.WriteInfo(nameof(UpdateDraftAsync), invoice.Sanitize(), "Invoice draft updated");
+            _log.InfoWithDetails("Invoice draft updated", invoice.Sanitize());
 
             await WriteHistory(invoice, "Invoice draft updated");
         }
@@ -228,7 +241,7 @@ namespace Lykke.Service.PayInvoice.Services
 
             Invoice createdInvoice = await _invoiceRepository.InsertAsync(invoice);
 
-            _log.WriteInfo(nameof(CreateAsync), invoice.Sanitize(), "Invoice created");
+            _log.InfoWithDetails("Invoice created", invoice.Sanitize());
 
             await WriteHistory(createdInvoice, "Invoice created");
 
@@ -252,7 +265,7 @@ namespace Lykke.Service.PayInvoice.Services
             
             await _invoiceRepository.UpdateAsync(invoice);
 
-            _log.WriteInfo(nameof(CreateFromDraftAsync), invoice.Sanitize(), "Invoice created from draft");
+            _log.InfoWithDetails("Invoice created from draft", invoice.Sanitize());
 
             await WriteHistory(invoice, "Invoice created from draft");
 
@@ -309,9 +322,8 @@ namespace Lykke.Service.PayInvoice.Services
 
             await CancelPaymentRequestAsync(invoice.MerchantId, previousPaymentRequestId);
 
-            _log.WriteInfo(nameof(ChangePaymentRequestAsync), 
-                new { invoice = invoice.Sanitize(), previousPaymentRequestId, newPaymentRequest = paymentRequest }, 
-                "Payment request changed");
+            _log.InfoWithDetails("Payment request changed", 
+                new { invoice = invoice.Sanitize(), previousPaymentRequestId, newPaymentRequest = paymentRequest });
 
             return invoice;
         }
@@ -321,7 +333,7 @@ namespace Lykke.Service.PayInvoice.Services
             Invoice invoice = await _invoiceRepository.FindByIdAsync(invoiceId);
 
             if (invoice == null)
-                return;
+                throw new InvoiceNotFoundException(invoiceId);
 
             if (invoice.Status == InvoiceStatus.Draft)
             {
@@ -335,7 +347,7 @@ namespace Lykke.Service.PayInvoice.Services
                     await _fileRepository.DeleteAsync(fileInfo.Id);
                 }
 
-                _log.WriteInfo(nameof(DeleteAsync), invoice.Sanitize(), "Invoice deleted.");
+                _log.InfoWithDetails("Invoice deleted.", invoice.Sanitize());
 
                 await _historyRepository.DeleteAsync(invoiceId);
             }
@@ -345,7 +357,7 @@ namespace Lykke.Service.PayInvoice.Services
 
                 await _invoiceRepository.SetStatusAsync(invoice.MerchantId, invoice.Id, InvoiceStatus.Removed);
 
-                _log.WriteInfo(nameof(DeleteAsync), invoice.Sanitize(), "Invoice removed");
+                _log.InfoWithDetails("Invoice removed", invoice.Sanitize());
 
                 invoice.Status = InvoiceStatus.Removed;
 
@@ -353,7 +365,7 @@ namespace Lykke.Service.PayInvoice.Services
             }
             else
             {
-                _log.WriteInfo(nameof(DeleteAsync), invoice.Sanitize(), "Cannot remove invoice");
+                _log.WarningWithDetails("Cannot remove invoice", invoice.Sanitize());
             }
         }
 
@@ -373,14 +385,14 @@ namespace Lykke.Service.PayInvoice.Services
                     return;
             }
 
-            bool isRevertingUnderpaidStatus = false;
+            bool isRevertingStatus = false;
             InvoiceStatus previousStatus = invoice.Status;
             InvoiceStatus status = StatusConverter.Convert(message.Status, message.ProcessingError);
 
             decimal? totalPaidAmountInSettlementAsset = 0;
             decimal currentPaidAmountInSettlementAsset = message.SettlementAssetId == message.PaymentAssetId
                 ? message.PaidAmount
-                : message.PaidAmount * message.Order.ExchangeRate;
+                : message.Order != null ? message.PaidAmount * message.Order.ExchangeRate : 0;
 
             if (status.IsPaidStatus())
             {
@@ -406,14 +418,14 @@ namespace Lykke.Service.PayInvoice.Services
                         invoiceStatus = InvoiceStatus.Paid;
                     }
 
-                    _log.WriteInfo(nameof(UpdateAsync), new
+                    _log.InfoWithDetails("Calculate status when HasMultiplePaymentRequests or Underpaid", new
                     {
                         invoiceId = invoice.Id,
                         totalPaidAmountInSettlementAsset,
                         messageConvertedStatus = status.ToString(),
                         calculatedInvoiceStatus = invoiceStatus.ToString(),
                         message
-                    }, "Calculate status when HasMultiplePaymentRequests or Underpaid");
+                    });
 
                     status = invoiceStatus;
                 }
@@ -426,11 +438,14 @@ namespace Lykke.Service.PayInvoice.Services
 
             // check whether we need to revert to Underpaid status
             if (previousStatus == InvoiceStatus.InProgress 
-                && status == InvoiceStatus.Unpaid
-                && invoice.HasMultiplePaymentRequests)
+                && status == InvoiceStatus.Unpaid)
             {
-                isRevertingUnderpaidStatus = true;
-                status = InvoiceStatus.Underpaid;
+                isRevertingStatus = true;
+
+                if (invoice.HasMultiplePaymentRequests)
+                {
+                    status = InvoiceStatus.Underpaid;
+                }
             }
 
             await _invoiceRepository.SetStatusAsync(invoice.MerchantId, invoice.Id, status);
@@ -439,15 +454,25 @@ namespace Lykke.Service.PayInvoice.Services
             if (previousStatus == InvoiceStatus.InProgress)
                 await _paymentLocksService.ReleaseLockAsync(invoice.Id, invoice.MerchantId);
 
-            _log.WriteInfo(nameof(UpdateAsync), new
+            _log.InfoWithDetails("Status updated.", new
             {
                 invoiceId = invoice.Id,
                 status = status.ToString(),
                 message
-            }, "Status updated.");
+            });
 
-            if (isRevertingUnderpaidStatus)
+            // if some error occured during payment then status reverted and we need to remove history operation
+            if (isRevertingStatus)
+            {
+                var invoicePayerHistory = await _invoicePayerHistoryRepository.GetAsync(invoice.Id, paymentRequestId);
+
+                if (invoicePayerHistory != null)
+                {
+                    await RemoveHistoryOperations(message, invoicePayerHistory);
+                }
+
                 return;
+            }
 
             invoice.Status = status;
 
@@ -479,7 +504,7 @@ namespace Lykke.Service.PayInvoice.Services
 
             if (payerEmployee == null)
             {
-                _log.WriteError(nameof(UpdateAsync), new { message, invoiceId = invoice.Id, invoicePayerHistoryItem.EmployeeId }, new Exception("PayerEmployee should not be empty"));
+                _log.ErrorWithDetails("PayerEmployee should not be empty", new { message, invoiceId = invoice.Id, invoicePayerHistoryItem.EmployeeId });
                 return;
             }
 
@@ -487,7 +512,7 @@ namespace Lykke.Service.PayInvoice.Services
 
             if (transaction == null)
             {
-                _log.WriteError(nameof(UpdateAsync), new { message, invoiceId = invoice.Id }, new Exception("Transaction should not be empty"));
+                _log.ErrorWithDetails("Transaction should not be empty", new { message, invoiceId = invoice.Id });
                 return;
             }
 
@@ -511,7 +536,7 @@ namespace Lykke.Service.PayInvoice.Services
             await _historyOperationService.PublishIncomingInvoicePayment(historyOperationCommand);
 
             historyOperationCommand.EmployeeEmail = historyOperationCommand.EmployeeEmail.SanitizeEmail();
-            _log.WriteInfo(nameof(UpdateAsync), new { message, historyOperationCommand }, "Information sent to history service");
+            _log.InfoWithDetails("Information sent to history service", new { message, historyOperationCommand });
 
             // send info to callback service
             var invoiceConfirmationCommand = new InvoiceConfirmationCommand
@@ -532,14 +557,38 @@ namespace Lykke.Service.PayInvoice.Services
             await _invoiceConfirmationService.PublishInvoicePayment(invoiceConfirmationCommand);
 
             invoiceConfirmationCommand.EmployeeEmail = invoiceConfirmationCommand.EmployeeEmail.SanitizeEmail();
-            _log.WriteInfo(nameof(UpdateAsync), new { message, invoiceConfirmationCommand }, "Information sent to callback service");
+            _log.InfoWithDetails("Information sent to callback service", new { message, invoiceConfirmationCommand });
+
+            // send push notifications
+            await _pushNotificationService.PublishInvoicePayment(new InvoicePaidPushNotificationCommand
+            {
+                NotifiedMerchantId = invoice.MerchantId,
+                PaidAmount = message.PaidAmount.ToString(CultureInfo.InvariantCulture),
+                PayerMerchantName = await _merchantService.GetMerchantNameAsync(payerEmployee.MerchantId)
+            });
+
+            // removing at the end as this is the longer operation comparing to putting messages to rabbit
+            await RemoveHistoryOperations(message, invoicePayerHistoryItem);
+        }
+
+        private async Task RemoveHistoryOperations(PaymentRequestDetailsMessage message, InvoicePayerHistoryItem invoicePayerHistory)
+        {
+            try
+            {
+                await Task.WhenAll(_historyOperationService.RemoveAsync(invoicePayerHistory.OutgoingHistoryOperationId),
+                    _historyOperationService.RemoveAsync(invoicePayerHistory.IncomingHistoryOperationId));
+            }
+            catch (Exception ex)
+            {
+                _log.ErrorWithDetails(ex, new { message, invoicePayerHistory });
+            }
         }
 
         public async Task<IReadOnlyList<Invoice>> ValidateForPayingInvoicesAsync(string merchantId, IEnumerable<string> invoicesIds, string assetForPay)
         {
             try
             {
-                var merchant = await _payInternalClient.GetMerchantByIdAsync(merchantId);
+                await _payMerchantClient.Api.GetByIdAsync(merchantId);
             }
             catch (DefaultErrorResponseException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
             {
@@ -569,7 +618,7 @@ namespace Lykke.Service.PayInvoice.Services
                 }
             }
 
-            IReadOnlyList<string> groupMerchants = await _merchantService.GetGroupMerchants(merchantId);
+            IReadOnlyList<string> groupMerchants = await _merchantService.GetGroupMerchantsAsync(merchantId);
 
             var invoices = await GetByIdsAsync(invoicesIds);
 
@@ -596,7 +645,7 @@ namespace Lykke.Service.PayInvoice.Services
             if (amount > sumInAssetForPay)
                 throw new InvalidOperationException("The amount is more than required to pay");
 
-            _log.WriteInfo(nameof(PayInvoicesAsync), new { employee.Id, invoicesIds = invoices.Select(x => x.Id), amount, sumInAssetForPay }, "PayInvoices started");
+            _log.InfoWithDetails("PayInvoices started", new { employee.Id, invoicesIds = invoices.Select(x => x.Id), amount, sumInAssetForPay });
 
             // Pay firstly older invoices (sorted by date)
             invoices = invoices.ToList().OrderBy(x => x.CreatedDate);
@@ -612,84 +661,121 @@ namespace Lykke.Service.PayInvoice.Services
             {
                 processedCount++;
                 decimal paymentAmountInAssetForPay = 0;
-                bool payResult = false;
+                string paymentRequestIdForPaying = string.Empty;
+
+                if (DateTime.UtcNow > invoice.DueDate)
+                {
+                    occuredErrorsCount++;
+                    _log.ErrorWithDetails("Invoice has passed DueDate", new { invoice = invoice.Sanitize() });
+                    continue;
+                }
 
                 // redis locking mechanism
                 bool locked = await _paymentLocksService.TryAcquireLockAsync(invoice.Id, invoice.MerchantId, invoice.DueDate);
                 if (!locked)
                 {
                     occuredErrorsCount++;
-                    _log.WriteError(nameof(PayInvoicesAsync), new { invoiceId = invoice.Id }, new Exception("Invoice is in progress and locked for paying"));
+                    _log.ErrorWithDetails("Invoice is in progress and locked for paying", new { invoiceId = invoice.Id });
                     continue;
                 }
 
-                switch (invoice.Status)
+                try
                 {
-                    case InvoiceStatus.Unpaid:
-                        {
-                            var paymentInfo = await GetPaymentInfoForUnpaid(invoice, assetForPay, employee.MerchantId, isPaying: true);
-                            
-                            paymentAmountInAssetForPay = GetPaymentAmount(leftAmountInAssetForPay, paymentInfo.AmountToPayInAssetForPay);
-
-                            await CheckoutOrderAsync(invoice.MerchantId, paymentInfo.PaymentRequestIdForPaying);
-
-                            try
+                    switch (invoice.Status)
+                    {
+                        case InvoiceStatus.Unpaid:
                             {
-                                payResult = await PayPaymentRequestAsync(invoice.MerchantId, employee.MerchantId, paymentInfo.PaymentRequestIdForPaying, paymentAmountInAssetForPay);
+                                var paymentInfo = await GetPaymentInfoForUnpaid(invoice, assetForPay, employee.MerchantId, isPaying: true);
+
+                                paymentAmountInAssetForPay = GetPaymentAmount(leftAmountInAssetForPay, paymentInfo.AmountToPayInAssetForPay);
+                                paymentRequestIdForPaying = paymentInfo.PaymentRequestIdForPaying;
+
+                                await CheckoutOrderAsync(invoice.MerchantId, paymentInfo.PaymentRequestIdForPaying);
+
+                                try
+                                {
+                                    await PayPaymentRequestAsync(invoice.MerchantId, employee.MerchantId, paymentRequestIdForPaying, paymentAmountInAssetForPay);
+                                }
+                                catch (InvalidOperationException)
+                                {
+                                    occuredErrorsCount++;
+                                    await _paymentLocksService.ReleaseLockAsync(invoice.Id, invoice.MerchantId);
+                                    continue;
+                                }
+
+                                await _invoiceRepository.SetStatusAsync(invoice.MerchantId, invoice.Id, InvoiceStatus.InProgress);
+
+                                _log.InfoWithDetails("Paid Unpaid invoice", new
+                                {
+                                    InvoiceId = invoice.Id,
+                                    invoice.MerchantId,
+                                    PayerMerchantId = employee.MerchantId,
+                                    paymentRequestIdForPaying,
+                                    leftAmountInAssetForPay,
+                                    paymentInfo.AmountToPayInAssetForPay
+                                });
                             }
-                            catch (InvalidOperationException)
+                            break;
+                        case InvoiceStatus.Underpaid:
                             {
-                                occuredErrorsCount++;
-                                await _paymentLocksService.ReleaseLockAsync(invoice.Id, invoice.MerchantId);
-                                continue;
+                                var paymentInfo = await GetPaymentInfoForUnderpaid(invoice, assetForPay, employee.MerchantId, isPaying: true);
+
+                                paymentAmountInAssetForPay = GetPaymentAmount(leftAmountInAssetForPay, paymentInfo.LeftAmountToPayInAssetForPay);
+                                paymentRequestIdForPaying = paymentInfo.PaymentRequestIdForPaying;
+
+                                try
+                                {
+                                    await PayPaymentRequestAsync(invoice.MerchantId, employee.MerchantId, paymentRequestIdForPaying, paymentAmountInAssetForPay);
+                                }
+                                catch (InvalidOperationException)
+                                {
+                                    occuredErrorsCount++;
+                                    await _paymentLocksService.ReleaseLockAsync(invoice.Id, invoice.MerchantId);
+                                    continue;
+                                }
+
+                                await _invoiceRepository.SetStatusAsync(invoice.MerchantId, invoice.Id, InvoiceStatus.InProgress);
+
+                                _log.InfoWithDetails("Paid Underpaid invoice", new
+                                {
+                                    InvoiceId = invoice.Id,
+                                    invoice.MerchantId,
+                                    PayerMerchantId = employee.MerchantId,
+                                    paymentRequestIdForPaying,
+                                    leftAmountInAssetForPay,
+                                    paymentInfo.LeftAmountToPayInAssetForPay
+                                });
                             }
-
-                            await _invoiceRepository.SetStatusAsync(invoice.MerchantId, invoice.Id, InvoiceStatus.InProgress);
-                            await WriteInvoicePayerHistory(invoice.Id, employee.Id, paymentInfo.PaymentRequestIdForPaying);
-
-                            _log.WriteInfo(nameof(PayInvoicesAsync), new
-                            {
-                                InvoiceId = invoice.Id,
-                                invoice.MerchantId,
-                                PayerMerchantId = employee.MerchantId,
-                                paymentInfo.PaymentRequestIdForPaying,
-                                leftAmountInAssetForPay,
-                                paymentInfo.AmountToPayInAssetForPay
-                            }, "Paid Unpaid invoice");
-                        }
-                        break;
-                    case InvoiceStatus.Underpaid:
-                        {
-                            var paymentInfo = await GetPaymentInfoForUnderpaid(invoice, assetForPay, employee.MerchantId, isPaying: true);
-
-                            paymentAmountInAssetForPay = GetPaymentAmount(leftAmountInAssetForPay, paymentInfo.LeftAmountToPayInAssetForPay);
-
-                            try
-                            {
-                                payResult = await PayPaymentRequestAsync(invoice.MerchantId, employee.MerchantId, paymentInfo.PaymentRequestIdForPaying, paymentAmountInAssetForPay);
-                            }
-                            catch (InvalidOperationException)
-                            {
-                                occuredErrorsCount++;
-                                await _paymentLocksService.ReleaseLockAsync(invoice.Id, invoice.MerchantId);
-                                continue;
-                            }
-
-                            await _invoiceRepository.SetStatusAsync(invoice.MerchantId, invoice.Id, InvoiceStatus.InProgress);
-                            await WriteInvoicePayerHistory(invoice.Id, employee.Id, paymentInfo.PaymentRequestIdForPaying);
-
-                            _log.WriteInfo(nameof(PayInvoicesAsync), new
-                            {
-                                InvoiceId = invoice.Id,
-                                invoice.MerchantId,
-                                PayerMerchantId = employee.MerchantId,
-                                paymentInfo.PaymentRequestIdForPaying,
-                                leftAmountInAssetForPay,
-                                paymentInfo.LeftAmountToPayInAssetForPay
-                            }, "Paid Underpaid invoice");
-                        }
-                        break;
+                            break;
+                    }
                 }
+                catch (Exception ex)
+                {
+                    occuredErrorsCount++;
+                    await _paymentLocksService.ReleaseLockAsync(invoice.Id, invoice.MerchantId);
+                    _log.Error(ex, "Error occured during paying", invoice.Sanitize());
+                    continue;
+                }
+
+                // send info to history service
+                var historyOperationCommand = new HistoryOperationCommand
+                {
+                    InvoiceId = invoice.Id,
+                    InvoiceStatus = InvoiceStatus.InProgress.ToString(),
+                    MerchantId = employee.MerchantId,
+                    OppositeMerchantId = invoice.MerchantId,
+                    EmployeeEmail = employee.Email,
+                    Amount = paymentAmountInAssetForPay,
+                    AssetId = assetForPay,
+                    CreatedOn = DateTime.UtcNow
+                };
+                string outgoingHistoryOperationId = await _historyOperationService.PublishOutgoingInvoicePayment(historyOperationCommand);
+
+                historyOperationCommand.MerchantId = invoice.MerchantId;
+                historyOperationCommand.OppositeMerchantId = employee.MerchantId;
+                string incomingHistoryOperationId = await _historyOperationService.PublishIncomingInvoicePayment(historyOperationCommand);
+
+                await WriteInvoicePayerHistory(invoice.Id, employee.Id, paymentRequestIdForPaying, outgoingHistoryOperationId, incomingHistoryOperationId);
 
                 leftAmountInAssetForPay -= paymentAmountInAssetForPay;
                 paidCount++;
@@ -708,14 +794,14 @@ namespace Lykke.Service.PayInvoice.Services
                 throw new InvalidOperationException(message);
             }
 
-            _log.WriteInfo(nameof(PayInvoicesAsync), new
+            _log.InfoWithDetails("PayInvoices finished", new
             {
                 employee.MerchantId,
                 invoicesIds = invoices.Select(x => x.Id),
                 leftAmountInAssetForPay,
                 paidCount,
                 count = invoices.Count()
-            }, "PayInvoices finished");
+            });
 
             decimal GetPaymentAmount(decimal leftAmount, decimal amountToPay)
             {
@@ -723,13 +809,15 @@ namespace Lykke.Service.PayInvoice.Services
             }
         }
 
-        private async Task WriteInvoicePayerHistory(string invoiceId, string employeeId, string paymentRequestIdForPaying)
+        private async Task WriteInvoicePayerHistory(string invoiceId, string employeeId, string paymentRequestIdForPaying, string outgoingHistoryOperationId, string incomingHistoryOperationId)
         {
             await _invoicePayerHistoryRepository.InsertAsync(new InvoicePayerHistoryItem
             {
                 InvoiceId = invoiceId,
                 PaymentRequestId = paymentRequestIdForPaying,
                 EmployeeId = employeeId,
+                OutgoingHistoryOperationId = outgoingHistoryOperationId,
+                IncomingHistoryOperationId = incomingHistoryOperationId,
                 CreatedAt = DateTime.UtcNow
             });
         }
@@ -928,7 +1016,7 @@ namespace Lykke.Service.PayInvoice.Services
             return isNeedToCreateNewPaymentRequest;
         }
 
-        private async Task<bool> PayPaymentRequestAsync(string merchantIdOfInvoice, string payerMerchantId, string paymentRequestId, decimal amount)
+        private async Task PayPaymentRequestAsync(string merchantIdOfInvoice, string payerMerchantId, string paymentRequestId, decimal amount)
         {
             try
             {
@@ -939,11 +1027,10 @@ namespace Lykke.Service.PayInvoice.Services
                     PaymentRequestId = paymentRequestId,
                     Amount = amount
                 });
-                return true;
             }
             catch (DefaultErrorResponseException ex)
             {
-                _log.WriteError(nameof(PayPaymentRequestAsync), new { merchantIdOfInvoice, payerMerchantId, paymentRequestId, amount, ex.Error.ErrorMessage }, ex);
+                _log.Error(ex, ex.Error.ErrorMessage, new { merchantIdOfInvoice, payerMerchantId, paymentRequestId, amount });
 
                 throw new InvalidOperationException($"{ex.StatusCode}: {ex.Error.ErrorMessage}", ex);
             }
@@ -970,7 +1057,7 @@ namespace Lykke.Service.PayInvoice.Services
             }
             catch (DefaultErrorResponseException ex)
             {
-                _log.WriteError(nameof(GetCalculatedPaymentAmountAsync), new { settlementAssetId, paymentAssetId, amount, payerMerchantId, ex.Error.ErrorMessage }, ex);
+                _log.Error(ex, ex.Error.ErrorMessage, new { settlementAssetId, paymentAssetId, amount, payerMerchantId });
 
                 throw new InvalidOperationException($"{ex.StatusCode}: {ex.Error.ErrorMessage}", ex);
             }
@@ -992,7 +1079,7 @@ namespace Lykke.Service.PayInvoice.Services
             }
             catch (DefaultErrorResponseException ex)
             {
-                _log.WriteError(nameof(CheckoutOrderAsync), new { merchantIdOfInvoice, paymentRequestId, ex.Error.ErrorMessage }, ex);
+                _log.Error(ex, ex.Error.ErrorMessage, new { merchantIdOfInvoice, paymentRequestId });
 
                 throw new InvalidOperationException($"{ex.StatusCode}: {ex.Error.ErrorMessage}", ex);
             }
@@ -1011,7 +1098,7 @@ namespace Lykke.Service.PayInvoice.Services
             catch (Exception ex)
             {
                 const string message = "PaymentRequest is not cancelled";
-                _log.WriteError(nameof(CancelPaymentRequestAsync), new { message, merchantId, paymentRequestId }, ex);
+                _log.Error(ex, message, new { merchantId, paymentRequestId });
                 throw new InvalidOperationException(message, ex);
             }
         }
@@ -1032,7 +1119,7 @@ namespace Lykke.Service.PayInvoice.Services
             }
             catch (DefaultErrorResponseException ex)
             {
-                _log.WriteError(nameof(CreatePaymentRequestAsync), new { invoice = invoice.Sanitize(), amount, ex.Error.ErrorMessage }, ex);
+                _log.Error(ex, ex.Error.ErrorMessage, new { invoice = invoice.Sanitize(), amount });
 
                 throw new InvalidOperationException($"{ex.StatusCode}: {ex.Error.ErrorMessage}", ex);
             }
@@ -1086,6 +1173,12 @@ namespace Lykke.Service.PayInvoice.Services
                 Reason = reason,
                 DateTime = now
             });
+
+            // send push notifications
+            await _pushNotificationService.PublishDisputeRaised(new DisputeRaisedPushNotificationCommand
+            {
+                NotifiedMerchantId = validationResult.Invoice.MerchantId
+            });
         }
 
         public async Task CancelDisputeAsync(string invoiceId, string employeeId)
@@ -1100,6 +1193,13 @@ namespace Lykke.Service.PayInvoice.Services
                 InvoiceNumber = validationResult.Invoice.Number,
                 EmployeeEmail = validationResult.Employee.Email,
                 DateTime = DateTime.UtcNow
+            });
+
+            // send push notifications
+            await _pushNotificationService.PublishDisputeCancelled(new DisputeCancelledPushNotificationCommand
+            {
+                NotifiedMerchantId = validationResult.Invoice.MerchantId,
+                EmployeeFullName = validationResult.Employee.FullName()
             });
         }
 

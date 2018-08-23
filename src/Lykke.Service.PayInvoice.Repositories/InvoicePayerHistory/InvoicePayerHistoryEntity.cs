@@ -28,6 +28,10 @@ namespace Lykke.Service.PayInvoice.Repositories.PaymentRequestHistory
 
         public string EmployeeId { get; set; }
 
+        public string OutgoingHistoryOperationId { get; set; }
+
+        public string IncomingHistoryOperationId { get; set; }
+
         public DateTime CreatedAt
         {
             get => _createdAt;

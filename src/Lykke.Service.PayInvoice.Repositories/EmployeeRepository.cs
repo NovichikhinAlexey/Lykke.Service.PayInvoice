@@ -32,6 +32,13 @@ namespace Lykke.Service.PayInvoice.Repositories
             return employees;
         }
 
+        public async Task<Employee> GetAsync(string employeeId, string merchantId)
+        {
+            var entity = await _storage.GetDataAsync(GetPartitionKey(merchantId), GetRowKey(employeeId));
+
+            return Mapper.Map<Employee>(entity);
+        }
+
         public async Task<Employee> GetByIdAsync(string employeeId)
         {
             IEnumerable<EmployeeEntity> entities =
@@ -77,20 +84,30 @@ namespace Lykke.Service.PayInvoice.Repositories
 
             await _storage.InsertAsync(entity);
 
-            var index = AzureIndex.Create(GetEmailIndexPartitionKey(), GetEmailIndexRowKey(entity.Email), entity);
+            var emailIndex = AzureIndex.Create(GetEmailIndexPartitionKey(), GetEmailIndexRowKey(entity.Email), entity);
 
-            await _indexStorage.InsertAsync(index);
+            await _indexStorage.InsertAsync(emailIndex);
 
             return Mapper.Map<Employee>(entity);
         }
 
-        public async Task UpdateAsync(Employee employee)
+        public async Task UpdateAsync(Employee employee, string previousEmail)
         {
-            await _storage.MergeAsync(GetPartitionKey(employee.MerchantId), GetRowKey(employee.Id), entity =>
+            var entity = await _storage.MergeAsync(GetPartitionKey(employee.MerchantId), GetRowKey(employee.Id), mergingEntity =>
             {
-                Mapper.Map(employee, entity);
-                return entity;
+                Mapper.Map(employee, mergingEntity);
+                return mergingEntity;
             });
+
+            // update email index
+            if (!employee.Email.Equals(previousEmail, StringComparison.InvariantCultureIgnoreCase))
+            {
+                await _indexStorage.DeleteAsync(GetEmailIndexPartitionKey(), GetEmailIndexRowKey(previousEmail));
+
+                var emailIndex = AzureIndex.Create(GetEmailIndexPartitionKey(), GetEmailIndexRowKey(entity.Email), entity);
+
+                await _indexStorage.InsertAsync(emailIndex);
+            }
         }
 
         public async Task DeleteAsync(string employeeId)
