@@ -3,7 +3,6 @@ using AzureStorage;
 using AzureStorage.Blob;
 using AzureStorage.Tables;
 using AzureStorage.Tables.Templates.Index;
-using Common.Log;
 using Lykke.Common.Log;
 using Lykke.Service.PayInvoice.Core.Repositories;
 using Lykke.Service.PayInvoice.Repositories.InvoiceDisputes;

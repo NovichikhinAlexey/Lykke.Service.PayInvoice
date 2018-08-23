@@ -2,34 +2,32 @@
 using System.Collections.Generic;
 using System.Net;
 using System.Threading.Tasks;
-using Common;
 using Common.Log;
 using Lykke.Common.Log;
-using Lykke.Service.PayInternal.Client;
 using Lykke.Service.PayInternal.Client.Exceptions;
 using Lykke.Service.PayInvoice.Core.Domain;
 using Lykke.Service.PayInvoice.Core.Exceptions;
 using Lykke.Service.PayInvoice.Core.Repositories;
 using Lykke.Service.PayInvoice.Core.Services;
-using Lykke.Service.PayInvoice.Core.Utils;
 using Lykke.Service.PayInvoice.Services.Extensions;
+using Lykke.Service.PayMerchant.Client;
 
 namespace Lykke.Service.PayInvoice.Services
 {
     public class EmployeeService : IEmployeeService
     {
         private readonly IEmployeeRepository _employeeRepository;
-        private readonly IPayInternalClient _payInternalClient;
+        private readonly IPayMerchantClient _payMerchantClient;
         private readonly ILog _log;
 
         public EmployeeService(
             IEmployeeRepository employeeRepository,
-            IPayInternalClient payInternalClient,
-            ILogFactory logFactory)
+            ILogFactory logFactory,
+            IPayMerchantClient payMerchantClient)
         {
             _employeeRepository = employeeRepository;
-            _payInternalClient = payInternalClient;
             _log = logFactory.CreateLog(this);
+            _payMerchantClient = payMerchantClient;
         }
 
         public Task<IReadOnlyList<Employee>> GetAllAsync()
@@ -66,7 +64,7 @@ namespace Lykke.Service.PayInvoice.Services
         {
             try
             {
-                var merchant = await _payInternalClient.GetMerchantByIdAsync(employee.MerchantId);
+                await _payMerchantClient.Api.GetByIdAsync(employee.MerchantId);
             }
             catch (DefaultErrorResponseException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
             {
