@@ -9,6 +9,7 @@ using Lykke.Service.PayInternal.Client.Models.MerchantGroups;
 using Lykke.Service.PayInvoice.Core.Exceptions;
 using Lykke.Service.PayInvoice.Core.Services;
 using Lykke.Service.PayInvoice.Core.Settings;
+using Lykke.Service.PayMerchant.Client;
 using Microsoft.Extensions.Caching.Memory;
 
 namespace Lykke.Service.PayInvoice.Services
@@ -18,14 +19,17 @@ namespace Lykke.Service.PayInvoice.Services
         private readonly IPayInternalClient _payInternalClient;
         private readonly CacheExpirationPeriodsSettings _cacheExpirationPeriods;
         private readonly OnDemandDataCache<string> _merchantNamesCache;
+        private readonly IPayMerchantClient _payMerchantClient;
 
         public MerchantService(
             IPayInternalClient payInternalClient,
             IMemoryCache memoryCache,
-            CacheExpirationPeriodsSettings cacheExpirationPeriods)
+            CacheExpirationPeriodsSettings cacheExpirationPeriods, 
+            IPayMerchantClient payMerchantClient)
         {
             _payInternalClient = payInternalClient;
             _cacheExpirationPeriods = cacheExpirationPeriods;
+            _payMerchantClient = payMerchantClient;
             _merchantNamesCache = new OnDemandDataCache<string>(memoryCache);
         }
 
@@ -56,7 +60,7 @@ namespace Lykke.Service.PayInvoice.Services
                 (
                     $"MerchantName-{merchantId}",
                     async x => {
-                        var merchant = await _payInternalClient.GetMerchantByIdAsync(merchantId);
+                        var merchant = await _payMerchantClient.Api.GetByIdAsync(merchantId);
                         return merchant.DisplayName;
                     },
                     _cacheExpirationPeriods.MerchantName

@@ -3,6 +3,7 @@ using Lykke.Service.PayInternal.Client;
 using Lykke.Service.PayInvoice.Settings.MonitoringService;
 using Lykke.Service.PayInvoice.Settings.ServiceSettings;
 using Lykke.Service.PayInvoice.Settings.SlackNotifications;
+using Lykke.Service.PayMerchant.Client;
 
 namespace Lykke.Service.PayInvoice.Settings
 {
@@ -16,5 +17,6 @@ namespace Lykke.Service.PayInvoice.Settings
         public PayCallback.Client.InvoiceConfirmation.RabbitMqPublisherSettings PayInvoiceConfirmationPublisher { get; set; }
         public PayPushNotifications.Client.Publisher.RabbitMqPublisherSettings PayPushNotificationsServicePublisher { get; set; }
         public MonitoringServiceClientSettings MonitoringServiceClient { get; set; }
+        public PayMerchantServiceClientSettings PayMerchantServiceClient { get; set; }
     }
 }

@@ -1,10 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Net;
 using System.Threading.Tasks;
 using AutoMapper;
-using Common;
 using Common.Log;
 using Lykke.Common.Api.Contract.Responses;
 using Lykke.Common.Log;

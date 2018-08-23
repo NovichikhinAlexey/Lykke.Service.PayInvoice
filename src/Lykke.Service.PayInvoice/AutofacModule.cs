@@ -1,11 +1,11 @@
 ﻿using Autofac;
 using Common;
-using Common.Log;
 using Lykke.Service.PayCallback.Client;
 using Lykke.Service.PayHistory.Client;
 using Lykke.Service.PayInternal.Client;
 using Lykke.Service.PayInvoice.Rabbit.Subscribers;
 using Lykke.Service.PayInvoice.Settings;
+using Lykke.Service.PayMerchant.Client;
 using Lykke.Service.PayPushNotifications.Client;
 using Lykke.SettingsReader;
 
@@ -41,6 +41,8 @@ namespace Lykke.Service.PayInvoice
                 .AutoActivate()
                 .SingleInstance()
                 .WithParameter(TypedParameter.From(_settings.CurrentValue.PayInvoiceService.Rabbit));
+
+            builder.RegisterPayMerchantClient(_settings.CurrentValue.PayMerchantServiceClient, null);
         }
     }
 }

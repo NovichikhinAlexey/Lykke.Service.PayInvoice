@@ -1,7 +1,6 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Diagnostics;
+using System.Globalization;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
@@ -24,8 +23,8 @@ using Lykke.Service.PayInvoice.Core.Exceptions;
 using Lykke.Service.PayInvoice.Core.Extensions;
 using Lykke.Service.PayInvoice.Core.Repositories;
 using Lykke.Service.PayInvoice.Core.Services;
-using Lykke.Service.PayInvoice.Core.Utils;
 using Lykke.Service.PayInvoice.Services.Extensions;
+using Lykke.Service.PayMerchant.Client;
 
 namespace Lykke.Service.PayInvoice.Services
 {
@@ -46,6 +45,7 @@ namespace Lykke.Service.PayInvoice.Services
         private readonly IInvoiceDisputeRepository _invoiceDisputeRepository;
         private readonly IInvoicePayerHistoryRepository _invoicePayerHistoryRepository;
         private readonly IPayInternalClient _payInternalClient;
+        private readonly IPayMerchantClient _payMerchantClient;
         private readonly ILog _log;
 
         public InvoiceService(
@@ -64,7 +64,8 @@ namespace Lykke.Service.PayInvoice.Services
             IInvoiceDisputeRepository invoiceDisputeRepository,
             IInvoicePayerHistoryRepository invoicePayerHistoryRepository,
             IPayInternalClient payInternalClient,
-            ILogFactory logFactory)
+            ILogFactory logFactory, 
+            IPayMerchantClient payMerchantClient)
         {
             _invoiceRepository = invoiceRepository;
             _fileInfoRepository = fileInfoRepository;
@@ -81,6 +82,7 @@ namespace Lykke.Service.PayInvoice.Services
             _invoiceDisputeRepository = invoiceDisputeRepository;
             _invoicePayerHistoryRepository = invoicePayerHistoryRepository;
             _payInternalClient = payInternalClient;
+            _payMerchantClient = payMerchantClient;
             _log = logFactory.CreateLog(this);
         }
 
@@ -561,7 +563,7 @@ namespace Lykke.Service.PayInvoice.Services
             await _pushNotificationService.PublishInvoicePayment(new InvoicePaidPushNotificationCommand
             {
                 NotifiedMerchantId = invoice.MerchantId,
-                PaidAmount = message.PaidAmount.ToString(),
+                PaidAmount = message.PaidAmount.ToString(CultureInfo.InvariantCulture),
                 PayerMerchantName = await _merchantService.GetMerchantNameAsync(payerEmployee.MerchantId)
             });
 
@@ -586,7 +588,7 @@ namespace Lykke.Service.PayInvoice.Services
         {
             try
             {
-                var merchant = await _payInternalClient.GetMerchantByIdAsync(merchantId);
+                await _payMerchantClient.Api.GetByIdAsync(merchantId);
             }
             catch (DefaultErrorResponseException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
             {
