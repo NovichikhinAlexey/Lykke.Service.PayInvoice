@@ -3,9 +3,8 @@ using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using Lykke.Common.Cache;
-using Lykke.Service.PayInternal.Client;
 using Lykke.Service.PayInternal.Client.Exceptions;
-using Lykke.Service.PayInternal.Client.Models.MerchantGroups;
+using Lykke.Service.PayMerchant.Client.Models;
 using Lykke.Service.PayInvoice.Core.Exceptions;
 using Lykke.Service.PayInvoice.Core.Services;
 using Lykke.Service.PayInvoice.Core.Settings;
@@ -16,18 +15,15 @@ namespace Lykke.Service.PayInvoice.Services
 {
     public class MerchantService : IMerchantService
     {
-        private readonly IPayInternalClient _payInternalClient;
         private readonly CacheExpirationPeriodsSettings _cacheExpirationPeriods;
         private readonly OnDemandDataCache<string> _merchantNamesCache;
         private readonly IPayMerchantClient _payMerchantClient;
 
         public MerchantService(
-            IPayInternalClient payInternalClient,
             IMemoryCache memoryCache,
             CacheExpirationPeriodsSettings cacheExpirationPeriods, 
             IPayMerchantClient payMerchantClient)
         {
-            _payInternalClient = payInternalClient;
             _cacheExpirationPeriods = cacheExpirationPeriods;
             _payMerchantClient = payMerchantClient;
             _merchantNamesCache = new OnDemandDataCache<string>(memoryCache);
@@ -39,7 +35,7 @@ namespace Lykke.Service.PayInvoice.Services
 
             try
             {
-                response = await _payInternalClient.GetMerchantsByUsageAsync(
+                response = await _payMerchantClient.GroupsApi.GetMerchantsByUsageAsync(
                 new GetMerchantsByUsageRequest
                 {
                     MerchantId = merchantId,
