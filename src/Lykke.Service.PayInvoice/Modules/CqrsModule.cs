@@ -54,6 +54,8 @@ namespace Lykke.Service.PayInvoice.Modules
                     new RabbitMqTransportFactory(logFactory));
             });
 
+            builder.RegisterType<RegisterEmployeeCommandHandler>();
+
             builder.Register(ctx => new CqrsEngine(
                     ctx.Resolve<ILogFactory>(),
                     ctx.Resolve<IDependencyResolver>(),
