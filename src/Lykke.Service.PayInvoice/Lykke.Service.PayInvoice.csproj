@@ -19,7 +19,9 @@
     <PackageReference Include="AutoMapper" Version="7.0.1" />
     <PackageReference Include="Lykke.Common" Version="7.0.3" />
     <PackageReference Include="Lykke.Common.ApiLibrary" Version="1.10.1" />
+    <PackageReference Include="Lykke.Cqrs" Version="5.0.1" />
     <PackageReference Include="Lykke.Logs" Version="5.2.0" />
+    <PackageReference Include="Lykke.Messaging.RabbitMq" Version="2.1.0" />
     <PackageReference Include="Lykke.MonitoringServiceApiCaller" Version="1.6.2" />
     <PackageReference Include="Lykke.RabbitMqBroker" Version="7.3.0" />
     <PackageReference Include="Lykke.Service.PayMerchant.Client" Version="1.0.4" />
@@ -37,6 +39,7 @@
     <DotNetCliToolReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Tools" Version="1.0.1" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Lykke.Service.PayInvoice.Contract\Lykke.Service.PayInvoice.Contract.csproj" />
     <ProjectReference Include="..\Lykke.Service.PayInvoice.Core\Lykke.Service.PayInvoice.Core.csproj" />
     <ProjectReference Include="..\Lykke.Service.PayInvoice.Repositories\Lykke.Service.PayInvoice.Repositories.csproj" />
     <ProjectReference Include="..\Lykke.Service.PayInvoice.Services\Lykke.Service.PayInvoice.Services.csproj" />

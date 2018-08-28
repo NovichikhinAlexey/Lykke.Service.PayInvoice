@@ -33,6 +33,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		settings.txt = settings.txt
 	EndProjectSection
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "5. Contract", "5. Contract", "{BD238465-93CF-46F9-A341-7CA4109BBF03}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Lykke.Service.PayInvoice.Contract", "src\Lykke.Service.PayInvoice.Contract\Lykke.Service.PayInvoice.Contract.csproj", "{4F234359-5746-4BCA-B8EF-A5A82E15ED28}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -71,6 +75,10 @@ Global
 		{967D8151-CCF8-4A03-9937-73F012877267}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{967D8151-CCF8-4A03-9937-73F012877267}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{967D8151-CCF8-4A03-9937-73F012877267}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4F234359-5746-4BCA-B8EF-A5A82E15ED28}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4F234359-5746-4BCA-B8EF-A5A82E15ED28}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4F234359-5746-4BCA-B8EF-A5A82E15ED28}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4F234359-5746-4BCA-B8EF-A5A82E15ED28}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -83,6 +91,7 @@ Global
 		{98E127B3-2DE5-45CD-B51B-D2356375A43D} = {6F04271F-62A2-4C7F-82D9-EDBD1773C745}
 		{65C1CBB8-66B6-4486-A8DC-84A5BF86AB29} = {6F04271F-62A2-4C7F-82D9-EDBD1773C745}
 		{967D8151-CCF8-4A03-9937-73F012877267} = {6F04271F-62A2-4C7F-82D9-EDBD1773C745}
+		{4F234359-5746-4BCA-B8EF-A5A82E15ED28} = {BD238465-93CF-46F9-A341-7CA4109BBF03}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {08D6B8DF-4B58-467A-A3A8-B48669D04E47}

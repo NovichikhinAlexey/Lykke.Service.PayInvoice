@@ -6,6 +6,9 @@ namespace Lykke.Service.PayInvoice.Settings.ServiceSettings.Rabbit
     {
         [AmqpCheck]
         public string ConnectionString { get; set; }
+
+        [AmqpCheck]
+        public string SagasConnectionString { get; set; }
         
         public string PaymentRequestsExchangeName { get; set; }
     }
