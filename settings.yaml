@@ -10,6 +10,9 @@
       ConnectionString:
         settings-key: GeneralRabbitMqConnectionString
         types: [RabbitMq]
+      SagasConnectionString:
+        settings-key: SagasRabbitMqConnStr
+        types: [RabbitMq]
       PaymentRequestsExchangeName:
         settings-key: LykkePay-PaymentRequestsExchangeName
         types: [Tag]
