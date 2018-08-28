@@ -4,7 +4,6 @@ using Lykke.Common.Log;
 using Lykke.Cqrs;
 using Lykke.Cqrs.Configuration;
 using Lykke.Messaging;
-using Lykke.Messaging.Contract;
 using Lykke.Messaging.RabbitMq;
 using Lykke.Service.PayInvoice.Contract;
 using Lykke.Service.PayInvoice.Contract.Commands;
@@ -34,7 +33,7 @@ namespace Lykke.Service.PayInvoice.Modules
                 .SingleInstance();
 
             var rabbitSettings = new RabbitMQ.Client.ConnectionFactory
-                { Uri = _settings.CurrentValue.PayInvoiceService.Rabbit.SagasConnectionString };
+                {Uri = _settings.CurrentValue.PayInvoiceService.Rabbit.SagasConnectionString};
 
             builder.Register(ctx =>
             {
@@ -56,23 +55,25 @@ namespace Lykke.Service.PayInvoice.Modules
             });
 
             builder.Register(ctx => new CqrsEngine(
-                ctx.Resolve<ILogFactory>(),
-                ctx.Resolve<IDependencyResolver>(),
-                ctx.Resolve<IMessagingEngine>(),
-                new DefaultEndpointProvider(),
-                true,
-                Register.DefaultEndpointResolver(new RabbitMqConventionEndpointResolver(
-                    "RabbitMq",
-                    Messaging.Serialization.SerializationFormat.ProtoBuf,
-                    environment: "lykke")),
-
-                Register.BoundedContext(EmployeeRegistrationBoundedContext.Name)
-                    .ListeningCommands(typeof(RegisterEmployeeCommand))
-                    .On(CommandsRoute)
-                    .WithCommandsHandler<RegisterEmployeeCommandHandler>()
-                    .PublishingEvents(typeof(EmployeeRegisteredEvent), typeof(EmployeeRegistrationFailedEvent))
-                    .With(EventsRoute)
-            ));
+                    ctx.Resolve<ILogFactory>(),
+                    ctx.Resolve<IDependencyResolver>(),
+                    ctx.Resolve<MessagingEngine>(),
+                    new DefaultEndpointProvider(),
+                    true,
+                    Register.DefaultEndpointResolver(new RabbitMqConventionEndpointResolver(
+                        "RabbitMq",
+                        Messaging.Serialization.SerializationFormat.ProtoBuf,
+                        environment: "lykke")),
+                    Register.BoundedContext(EmployeeRegistrationBoundedContext.Name)
+                        .ListeningCommands(typeof(RegisterEmployeeCommand))
+                        .On(CommandsRoute)
+                        .WithCommandsHandler<RegisterEmployeeCommandHandler>()
+                        .PublishingEvents(typeof(EmployeeRegisteredEvent), typeof(EmployeeRegistrationFailedEvent))
+                        .With(EventsRoute)
+                ))
+                .As<ICqrsEngine>()
+                .SingleInstance()
+                .AutoActivate();
         }
     }
 }
