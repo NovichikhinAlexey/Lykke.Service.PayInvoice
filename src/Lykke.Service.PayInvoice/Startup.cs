@@ -3,7 +3,6 @@ using System.Threading.Tasks;
 using Autofac;
 using Autofac.Extensions.DependencyInjection;
 using AutoMapper;
-using AzureStorage.Tables;
 using Common.Log;
 using Lykke.AzureStorage.Tables.Entity.Metamodel;
 using Lykke.AzureStorage.Tables.Entity.Metamodel.Providers;
@@ -14,7 +13,6 @@ using Lykke.Service.PayInvoice.Core.Services;
 using Lykke.Service.PayInvoice.Settings;
 using Lykke.Service.PayInvoice.Swagger;
 using Lykke.SettingsReader;
-using Lykke.SlackNotification.AzureQueue;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
@@ -22,6 +20,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Swashbuckle.AspNetCore.Swagger;
 using Lykke.MonitoringServiceApiCaller;
 using Lykke.Common.Log;
+using Lykke.Service.PayInvoice.Modules;
 
 namespace Lykke.Service.PayInvoice
 {
@@ -85,7 +84,7 @@ namespace Lykke.Service.PayInvoice
                 Mapper.AssertConfigurationIsValid();
 
                 var builder = new ContainerBuilder();
-                var appSettings = Configuration.LoadSettings<AppSettings>();
+                var appSettings = Configuration.LoadSettings<AppSettings>(options => {});
                 if (appSettings.CurrentValue.MonitoringServiceClient != null)
                     _monitoringServiceUrl = appSettings.CurrentValue.MonitoringServiceClient.MonitoringServiceUrl;
 
@@ -104,6 +103,8 @@ namespace Lykke.Service.PayInvoice
                     appSettings.CurrentValue.PayInvoiceService.RetryPolicy));
                 
                 builder.RegisterModule(new AutofacModule(appSettings));
+
+                builder.RegisterModule(new CqrsModule(appSettings));
 
                 builder.Populate(services);
                 ApplicationContainer = builder.Build();

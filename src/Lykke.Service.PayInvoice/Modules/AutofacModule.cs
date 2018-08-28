@@ -9,7 +9,7 @@ using Lykke.Service.PayMerchant.Client;
 using Lykke.Service.PayPushNotifications.Client;
 using Lykke.SettingsReader;
 
-namespace Lykke.Service.PayInvoice
+namespace Lykke.Service.PayInvoice.Modules
 {
     public class AutofacModule : Module
     {
