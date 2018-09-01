@@ -48,7 +48,8 @@ namespace Lykke.Service.PayInvoice
                 .ForMember(dest => dest.IsBlocked, opt => opt.UseValue(false))
                 .ForMember(dest => dest.IsInternalSupervisor, opt => opt.UseValue(false));
 
-            CreateMap<UpdateEmployeeCommand, Employee>(MemberList.Destination);
+            CreateMap<UpdateEmployeeCommand, Employee>(MemberList.Destination)
+                .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.EmployeeId));
 
             CreateMap<UpdateEmployeeModel, Employee>(MemberList.Destination);
 
