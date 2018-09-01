@@ -10,9 +10,6 @@
       ConnectionString:
         settings-key: GeneralRabbitMqConnectionString
         types: [RabbitMq]
-      SagasConnectionString:
-        settings-key: SagasRabbitMqConnStr
-        types: [RabbitMq]
       PaymentRequestsExchangeName:
         settings-key: LykkePay-PaymentRequestsExchangeName
         types: [Tag]
@@ -28,6 +25,12 @@
       MerchantName:
         settings-key: PayInvoiceService-CacheExpirationPeriods-MerchantName
         types: [Tag]
+    Cqrs:
+      RabbitMqConnectionString:
+        settings-key: SagasRabbitMqConnStr
+        types: [RabbitMq]
+      ChaosKitty:
+        StateOfChaos: 0.2
   MonitoringServiceClient:
     MonitoringServiceUrl:
       settings-key: MonitoringServiceUrl
