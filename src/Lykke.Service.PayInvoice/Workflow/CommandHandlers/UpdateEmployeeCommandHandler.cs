@@ -16,15 +16,15 @@ using Lykke.Service.PayInvoice.Core.Services;
 namespace Lykke.Service.PayInvoice.Workflow.CommandHandlers
 {
     [UsedImplicitly]
-    public class RegisterEmployeeCommandHandler
+    public class UpdateEmployeeCommandHandler
     {
         private readonly IEmployeeService _employeeService;
         private readonly IChaosKitty _chaosKitty;
         private readonly ILog _log;
 
-        public RegisterEmployeeCommandHandler(
+        public UpdateEmployeeCommandHandler(
             [NotNull] IEmployeeService employeeService,
-            [NotNull] ILogFactory logFactory,
+            [NotNull] ILogFactory logFactory, 
             [NotNull] IChaosKitty chaosKitty)
         {
             _employeeService = employeeService ?? throw new ArgumentNullException(nameof(employeeService));
@@ -32,34 +32,34 @@ namespace Lykke.Service.PayInvoice.Workflow.CommandHandlers
             _log = logFactory.CreateLog(this);
         }
 
-        public async Task<CommandHandlingResult> Handle(RegisterEmployeeCommand command, IEventPublisher publisher)
+        public async Task<CommandHandlingResult> Handle(UpdateEmployeeCommand command, IEventPublisher publisher)
         {
-            Employee employee;
+            var employee = Mapper.Map<Employee>(command);
 
             try
             {
-                employee = await _employeeService.AddAsync(Mapper.Map<Employee>(command));
+                await _employeeService.UpdateAsync(employee);
             }
             catch (Exception e)
             {
-                if (e is MerchantNotFoundException merchantEx)
-                    _log.WarningWithDetails(merchantEx.Message, new {merchantEx.MerchantId});
+                if (e is EmployeeNotFoundException notFoundEx)
+                    _log.WarningWithDetails(notFoundEx.Message, new { notFoundEx.EmployeeId });
 
-                if (e is EmployeeExistException employeeEx)
-                    _log.WarningWithDetails(employeeEx.Message, new { command.Email });
+                if (e is EmployeeExistException existsEx)
+                    _log.WarningWithDetails(existsEx.Message, new { command.Email });
 
-                publisher.PublishEvent(new EmployeeRegistrationFailedEvent
+                publisher.PublishEvent(new EmployeeUpdateFailedEvent
                 {
                     Email = command.Email,
                     Error = e.Message
                 });
 
-                _chaosKitty.Meow("Issue with RabbitMq publishing EmployeeRegistrationFailedEvent");
+                _chaosKitty.Meow("Issue with RabbitMq publishing EmployeeUpdateFailedEvent");
 
                 return CommandHandlingResult.Ok();
             }
 
-            publisher.PublishEvent(new EmployeeRegisteredEvent
+            publisher.PublishEvent(new EmployeeUpdatedEvent
             {
                 Id = employee.Id,
                 Email = employee.Email,
@@ -67,7 +67,7 @@ namespace Lykke.Service.PayInvoice.Workflow.CommandHandlers
                 Password = command.Password
             });
 
-            _chaosKitty.Meow("Issue with RabbitMq publishing EmployeeRegisteredEvent");
+            _chaosKitty.Meow("Issue with RabbitMq publishing EmployeeUpdatedEvent");
 
             return CommandHandlingResult.Ok();
         }

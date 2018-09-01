@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using Autofac;
+using Lykke.Common.Chaos;
 using Lykke.Common.Log;
 using Lykke.Cqrs;
 using Lykke.Cqrs.Configuration;
@@ -28,12 +29,14 @@ namespace Lykke.Service.PayInvoice.Modules
 
         protected override void Load(ContainerBuilder builder)
         {
+            RegisterChaosKitty(builder);
+
             builder.Register(context => new AutofacDependencyResolver(context))
                 .As<IDependencyResolver>()
                 .SingleInstance();
 
             var rabbitSettings = new RabbitMQ.Client.ConnectionFactory
-                {Uri = _settings.CurrentValue.PayInvoiceService.Rabbit.SagasConnectionString};
+                {Uri = _settings.CurrentValue.PayInvoiceService.Cqrs.RabbitMqConnectionString};
 
             builder.Register(ctx =>
             {
@@ -56,6 +59,8 @@ namespace Lykke.Service.PayInvoice.Modules
 
             builder.RegisterType<RegisterEmployeeCommandHandler>();
 
+            builder.RegisterType<UpdateEmployeeCommandHandler>();
+
             builder.Register(ctx => new CqrsEngine(
                     ctx.Resolve<ILogFactory>(),
                     ctx.Resolve<IDependencyResolver>(),
@@ -72,10 +77,34 @@ namespace Lykke.Service.PayInvoice.Modules
                         .WithCommandsHandler<RegisterEmployeeCommandHandler>()
                         .PublishingEvents(typeof(EmployeeRegisteredEvent), typeof(EmployeeRegistrationFailedEvent))
                         .With(EventsRoute)
+
+                        .ListeningCommands(typeof(UpdateEmployeeCommand))
+                        .On(CommandsRoute)
+                        .WithCommandsHandler<UpdateEmployeeCommandHandler>()
+                        .PublishingEvents(typeof(EmployeeUpdatedEvent), typeof(EmployeeUpdateFailedEvent))
+                        .With(EventsRoute)
                 ))
                 .As<ICqrsEngine>()
                 .SingleInstance()
                 .AutoActivate();
+        }
+
+        private void RegisterChaosKitty(ContainerBuilder builder)
+        {
+            if (_settings.CurrentValue.PayInvoiceService.Cqrs.ChaosKitty != null)
+            {
+                builder.RegisterType<ChaosKitty>()
+                    .WithParameter(TypedParameter.From(_settings.CurrentValue.PayInvoiceService.Cqrs.ChaosKitty
+                        .StateOfChaos))
+                    .As<IChaosKitty>()
+                    .SingleInstance();
+            }
+            else
+            {
+                builder.RegisterType<SilentChaosKitty>()
+                    .As<IChaosKitty>()
+                    .SingleInstance();
+            }
         }
     }
 }
