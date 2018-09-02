@@ -9,7 +9,7 @@ using Lykke.Messaging.RabbitMq;
 using Lykke.Service.PayInvoice.Contract;
 using Lykke.Service.PayInvoice.Contract.Commands;
 using Lykke.Service.PayInvoice.Contract.Events;
-using Lykke.Service.PayInvoice.Settings;
+using Lykke.Service.PayInvoice.Settings.ServiceSettings;
 using Lykke.Service.PayInvoice.Workflow.CommandHandlers;
 using Lykke.SettingsReader;
 
@@ -17,12 +17,12 @@ namespace Lykke.Service.PayInvoice.Modules
 {
     public class CqrsModule : Module
     {
-        private readonly IReloadingManager<AppSettings> _settings;
+        private readonly IReloadingManager<CqrsSettings> _settings;
 
         private const string CommandsRoute = "commands";
         private const string EventsRoute = "events";
 
-        public CqrsModule(IReloadingManager<AppSettings> settings)
+        public CqrsModule(IReloadingManager<CqrsSettings> settings)
         {
             _settings = settings;
         }
@@ -36,7 +36,7 @@ namespace Lykke.Service.PayInvoice.Modules
                 .SingleInstance();
 
             var rabbitSettings = new RabbitMQ.Client.ConnectionFactory
-                {Uri = _settings.CurrentValue.PayInvoiceService.Cqrs.RabbitMqConnectionString};
+                {Uri = _settings.CurrentValue.RabbitMqConnectionString};
 
             builder.Register(ctx =>
             {
@@ -91,11 +91,10 @@ namespace Lykke.Service.PayInvoice.Modules
 
         private void RegisterChaosKitty(ContainerBuilder builder)
         {
-            if (_settings.CurrentValue.PayInvoiceService.Cqrs.ChaosKitty != null)
+            if (_settings.CurrentValue.ChaosKitty != null)
             {
                 builder.RegisterType<ChaosKitty>()
-                    .WithParameter(TypedParameter.From(_settings.CurrentValue.PayInvoiceService.Cqrs.ChaosKitty
-                        .StateOfChaos))
+                    .WithParameter(TypedParameter.From(_settings.CurrentValue.ChaosKitty.StateOfChaos))
                     .As<IChaosKitty>()
                     .SingleInstance();
             }
