@@ -32,6 +32,7 @@ namespace Lykke.Service.PayInvoice.Workflow.CommandHandlers
             _log = logFactory.CreateLog(this);
         }
 
+        [UsedImplicitly]
         public async Task<CommandHandlingResult> Handle(UpdateEmployeeCommand command, IEventPublisher publisher)
         {
             var employee = Mapper.Map<Employee>(command);

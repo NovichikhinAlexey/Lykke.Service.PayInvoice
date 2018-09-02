@@ -104,7 +104,7 @@ namespace Lykke.Service.PayInvoice
                 
                 builder.RegisterModule(new AutofacModule(appSettings));
 
-                builder.RegisterModule(new CqrsModule(appSettings));
+                builder.RegisterModule(new CqrsModule(appSettings.Nested(x => x.PayInvoiceService.Cqrs)));
 
                 builder.Populate(services);
                 ApplicationContainer = builder.Build();
