@@ -6,7 +6,6 @@ using Lykke.Cqrs;
 using Lykke.Cqrs.Configuration;
 using Lykke.Messaging;
 using Lykke.Messaging.RabbitMq;
-using Lykke.Service.PayInvoice.Contract;
 using Lykke.Service.PayInvoice.Contract.Commands;
 using Lykke.Service.PayInvoice.Contract.Events;
 using Lykke.Service.PayInvoice.Settings.ServiceSettings;
