@@ -71,7 +71,8 @@ namespace Lykke.Service.PayInvoice.Modules
                         "RabbitMq",
                         Messaging.Serialization.SerializationFormat.ProtoBuf,
                         environment: "lykke")),
-                    Register.BoundedContext(EmployeeRegistrationBoundedContext.Name)
+
+                    Register.BoundedContext("lykkepay-employee-registration")
                         .ListeningCommands(typeof(RegisterEmployeeCommand))
                         .On(CommandsRoute)
                         .WithCommandsHandler<RegisterEmployeeCommandHandler>()
