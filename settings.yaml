@@ -1,14 +1,14 @@
   PayInvoiceService:
     Db:
       DataConnectionString:
-        settings-key: PayInvoiceService-DataConnString
+        settings-key: LykkePayMerchantDataConnString
         types: [AzureTableStorage, Tag]
       LogsConnectionString:
-        settings-key: PayInvoiceService-LogsConnString
+        settings-key: LykkePayLogsConnString
         types: [AzureTableStorage, Tag]
     Rabbit:
       ConnectionString:
-        settings-key: GeneralRabbitMqConnectionString
+        settings-key: RabbitPay
         types: [RabbitMq]
       PaymentRequestsExchangeName:
         settings-key: LykkePay-PaymentRequestsExchangeName
@@ -27,7 +27,7 @@
         types: [Tag]
     Cqrs:
       RabbitMqConnectionString:
-        settings-key: SagasRabbitMqConnStr
+        settings-key: RabbitSagas
         types: [RabbitMq]
       ChaosKitty:
         StateOfChaos: 0.2
@@ -40,7 +40,7 @@
       types: [Tag]
   PayHistoryServicePublisher:
     ConnectionString:
-      settings-key: GeneralRabbitMqConnectionString
+      settings-key: RabbitPay
       types: [RabbitMq]
     ExchangeName:
       settings-key: PayHistoryExchangeName
@@ -51,14 +51,14 @@
       types: [Tag]
   PayInvoiceConfirmationPublisher:
     ConnectionString:
-      settings-key: GeneralRabbitMqConnectionString
+      settings-key: RabbitPay
       types: [RabbitMq]
     ExchangeName:
       settings-key: PayInvoiceConfirmationExchangeName
       types: [Tag]
   PayPushNotificationsServicePublisher:
     ConnectionString:
-      settings-key: GeneralRabbitMqConnectionString
+      settings-key: RabbitPay
       types: [RabbitMq]
     ExchangeName:
       settings-key: PayPushNotificationsExchangeName
