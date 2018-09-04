@@ -1,0 +1,77 @@
+  PayInvoiceService:
+    Db:
+      DataConnectionString:
+        settings-key: LykkePayMerchantDataConnString
+        types: [AzureTableStorage, Tag]
+      LogsConnectionString:
+        settings-key: LykkePayLogsConnString
+        types: [AzureTableStorage, Tag]
+    Rabbit:
+      ConnectionString:
+        settings-key: RabbitPay
+        types: [RabbitMq]
+      PaymentRequestsExchangeName:
+        settings-key: LykkePay-PaymentRequestsExchangeName
+        types: [Tag]
+    RetryPolicy:
+      DefaultAttempts: 5
+    DistributedCacheSettings:
+      RedisConfiguration:
+        settings-key: RedisConfiguration
+      PaymentLocksCacheKeyPattern:
+        settings-key: PayInvoiceService-DistributedCacheSettings-PaymentLocksCacheKeyPattern
+        types: [Tag]
+    CacheExpirationPeriods:
+      MerchantName:
+        settings-key: PayInvoiceService-CacheExpirationPeriods-MerchantName
+        types: [Tag]
+    Cqrs:
+      RabbitMqConnectionString:
+        settings-key: RabbitSagas
+        types: [RabbitMq]
+      ChaosKitty:
+        StateOfChaos: 0.2
+  MonitoringServiceClient:
+    MonitoringServiceUrl:
+      settings-key: MonitoringServiceUrl
+  PayHistoryServiceClient:
+    ServiceUrl:
+      settings-key: PayHistoryServiceUrl
+      types: [Tag]
+  PayHistoryServicePublisher:
+    ConnectionString:
+      settings-key: RabbitPay
+      types: [RabbitMq]
+    ExchangeName:
+      settings-key: PayHistoryExchangeName
+      types: [Tag]
+  PayInternalServiceClient:
+    ServiceUrl:
+      settings-key: PayInternalServiceUrl
+      types: [Tag]
+  PayInvoiceConfirmationPublisher:
+    ConnectionString:
+      settings-key: RabbitPay
+      types: [RabbitMq]
+    ExchangeName:
+      settings-key: PayInvoiceConfirmationExchangeName
+      types: [Tag]
+  PayPushNotificationsServicePublisher:
+    ConnectionString:
+      settings-key: RabbitPay
+      types: [RabbitMq]
+    ExchangeName:
+      settings-key: PayPushNotificationsExchangeName
+      types: [Tag]
+  SlackNotifications:
+    AzureQueue:
+      ConnectionString:
+        settings-key: SlackNotificationsConnString
+        types: [AzureTableStorage]
+      QueueName: slack-notifications
+    ThrottlingLimitSeconds:
+      settings-key: SlackNotificationsThrottlingLimit
+  PayMerchantServiceClient:
+    ServiceUrl:
+        settings-key: PayMerchantServiceUrl
+        types: [Tag]
