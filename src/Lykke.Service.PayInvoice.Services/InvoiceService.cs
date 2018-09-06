@@ -48,6 +48,8 @@ namespace Lykke.Service.PayInvoice.Services
         private readonly IPayMerchantClient _payMerchantClient;
         private readonly ILog _log;
 
+        private const string PaymentRequestInitiator = "InvoiceService";
+
         public InvoiceService(
             IInvoiceRepository invoiceRepository,
             IFileInfoRepository fileInfoRepository,
@@ -1114,7 +1116,8 @@ namespace Lykke.Service.PayInvoice.Services
                         Amount = amount ?? invoice.Amount,
                         DueDate = invoice.DueDate,
                         PaymentAssetId = invoice.PaymentAssetId,
-                        SettlementAssetId = invoice.SettlementAssetId
+                        SettlementAssetId = invoice.SettlementAssetId,
+                        Initiator = PaymentRequestInitiator
                     });
             }
             catch (DefaultErrorResponseException ex)
