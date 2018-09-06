@@ -106,5 +106,14 @@ namespace Lykke.Service.PayInvoice.Core.Domain
         /// The dispute attribute
         /// </summary>
         public bool Dispute { get; set; }
+
+        /// <summary>
+        /// Makes a shallow copy of the invoice
+        /// </summary>
+        /// <returns></returns>
+        public Invoice ShallowCopy()
+        {
+            return (Invoice) MemberwiseClone();
+        }
     }
 }
