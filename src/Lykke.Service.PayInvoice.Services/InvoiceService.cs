@@ -8,8 +8,6 @@ using AutoMapper;
 using Common;
 using Common.Log;
 using Lykke.Common.Log;
-using Lykke.Service.EmailPartnerRouter.Client;
-using Lykke.Service.EmailPartnerRouter.Contracts;
 using Lykke.Service.PayInternal.Client;
 using Lykke.Service.PayInternal.Client.Exceptions;
 using Lykke.Service.PayInternal.Client.Models.Order;
