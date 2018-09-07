@@ -1,5 +1,6 @@
 ﻿using Autofac;
 using Common;
+using Lykke.Service.EmailPartnerRouter.Client;
 using Lykke.Service.PayCallback.Client;
 using Lykke.Service.PayHistory.Client;
 using Lykke.Service.PayInternal.Client;
@@ -43,6 +44,10 @@ namespace Lykke.Service.PayInvoice
                 .WithParameter(TypedParameter.From(_settings.CurrentValue.PayInvoiceService.Rabbit));
 
             builder.RegisterPayMerchantClient(_settings.CurrentValue.PayMerchantServiceClient, null);
+
+            builder.RegisterInstance(new EmailPartnerRouterClient(_settings.CurrentValue.EmailPartnerRouterServiceClient.ServiceUrl))
+                .As<IEmailPartnerRouterClient>()
+                .SingleInstance();
         }
     }
 }

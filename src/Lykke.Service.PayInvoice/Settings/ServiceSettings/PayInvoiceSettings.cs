@@ -11,5 +11,6 @@ namespace Lykke.Service.PayInvoice.Settings.ServiceSettings
         public RetryPolicySettings RetryPolicy { get; set; }
         public DistributedCacheSettings DistributedCacheSettings { get; set; }
         public CacheExpirationPeriodsSettings CacheExpirationPeriods { get; set; }
+        public string PayInvoicePortalUrl { get; set; }
     }
 }

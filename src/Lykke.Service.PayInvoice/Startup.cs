@@ -101,7 +101,8 @@ namespace Lykke.Service.PayInvoice
                 builder.RegisterModule(new Services.AutofacModule(
                     appSettings.CurrentValue.PayInvoiceService.CacheExpirationPeriods,
                     appSettings.CurrentValue.PayInvoiceService.DistributedCacheSettings,
-                    appSettings.CurrentValue.PayInvoiceService.RetryPolicy));
+                    appSettings.CurrentValue.PayInvoiceService.RetryPolicy,
+                    appSettings.CurrentValue.PayInvoiceService.PayInvoicePortalUrl));
                 
                 builder.RegisterModule(new AutofacModule(appSettings));
 
