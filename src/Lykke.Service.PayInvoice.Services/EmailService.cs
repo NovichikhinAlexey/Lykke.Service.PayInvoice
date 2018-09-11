@@ -6,6 +6,7 @@ using Common;
 using JetBrains.Annotations;
 using Lykke.Service.EmailPartnerRouter.Client;
 using Lykke.Service.EmailPartnerRouter.Contracts;
+using Lykke.Service.PayInvoice.Core;
 using Lykke.Service.PayInvoice.Core.Domain;
 using Lykke.Service.PayInvoice.Core.Domain.Email;
 using Lykke.Service.PayInvoice.Core.Repositories;
@@ -51,6 +52,7 @@ namespace Lykke.Service.PayInvoice.Services
 
             await _emailPartnerRouterClient.Send(new SendEmailCommand
             {
+                ApplicationId = Constants.EmailApplicationId,
                 EmailAddresses = emails.ToArray(),
                 Template = PaymentReceivedTemplate,
                 Payload = new Dictionary<string, string>
