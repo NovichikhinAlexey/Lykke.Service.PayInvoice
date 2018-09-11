@@ -1,5 +1,6 @@
 ﻿using Autofac;
 using Common;
+using Lykke.Service.EmailPartnerRouter.Client;
 using Lykke.Service.PayCallback.Client;
 using Lykke.Service.PayHistory.Client;
 using Lykke.Service.PayInternal.Client;
@@ -34,7 +35,15 @@ namespace Lykke.Service.PayInvoice.Modules
 
             builder.RegisterPayPushNotificationPublisher(_settings.CurrentValue.PayPushNotificationsServicePublisher);
 
-            builder.RegisterType<PaymentRequestSubscriber>()
+            builder.RegisterType<InvoicePaymentRequestSubscriber>()
+                .AsSelf()
+                .As<IStartable>()
+                .As<IStopable>()
+                .AutoActivate()
+                .SingleInstance()
+                .WithParameter(TypedParameter.From(_settings.CurrentValue.PayInvoiceService.Rabbit));
+
+            builder.RegisterType<NotificationsPaymentRequestSubscriber>()
                 .AsSelf()
                 .As<IStartable>()
                 .As<IStopable>()
@@ -43,6 +52,10 @@ namespace Lykke.Service.PayInvoice.Modules
                 .WithParameter(TypedParameter.From(_settings.CurrentValue.PayInvoiceService.Rabbit));
 
             builder.RegisterPayMerchantClient(_settings.CurrentValue.PayMerchantServiceClient, null);
+
+            builder.RegisterInstance(new EmailPartnerRouterClient(_settings.CurrentValue.EmailPartnerRouterServiceClient.ServiceUrl))
+                .As<IEmailPartnerRouterClient>()
+                .SingleInstance();
         }
     }
 }

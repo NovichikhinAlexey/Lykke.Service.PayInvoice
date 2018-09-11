@@ -32,6 +32,9 @@
         types: [RabbitMq, Tag]
       ChaosKitty:
         StateOfChaos: 0.2
+    PayInvoicePortalUrl:
+      settings-key: PayInvoicePortalUrl
+      types: [Tag]
   MonitoringServiceClient:
     MonitoringServiceUrl:
       settings-key: MonitoringServiceUrl
@@ -76,4 +79,8 @@
   PayMerchantServiceClient:
     ServiceUrl:
         settings-key: PayMerchantServiceUrl
+        types: [Tag]
+  EmailPartnerRouterServiceClient: 
+    ServiceUrl: 
+        settings-key: EmailPartnerRouterServiceUrl
         types: [Tag]

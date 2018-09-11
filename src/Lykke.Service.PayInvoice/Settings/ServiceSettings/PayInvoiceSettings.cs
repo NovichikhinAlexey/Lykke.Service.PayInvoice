@@ -14,6 +14,7 @@ namespace Lykke.Service.PayInvoice.Settings.ServiceSettings
         public DistributedCacheSettings DistributedCacheSettings { get; set; }
         public CacheExpirationPeriodsSettings CacheExpirationPeriods { get; set; }
         public CqrsSettings Cqrs { get; set; }
+        public string PayInvoicePortalUrl { get; set; }
     }
 
     public class CqrsSettings

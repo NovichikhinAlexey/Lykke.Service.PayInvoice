@@ -12,15 +12,18 @@ namespace Lykke.Service.PayInvoice.Services
         private readonly CacheExpirationPeriodsSettings _cacheExpirationPeriods;
         private readonly DistributedCacheSettings _distributedCacheSettings;
         private readonly RetryPolicySettings _retryPolicySettings;
+        private readonly string _payInvoicePortalUrl;
 
         public AutofacModule(
             CacheExpirationPeriodsSettings cacheExpirationPeriods,
             DistributedCacheSettings distributedCacheSettings,
-            RetryPolicySettings retryPolicySettings)
+            RetryPolicySettings retryPolicySettings, 
+            string payInvoicePortalUrl)
         {
             _cacheExpirationPeriods = cacheExpirationPeriods;
             _distributedCacheSettings = distributedCacheSettings;
             _retryPolicySettings = retryPolicySettings;
+            _payInvoicePortalUrl = payInvoicePortalUrl;
         }
 
         protected override void Load(ContainerBuilder builder)
@@ -75,6 +78,13 @@ namespace Lykke.Service.PayInvoice.Services
                     (pi, ctx) => pi.ParameterType == typeof(IDistributedLocksService) &&
                                  pi.Name == "paymentLocksService",
                     (pi, ctx) => ctx.ResolveKeyed<IDistributedLocksService>(DistributedLockPurpose.InternalPayment)));
+
+            builder.RegisterType<EmailService>()
+                .As<IEmailService>()
+                .WithParameter(TypedParameter.From(_payInvoicePortalUrl));
+
+            builder.RegisterType<InvoiceNotificationsService>()
+                .As<IInvoiceNotificationsService>();
         }
     }
 }
