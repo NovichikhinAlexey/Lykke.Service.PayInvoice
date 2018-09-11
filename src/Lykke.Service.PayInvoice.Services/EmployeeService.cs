@@ -78,7 +78,7 @@ namespace Lykke.Service.PayInvoice.Services
                 
             Employee createdEmployee = await _employeeRepository.InsertAsync(employee);
 
-            _log.Info("Employee added.", employee.Sanitize());
+            _log.Info("Employee added.", employee.SanitizeCopy());
             
             return createdEmployee;
         }
@@ -101,7 +101,7 @@ namespace Lykke.Service.PayInvoice.Services
                 
             await _employeeRepository.UpdateAsync(employee, existingEmployee.Email);
             
-            _log.Info("Employee updated.", employee.Sanitize());
+            _log.Info("Employee updated.", employee.SanitizeCopy());
         }
 
         public async Task DeleteAsync(string employeeId)
