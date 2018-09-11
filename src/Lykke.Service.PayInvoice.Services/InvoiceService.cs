@@ -206,7 +206,7 @@ namespace Lykke.Service.PayInvoice.Services
 
             Invoice createdInvoice = await _invoiceRepository.InsertAsync(invoice);
 
-            _log.InfoWithDetails("Invoice draft created", invoice.Sanitize());
+            _log.InfoWithDetails("Invoice draft created", invoice.SanitizeCopy());
 
             await WriteHistory(createdInvoice, "Invoice draft created");
 
@@ -228,7 +228,7 @@ namespace Lykke.Service.PayInvoice.Services
             
             await _invoiceRepository.UpdateAsync(invoice);
 
-            _log.InfoWithDetails("Invoice draft updated", invoice.Sanitize());
+            _log.InfoWithDetails("Invoice draft updated", invoice.SanitizeCopy());
 
             await WriteHistory(invoice, "Invoice draft updated");
         }
@@ -243,7 +243,7 @@ namespace Lykke.Service.PayInvoice.Services
 
             Invoice createdInvoice = await _invoiceRepository.InsertAsync(invoice);
 
-            _log.InfoWithDetails("Invoice created", invoice.Sanitize());
+            _log.InfoWithDetails("Invoice created", invoice.SanitizeCopy());
 
             await WriteHistory(createdInvoice, "Invoice created");
 
@@ -267,7 +267,7 @@ namespace Lykke.Service.PayInvoice.Services
             
             await _invoiceRepository.UpdateAsync(invoice);
 
-            _log.InfoWithDetails("Invoice created from draft", invoice.Sanitize());
+            _log.InfoWithDetails("Invoice created from draft", invoice.SanitizeCopy());
 
             await WriteHistory(invoice, "Invoice created from draft");
 
@@ -325,7 +325,7 @@ namespace Lykke.Service.PayInvoice.Services
             await CancelPaymentRequestAsync(invoice.MerchantId, previousPaymentRequestId);
 
             _log.InfoWithDetails("Payment request changed", 
-                new { invoice = invoice.Sanitize(), previousPaymentRequestId, newPaymentRequest = paymentRequest });
+                new { invoice = invoice.SanitizeCopy(), previousPaymentRequestId, newPaymentRequest = paymentRequest });
 
             return invoice;
         }

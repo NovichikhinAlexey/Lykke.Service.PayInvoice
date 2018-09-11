@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Lykke.Service.PayInvoice.Contract.Commands;
 using Lykke.Service.PayInvoice.Core.Domain;
 using Lykke.Service.PayInvoice.Models.Employee;
 using Lykke.Service.PayInvoice.Models.File;
@@ -41,6 +42,14 @@ namespace Lykke.Service.PayInvoice
 
             CreateMap<CreateEmployeeModel, Employee>(MemberList.Destination)
                 .ForMember(dest => dest.Id, opt => opt.Ignore());
+
+            CreateMap<RegisterEmployeeCommand, Employee>(MemberList.Destination)
+                .ForMember(dest => dest.Id, opt => opt.Ignore())
+                .ForMember(dest => dest.IsBlocked, opt => opt.UseValue(false))
+                .ForMember(dest => dest.IsInternalSupervisor, opt => opt.UseValue(false));
+
+            CreateMap<UpdateEmployeeCommand, Employee>(MemberList.Destination)
+                .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.EmployeeId));
 
             CreateMap<UpdateEmployeeModel, Employee>(MemberList.Destination);
 

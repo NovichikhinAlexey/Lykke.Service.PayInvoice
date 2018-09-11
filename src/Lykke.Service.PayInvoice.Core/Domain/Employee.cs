@@ -37,5 +37,14 @@
         /// The employee internal supervisor attribute
         /// </summary>
         public bool IsInternalSupervisor { get; set; }
+
+        /// <summary>
+        /// Makes a shallow copy of the employee
+        /// </summary>
+        /// <returns></returns>
+        public Employee ShallowCopy()
+        {
+            return (Employee) MemberwiseClone();
+        }
     }
 }
