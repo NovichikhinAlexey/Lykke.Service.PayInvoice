@@ -35,7 +35,15 @@ namespace Lykke.Service.PayInvoice.Modules
 
             builder.RegisterPayPushNotificationPublisher(_settings.CurrentValue.PayPushNotificationsServicePublisher);
 
-            builder.RegisterType<PaymentRequestSubscriber>()
+            builder.RegisterType<InvoicePaymentRequestSubscriber>()
+                .AsSelf()
+                .As<IStartable>()
+                .As<IStopable>()
+                .AutoActivate()
+                .SingleInstance()
+                .WithParameter(TypedParameter.From(_settings.CurrentValue.PayInvoiceService.Rabbit));
+
+            builder.RegisterType<NotificationsPaymentRequestSubscriber>()
                 .AsSelf()
                 .As<IStartable>()
                 .As<IStopable>()
