@@ -2,7 +2,6 @@
 using System.Threading.Tasks;
 using Lykke.Common.Log;
 using Lykke.Logs.Loggers.LykkeConsole;
-using Lykke.Service.EmailPartnerRouter.Client;
 using Lykke.Service.PayInternal.Client;
 using Lykke.Service.PayInvoice.Core.Domain;
 using Lykke.Service.PayInvoice.Core.Repositories;
@@ -32,7 +31,6 @@ namespace Lykke.Service.PayInvoice.Services.Tests
         private readonly Mock<IInvoicePayerHistoryRepository> _invoicePayerHistoryRepository = new Mock<IInvoicePayerHistoryRepository>();
         private readonly Mock<IPayInternalClient> _payInternalClientMock = new Mock<IPayInternalClient>();
         private readonly Mock<IPayMerchantClient> _payMerchantClientMock = new Mock<IPayMerchantClient>();
-        private readonly Mock<IEmailService> _emailServiceMock = new Mock<IEmailService>();
 
         // https://github.com/LykkeCity/Lykke.Logs/blob/master/migration-to-v5.md
         private readonly ILogFactory _logFactory;
@@ -69,8 +67,7 @@ namespace Lykke.Service.PayInvoice.Services.Tests
                 _invoicePayerHistoryRepository.Object,
                 _payInternalClientMock.Object,
                 _logFactory,
-                _payMerchantClientMock.Object,
-                _emailServiceMock.Object);
+                _payMerchantClientMock.Object);
         }
 
         [TestMethod]

@@ -14,7 +14,6 @@ using Lykke.Service.PayInternal.Client.Models.Order;
 using Lykke.Service.PayInternal.Client.Models.PaymentRequest;
 using Lykke.Service.PayInternal.Contract.PaymentRequest;
 using Lykke.Service.PayInvoice.Core.Domain;
-using Lykke.Service.PayInvoice.Core.Domain.Email;
 using Lykke.Service.PayInvoice.Core.Domain.HistoryOperation;
 using Lykke.Service.PayInvoice.Core.Domain.InvoiceConfirmation;
 using Lykke.Service.PayInvoice.Core.Domain.InvoicePayerHistory;
@@ -26,7 +25,6 @@ using Lykke.Service.PayInvoice.Core.Repositories;
 using Lykke.Service.PayInvoice.Core.Services;
 using Lykke.Service.PayInvoice.Services.Extensions;
 using Lykke.Service.PayMerchant.Client;
-using Lykke.Service.PayMerchant.Client.Models;
 
 namespace Lykke.Service.PayInvoice.Services
 {
@@ -48,7 +46,6 @@ namespace Lykke.Service.PayInvoice.Services
         private readonly IInvoicePayerHistoryRepository _invoicePayerHistoryRepository;
         private readonly IPayInternalClient _payInternalClient;
         private readonly IPayMerchantClient _payMerchantClient;
-        private readonly IEmailService _emailService;
         private readonly ILog _log;
 
         private const string PaymentRequestInitiator = "InvoiceService";
@@ -70,8 +67,7 @@ namespace Lykke.Service.PayInvoice.Services
             IInvoicePayerHistoryRepository invoicePayerHistoryRepository,
             IPayInternalClient payInternalClient,
             ILogFactory logFactory, 
-            IPayMerchantClient payMerchantClient, 
-            IEmailService emailService)
+            IPayMerchantClient payMerchantClient)
         {
             _invoiceRepository = invoiceRepository;
             _fileInfoRepository = fileInfoRepository;
@@ -89,7 +85,6 @@ namespace Lykke.Service.PayInvoice.Services
             _invoicePayerHistoryRepository = invoicePayerHistoryRepository;
             _payInternalClient = payInternalClient;
             _payMerchantClient = payMerchantClient;
-            _emailService = emailService;
             _log = logFactory.CreateLog(this);
         }
 
@@ -436,18 +431,6 @@ namespace Lykke.Service.PayInvoice.Services
 
                     status = invoiceStatus;
                 }
-
-                await _emailService.Send(new PaymentReceivedEmail
-                {
-                    MerchantId = invoice.MerchantId,
-                    EmployeeId = invoice.EmployeeId,
-                    InvoiceId = invoice.Id,
-                    InvoiceNumber = invoice.Number,
-                    PaidAmount = message.PaidAmount,
-                    PaymentAsset = message.PaymentAssetId,
-                    PaidDate = message.PaidDate ?? DateTime.UtcNow,
-                    Payer = invoice.ClientName
-                });
 
                 await _invoiceRepository.SetPaidAmountAsync(invoice.MerchantId, invoice.Id, message.PaidAmount, totalPaidAmountInSettlementAsset);
             }

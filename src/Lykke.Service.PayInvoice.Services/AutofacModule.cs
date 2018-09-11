@@ -82,6 +82,9 @@ namespace Lykke.Service.PayInvoice.Services
             builder.RegisterType<EmailService>()
                 .As<IEmailService>()
                 .WithParameter(TypedParameter.From(_payInvoicePortalUrl));
+
+            builder.RegisterType<InvoiceNotificationsService>()
+                .As<IInvoiceNotificationsService>();
         }
     }
 }

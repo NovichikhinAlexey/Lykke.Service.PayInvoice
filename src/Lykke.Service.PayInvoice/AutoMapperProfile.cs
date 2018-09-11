@@ -1,10 +1,14 @@
-﻿using AutoMapper;
+﻿using System;
+using AutoMapper;
+using Lykke.Service.PayInternal.Contract.PaymentRequest;
 using Lykke.Service.PayInvoice.Contract.Commands;
 using Lykke.Service.PayInvoice.Core.Domain;
+using Lykke.Service.PayInvoice.Core.Domain.Notifications;
 using Lykke.Service.PayInvoice.Models.Employee;
 using Lykke.Service.PayInvoice.Models.File;
 using Lykke.Service.PayInvoice.Models.Invoice;
 using Lykke.Service.PayInvoice.Models.MerchantSetting;
+using Lykke.Service.PayInvoice.Services;
 
 namespace Lykke.Service.PayInvoice
 {
@@ -56,6 +60,14 @@ namespace Lykke.Service.PayInvoice
             CreateMap<HistoryItem, HistoryItemModel>(MemberList.Source);
 
             CreateMap<SetMerchantSettingModel, MerchantSetting>(MemberList.Source);
+
+            CreateMap<PaymentRequestDetailsMessage, InvoiceStatusUpdateNotification>(MemberList.Destination)
+                .ForMember(dest => dest.PaymentRequestId, opt => opt.MapFrom(src => src.Id))
+                .ForMember(dest => dest.Amount, opt => opt.MapFrom(src => src.PaidAmount))
+                .ForMember(dest => dest.AssetId, opt => opt.MapFrom(src => src.PaymentAssetId))
+                .ForMember(dest => dest.Status,
+                    opt => opt.MapFrom(src => StatusConverter.Convert(src.Status, src.ProcessingError)))
+                .ForMember(dest => dest.Date, opt => opt.MapFrom(src => src.PaidDate ?? DateTime.UtcNow));
         }
     }
 }

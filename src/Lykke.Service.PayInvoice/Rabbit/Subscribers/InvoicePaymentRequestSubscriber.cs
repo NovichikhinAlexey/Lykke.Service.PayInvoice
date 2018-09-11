@@ -13,7 +13,7 @@ using Lykke.Service.PayInvoice.Core.Extensions;
 
 namespace Lykke.Service.PayInvoice.Rabbit.Subscribers
 {
-    public class PaymentRequestSubscriber : IStartable, IStopable
+    public class InvoicePaymentRequestSubscriber : IStartable, IStopable
     {
         private readonly RabbitSettings _settings;
         private readonly ILogFactory _logFactory;
@@ -21,7 +21,7 @@ namespace Lykke.Service.PayInvoice.Rabbit.Subscribers
         private readonly ILog _log;
         private RabbitMqSubscriber<PaymentRequestDetailsMessage> _subscriber;
 
-        public PaymentRequestSubscriber(
+        public InvoicePaymentRequestSubscriber(
             IInvoiceService invoiceService,
             RabbitSettings settings,
             ILogFactory logFactory)
