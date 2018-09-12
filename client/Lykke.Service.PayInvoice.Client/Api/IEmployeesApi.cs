@@ -16,6 +16,9 @@ namespace Lykke.Service.PayInvoice.Client.Api
         [Post("/api/Employees")]
         Task<EmployeeModel> AddAsync([Body]CreateEmployeeModel model);
 
+        [Patch("/api/Employees")]
+        Task MarkDeletedAsync([Body]MarkEmployeeDeletedRequest model);
+
         [Put("/api/Employees")]
         Task UpdateAsync([Body] UpdateEmployeeModel model);
 
