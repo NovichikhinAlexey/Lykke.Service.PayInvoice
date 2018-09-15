@@ -59,7 +59,7 @@
       settings-key: RabbitPay
       types: [RabbitMq, Tag]
     ExchangeName:
-      settings-key: PayInvoiceConfirmationExchangeName
+      settings-key: LykkePay-InvoiceConfirmationExchangeName
       types: [Tag]
   PayPushNotificationsServicePublisher:
     ConnectionString:
