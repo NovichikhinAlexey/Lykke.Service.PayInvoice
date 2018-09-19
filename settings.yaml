@@ -31,7 +31,9 @@
         settings-key: RabbitSagas
         types: [RabbitMq, Tag]
       ChaosKitty:
-        StateOfChaos: 0.2
+        StateOfChaos:
+          settings-key: LykkePay-StateOfChaos
+          types: [ Tag ]
     PayInvoicePortalUrl:
       settings-key: PayInvoicePortalUrl
       types: [Tag]
