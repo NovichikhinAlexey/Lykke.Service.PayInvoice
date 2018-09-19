@@ -15,6 +15,8 @@ namespace Lykke.Service.PayInvoice.Core.Services
         Task<IReadOnlyList<Employee>> GetByMerchantIdAsync(string merchantId);
         
         Task<Employee> AddAsync(Employee employee);
+
+        Task MarkDeletedAsync(string merchantId, string employeeId);
         
         Task UpdateAsync(Employee employee);
 

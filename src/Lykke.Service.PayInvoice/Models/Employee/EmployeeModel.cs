@@ -9,5 +9,6 @@
         public string MerchantId { get; set; }
         public bool IsBlocked { get; set; }
         public bool IsInternalSupervisor { get; set; }
+        public bool IsDeleted { get; set; }
     }
 }

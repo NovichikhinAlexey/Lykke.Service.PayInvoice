@@ -151,6 +151,35 @@ namespace Lykke.Service.PayInvoice.Controllers
         }
 
         /// <summary>
+        /// Mark deleted.
+        /// </summary>
+        /// <param name="model">The model</param>
+        /// <response code="204">Success</response>
+        /// <response code="400">Invalid model</response>
+        /// <response code="404">Not found</response>
+        [HttpPatch]
+        [SwaggerOperation("EmployeeMarkDelete")]
+        [ProducesResponseType(typeof(void), (int)HttpStatusCode.NoContent)]
+        [ProducesResponseType(typeof(ErrorResponse), (int)HttpStatusCode.BadRequest)]
+        [ProducesResponseType(typeof(ErrorResponse), (int)HttpStatusCode.NotFound)]
+        [ValidateModel]
+        public async Task<IActionResult> MarkDeletedAsync([FromBody] MarkEmployeeDeletedRequest model)
+        {
+            try
+            {
+                await _employeeService.MarkDeletedAsync(model.MerchantId, model.EmployeeId);
+
+                return NoContent();
+            }
+            catch (EmployeeNotFoundException ex)
+            {
+                _log.WarningWithDetails(ex.Message, model);
+
+                return NotFound(ErrorResponse.Create(ex.Message));
+            }
+        }
+
+        /// <summary>
         /// Updates an employee.
         /// </summary>
         /// <param name="model">The employee info.</param>
