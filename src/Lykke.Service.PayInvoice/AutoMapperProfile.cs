@@ -45,17 +45,21 @@ namespace Lykke.Service.PayInvoice
             CreateMap<Employee, EmployeeModel>(MemberList.Source);
 
             CreateMap<CreateEmployeeModel, Employee>(MemberList.Destination)
-                .ForMember(dest => dest.Id, opt => opt.Ignore());
+                .ForMember(dest => dest.Id, opt => opt.Ignore())
+                .ForMember(dest => dest.IsDeleted, opt => opt.UseValue(false));
 
             CreateMap<RegisterEmployeeCommand, Employee>(MemberList.Destination)
                 .ForMember(dest => dest.Id, opt => opt.Ignore())
                 .ForMember(dest => dest.IsBlocked, opt => opt.UseValue(false))
+                .ForMember(dest => dest.IsDeleted, opt => opt.UseValue(false))
                 .ForMember(dest => dest.IsInternalSupervisor, opt => opt.UseValue(false));
 
             CreateMap<UpdateEmployeeCommand, Employee>(MemberList.Destination)
-                .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.EmployeeId));
+                .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.EmployeeId))
+                .ForMember(dest => dest.IsDeleted, opt => opt.UseValue(false));
 
-            CreateMap<UpdateEmployeeModel, Employee>(MemberList.Destination);
+            CreateMap<UpdateEmployeeModel, Employee>(MemberList.Destination)
+                .ForMember(dest => dest.IsDeleted, opt => opt.UseValue(false));
 
             CreateMap<HistoryItem, HistoryItemModel>(MemberList.Source);
 

@@ -177,26 +177,17 @@ namespace Lykke.Service.PayInvoice.Client
 
         public async Task<EmployeeModel> AddEmployeeAsync(CreateEmployeeModel model)
         {
-            //var content = new StringContent(JsonConvert.SerializeObject(model), Encoding.UTF8, "application/json");
-            //var result = await _httpClient.PostAsync($"/api/merchants/{merchantId}/employees", content);
-
-            //if (result.IsSuccessStatusCode)
-            //{
-            //    string value = await result.Content.ReadAsStringAsync();
-            //    return JsonConvert.DeserializeObject<EmployeeModel>(value);
-            //}
-
-            //throw new ErrorResponseException("An error occurred  during calling api");
             return await _runner.RunAsync(() => _employeesApi.AddAsync(model));
         }
 
+        /// <inheritdoc />
+        public Task MarkEmployeeDeletedAsync(MarkEmployeeDeletedRequest model)
+        {
+            return _runner.RunAsync(() => _employeesApi.MarkDeletedAsync(model));
+        }
+        
         public async Task UpdateEmployeeAsync(UpdateEmployeeModel model)
         {
-            //var content = new StringContent(JsonConvert.SerializeObject(model), Encoding.UTF8, "application/json");
-            //var result = await _httpClient.PutAsync($"/api/merchants/{merchantId}/employees/{employeeId}", content);
-
-            //if (!result.IsSuccessStatusCode)
-            //    throw new ErrorResponseException("An error occurred  during calling api");
             await _runner.RunAsync(() => _employeesApi.UpdateAsync(model));
         }
 

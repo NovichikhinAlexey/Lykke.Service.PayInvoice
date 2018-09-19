@@ -192,6 +192,12 @@ namespace Lykke.Service.PayInvoice.Client
         /// </summary>
         /// <param name="model">The employee info.</param>
         Task<EmployeeModel> AddEmployeeAsync(CreateEmployeeModel model);
+
+        /// <summary>
+        /// Mark employee deleted.
+        /// </summary>
+        /// <param name="model">Mark employee deleted request.</param>
+        Task MarkEmployeeDeletedAsync(MarkEmployeeDeletedRequest model);
         
         /// <summary>
         /// Updates an employee.
