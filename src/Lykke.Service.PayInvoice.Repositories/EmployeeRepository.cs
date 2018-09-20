@@ -104,7 +104,10 @@ namespace Lykke.Service.PayInvoice.Repositories
         {
             var entity = await _storage.MergeAsync(GetPartitionKey(employee.MerchantId), GetRowKey(employee.Id), mergingEntity =>
             {
+                // preserve IsDeleted
+                var isDeleted = mergingEntity.IsDeleted;
                 Mapper.Map(employee, mergingEntity);
+                mergingEntity.IsDeleted = isDeleted;
                 return mergingEntity;
             });
 
