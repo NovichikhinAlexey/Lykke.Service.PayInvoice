@@ -39,6 +39,11 @@
         public bool IsInternalSupervisor { get; set; }
 
         /// <summary>
+        /// The employee deleted attribute
+        /// </summary>
+        public bool IsDeleted { get; set; }
+
+        /// <summary>
         /// Makes a shallow copy of the employee
         /// </summary>
         /// <returns></returns>

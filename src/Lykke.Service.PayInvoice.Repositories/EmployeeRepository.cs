@@ -91,11 +91,25 @@ namespace Lykke.Service.PayInvoice.Repositories
             return Mapper.Map<Employee>(entity);
         }
 
+        public async Task<Employee> MarkDeletedAsync(string merchantId, string employeeId)
+        {
+            var entity = await _storage.MergeAsync(GetPartitionKey(merchantId), GetRowKey(employeeId), mergingEntity =>
+            {
+                mergingEntity.IsDeleted = true;
+                return mergingEntity;
+            });
+
+            return Mapper.Map<Employee>(entity);
+        }
+
         public async Task UpdateAsync(Employee employee, string previousEmail)
         {
             var entity = await _storage.MergeAsync(GetPartitionKey(employee.MerchantId), GetRowKey(employee.Id), mergingEntity =>
             {
+                // preserve IsDeleted
+                var isDeleted = mergingEntity.IsDeleted;
                 Mapper.Map(employee, mergingEntity);
+                mergingEntity.IsDeleted = isDeleted;
                 return mergingEntity;
             });
 

@@ -37,5 +37,10 @@
         /// Gets or sets an internal supervisor attribute
         /// </summary>
         public bool IsInternalSupervisor { get; set; }
+
+        /// <summary>
+        /// Gets or sets is deleted attribute
+        /// </summary>
+        public bool IsDeleted { get; set; }
     }
 }
