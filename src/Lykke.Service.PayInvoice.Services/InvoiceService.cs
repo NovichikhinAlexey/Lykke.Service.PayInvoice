@@ -377,7 +377,14 @@ namespace Lykke.Service.PayInvoice.Services
             Invoice invoice = await _invoiceRepository.FindByPaymentRequestIdAsync(paymentRequestId);
 
             if (invoice == null)
+            {
+                var paymentRequest = await _payInternalClient.GetPaymentRequestAsync(message.MerchantId, message.Id);
+
+                if (paymentRequest.Initiator != PaymentRequestInitiator)
+                    return;
+                
                 throw new InvoiceNotFoundException();
+            }
 
             if (message.Status == PayInternal.Contract.PaymentRequest.PaymentRequestStatus.Cancelled)
             {
