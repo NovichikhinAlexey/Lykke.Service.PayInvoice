@@ -85,12 +85,10 @@ namespace Lykke.Service.PayInvoice.Services
 
         public async Task MarkDeletedAsync(string merchantId, string employeeId)
         {
-            var employee = await _employeeRepository.GetAsync(employeeId, merchantId);
+            var employee = await _employeeRepository.MarkDeletedAsync(merchantId, employeeId);
 
             if (employee == null)
                 throw new EmployeeNotFoundException();
-                
-            await _employeeRepository.MarkDeletedAsync(merchantId, employeeId);
             
             _log.Info("Employee marked deleted.", employee.SanitizeCopy());
         }
