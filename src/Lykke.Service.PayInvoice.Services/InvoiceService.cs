@@ -13,6 +13,7 @@ using Lykke.Service.PayInternal.Client.Exceptions;
 using Lykke.Service.PayInternal.Client.Models.Order;
 using Lykke.Service.PayInternal.Client.Models.PaymentRequest;
 using Lykke.Service.PayInternal.Contract.PaymentRequest;
+using Lykke.Service.PayInvoice.Core;
 using Lykke.Service.PayInvoice.Core.Domain;
 using Lykke.Service.PayInvoice.Core.Domain.HistoryOperation;
 using Lykke.Service.PayInvoice.Core.Domain.InvoiceConfirmation;
@@ -47,8 +48,6 @@ namespace Lykke.Service.PayInvoice.Services
         private readonly IPayInternalClient _payInternalClient;
         private readonly IPayMerchantClient _payMerchantClient;
         private readonly ILog _log;
-
-        private const string PaymentRequestInitiator = "InvoiceService";
 
         public InvoiceService(
             IInvoiceRepository invoiceRepository,
@@ -380,7 +379,7 @@ namespace Lykke.Service.PayInvoice.Services
             {
                 var paymentRequest = await _payInternalClient.GetPaymentRequestAsync(message.MerchantId, message.Id);
 
-                if (paymentRequest.Initiator != PaymentRequestInitiator)
+                if (paymentRequest.Initiator != Constants.PaymentRequestInitiator)
                     return;
                 
                 throw new InvoiceNotFoundException();
@@ -1124,7 +1123,7 @@ namespace Lykke.Service.PayInvoice.Services
                         DueDate = invoice.DueDate,
                         PaymentAssetId = invoice.PaymentAssetId,
                         SettlementAssetId = invoice.SettlementAssetId,
-                        Initiator = PaymentRequestInitiator
+                        Initiator = Constants.PaymentRequestInitiator
                     });
             }
             catch (DefaultErrorResponseException ex)
