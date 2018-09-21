@@ -13,5 +13,7 @@ namespace Lykke.Service.PayInvoice.Core.Domain.Notifications
         public string AssetId { get; set; }
 
         public DateTime Date { get; set; }
+
+        public string MerchantId { get; set; }
     }
 }
