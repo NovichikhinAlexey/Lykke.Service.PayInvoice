@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Lykke.Service.PayInvoice.Client.Models.Employee;
 using Lykke.Service.PayInvoice.Client.Models.File;
@@ -9,6 +10,9 @@ using Lykke.Service.PayInvoice.Core.Domain.PaymentRequest;
 
 namespace Lykke.Service.PayInvoice.Client
 {
+    /// <summary>
+    /// PayInvoice service client
+    /// </summary>
     public interface IPayInvoiceClient
     {
         /// <summary>
@@ -30,6 +34,24 @@ namespace Lykke.Service.PayInvoice.Client
         /// <param name="lessThan">The less than number for filtering</param>
         /// <returns>A collection of invoices</returns>
         Task<IReadOnlyList<InvoiceModel>> GetByFilter(IEnumerable<string> merchantIds, IEnumerable<string> clientMerchantIds, IEnumerable<string> statuses, bool? dispute, IEnumerable<string> billingCategories, decimal? greaterThan, decimal? lessThan);
+
+        /// <summary>
+        /// Returns invoices by payments filter
+        /// </summary>
+        /// <param name="merchantId">The merchant ids (e.g. ?merchantIds=one)</param>
+        /// <param name="statuses">The statuses (e.g. ?statuses=one&amp;statuses=two)</param>
+        /// <param name="dateFrom">The date from which to take</param>
+        /// <param name="dateTo">The date until which to take</param>
+        /// <param name="searchText">Search in text fields</param>
+        /// <param name="take">The number of records to take</param>
+        Task<IReadOnlyList<InvoiceModel>> GetByPaymentsFilter(
+            string merchantId,
+            IEnumerable<string> statuses,
+            DateTime? dateFrom,
+            DateTime? dateTo,
+            string searchText,
+            int? take
+        );
 
         /// <summary>
         /// Returns invoice history.

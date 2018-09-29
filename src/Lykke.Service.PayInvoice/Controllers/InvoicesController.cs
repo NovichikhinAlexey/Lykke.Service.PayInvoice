@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using AutoMapper;
@@ -282,6 +283,7 @@ namespace Lykke.Service.PayInvoice.Controllers
         /// <param name="lessThan">The less than number for filtering</param>
         /// <response code="200">A collection of invoices.</response>
         /// <response code="400">Problem occured.</response>
+        [Obsolete("Used specifically for IATA")]
         [HttpGet]
         [Route("filter")]
         [SwaggerOperation("InvoicesGetByFilter")]
@@ -317,6 +319,75 @@ namespace Lykke.Service.PayInvoice.Controllers
                 GreaterThan = greaterThan,
                 LessThan = lessThan
             });
+
+            var model = Mapper.Map<List<InvoiceModel>>(invoices);
+
+            return Ok(model);
+        }
+
+        /// <summary>
+        /// Returns invoices by payments filter
+        /// </summary>
+        /// <param name="merchantId">The merchant ids (e.g. ?merchantIds=one)</param>
+        /// <param name="statuses">The statuses (e.g. ?statuses=one&amp;statuses=two)</param>
+        /// <param name="dateFrom">The date from which to take</param>
+        /// <param name="dateTo">The date until which to take</param>
+        /// <param name="searchText">Search in text fields</param>
+        /// <param name="take">The number of records to take</param>
+        /// <response code="200">A collection of invoices.</response>
+        /// <response code="400">Problem occured.</response>
+        [HttpGet]
+        [Route("paymentsFilter")]
+        [SwaggerOperation(nameof(GetByPaymentsFilter))]
+        [ProducesResponseType(typeof(IEnumerable<InvoiceModel>), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(ErrorResponse), (int)HttpStatusCode.BadRequest)]
+        [ValidateModel]
+        public async Task<IActionResult> GetByPaymentsFilter(
+            [Required][RowKey] string merchantId,
+            IEnumerable<string> statuses,
+            DateTime? dateFrom,
+            DateTime? dateTo,
+            string searchText,
+            [GreaterThan(0)] int? take
+        )
+        {
+            var statusesConverted = new List<InvoiceStatus>();
+
+            if (statuses != null)
+            {
+                foreach (var status in statuses)
+                {
+                    try
+                    {
+                        statusesConverted.Add(status.Trim().ParseEnum<InvoiceStatus>());
+                    }
+                    catch (Exception)
+                    {
+                        return BadRequest(ErrorResponse.Create($"Invoice status <{status}> is not valid"));
+                    }
+                }
+            }
+
+            IReadOnlyList<Invoice> invoices = await _invoiceService.GetByFilterAsync(new InvoiceFilter
+            {
+                MerchantIds = new List<string> { merchantId },
+                Statuses = statusesConverted,
+                DateFrom = dateFrom,
+                DateTo = dateTo
+            });
+
+
+            if (!string.IsNullOrWhiteSpace(searchText))
+            {
+                var s = searchText;
+                invoices = invoices.Where(_ =>
+                    _.Number.Contains(s) || _.ClientName.Contains(s) || _.ClientEmail.Contains(s)).ToList();
+            }
+
+            if (take.HasValue)
+            {
+                invoices = invoices.OrderByDescending(x => x.CreatedDate).Take(take.Value).ToList();
+            }
 
             var model = Mapper.Map<List<InvoiceModel>>(invoices);
 

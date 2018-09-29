@@ -1,4 +1,5 @@
-﻿using Microsoft.WindowsAzure.Storage.Table;
+﻿using System;
+using Microsoft.WindowsAzure.Storage.Table;
 
 namespace Lykke.Service.PayInvoice.Repositories.Extensions
 {
@@ -17,6 +18,16 @@ namespace Lykke.Service.PayInvoice.Repositories.Extensions
         public static string PropertyNotEqual(this string property, string value)
         {
             return TableQuery.GenerateFilterCondition(property, QueryComparisons.NotEqual, value);
+        }
+
+        public static string DateGreaterThanOrEqual(this string property, DateTime value)
+        {
+            return TableQuery.GenerateFilterConditionForDate(property, QueryComparisons.GreaterThanOrEqual, new DateTimeOffset(value, new DateTimeOffset().Offset));
+        }
+
+        public static string DateLessThanOrEqual(this string property, DateTime value)
+        {
+            return TableQuery.GenerateFilterConditionForDate(property, QueryComparisons.LessThanOrEqual, new DateTimeOffset(value, new DateTimeOffset().Offset));
         }
 
         public static string Or(this string filterA, string filterB)

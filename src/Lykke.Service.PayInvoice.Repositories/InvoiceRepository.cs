@@ -139,6 +139,16 @@ namespace Lykke.Service.PayInvoice.Repositories
                 filter = filter.AndIfNotEmpty(localFilter);
             }
 
+            if (invoiceFilter.DateFrom.HasValue)
+            {
+                filter = filter.AndIfNotEmpty(nameof(Entity.CreatedDate).DateGreaterThanOrEqual(invoiceFilter.DateFrom.Value));
+            }
+
+            if (invoiceFilter.DateTo.HasValue)
+            {
+                filter = filter.AndIfNotEmpty(nameof(Entity.CreatedDate).DateLessThanOrEqual(invoiceFilter.DateTo.Value));
+            }
+
             if (filter.IsEmpty())
             {
                 filter = nameof(Entity.RowKey).PropertyNotEqual(GetInvoiceIdIndexRowKey())
