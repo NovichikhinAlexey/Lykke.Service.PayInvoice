@@ -339,7 +339,7 @@ namespace Lykke.Service.PayInvoice.Controllers
         [HttpGet]
         [Route("paymentsFilter")]
         [SwaggerOperation(nameof(GetByPaymentsFilter))]
-        [ProducesResponseType(typeof(IEnumerable<InvoiceModel>), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(GetByPaymentsFilterResponse), (int)HttpStatusCode.OK)]
         [ProducesResponseType(typeof(ErrorResponse), (int)HttpStatusCode.BadRequest)]
         [ValidateModel]
         public async Task<IActionResult> GetByPaymentsFilter(
