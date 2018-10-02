@@ -391,6 +391,10 @@ namespace Lykke.Service.PayInvoice.Controllers
                 result.HasMoreInvoices = invoices.Count > take.Value;
                 invoices = invoices.OrderByDescending(x => x.CreatedDate).Take(take.Value).ToList();
             }
+            else
+            {
+                invoices = invoices.OrderByDescending(x => x.CreatedDate).ToList();
+            }
 
             result.Invoices = Mapper.Map<List<InvoiceModel>>(invoices);
 
