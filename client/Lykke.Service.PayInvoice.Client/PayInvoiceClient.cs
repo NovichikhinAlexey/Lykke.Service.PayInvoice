@@ -61,9 +61,27 @@ namespace Lykke.Service.PayInvoice.Client
             return await _runner.RunAsync(() => _invoicesApi.GetAsync(invoiceId));
         }
 
+        public Task<bool> HasAnyInvoice(string merchantId)
+        {
+            return _runner.RunAsync(() => _invoicesApi.HasAnyInvoice(merchantId));
+        }
+
         public async Task<IReadOnlyList<InvoiceModel>> GetByFilter(IEnumerable<string> merchantIds, IEnumerable<string> clientMerchantIds, IEnumerable<string> statuses, bool? dispute, IEnumerable<string> billingCategories, decimal? greaterThan, decimal? lessThan)
         {
             return await _runner.RunAsync(() => _invoicesApi.GetByFilter(merchantIds, clientMerchantIds, statuses, dispute, billingCategories, greaterThan, lessThan));
+        }
+
+        /// <inheritdoc />
+        public Task<GetByPaymentsFilterResponse> GetByPaymentsFilter(
+            string merchantId,
+            IEnumerable<string> statuses,
+            DateTime? dateFrom,
+            DateTime? dateTo,
+            string searchText,
+            int? take
+        )
+        {
+            return _runner.RunAsync(() => _invoicesApi.GetByPaymentsFilter(merchantId, statuses, dateFrom, dateTo, searchText, take));
         }
 
         public async Task<InvoiceModel> CreateInvoiceAsync(CreateInvoiceModel model)

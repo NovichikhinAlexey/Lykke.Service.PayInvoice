@@ -63,6 +63,12 @@ namespace Lykke.Service.PayInvoice.Repositories
 
             return Mapper.Map<List<Invoice>>(entities);
         }
+
+        public async Task<bool> HasAnyInvoiceAsync(string merchantId)
+        {
+            var entity = await _storage.GetTopRecordAsync(GetPartitionKey(merchantId));
+            return entity != null;
+        }
         
         public async Task<Invoice> GetAsync(string merchantId, string invoiceId)
         {
@@ -137,6 +143,16 @@ namespace Lykke.Service.PayInvoice.Repositories
                     localFilter = localFilter.OrIfNotEmpty(nameof(Entity.BillingCategory).PropertyEqual(cat));
                 }
                 filter = filter.AndIfNotEmpty(localFilter);
+            }
+
+            if (invoiceFilter.DateFrom.HasValue)
+            {
+                filter = filter.AndIfNotEmpty(nameof(Entity.CreatedDate).DateGreaterThanOrEqual(invoiceFilter.DateFrom.Value));
+            }
+
+            if (invoiceFilter.DateTo.HasValue)
+            {
+                filter = filter.AndIfNotEmpty(nameof(Entity.CreatedDate).DateLessThanOrEqual(invoiceFilter.DateTo.Value));
             }
 
             if (filter.IsEmpty())
