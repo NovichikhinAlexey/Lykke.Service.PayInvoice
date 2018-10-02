@@ -12,11 +12,14 @@ namespace Lykke.Service.PayInvoice.Client.Api
         [Get("/api/invoices/{invoiceId}")]
         Task<InvoiceModel> GetAsync(string invoiceId);
 
+        [Get("/api/invoices/hasAnyInvoice/{merchantId}")]
+        Task<bool> HasAnyInvoice(string merchantId);
+
         [Get("/api/invoices/filter")]
         Task<IReadOnlyList<InvoiceModel>> GetByFilter([Query(CollectionFormat.Multi)] IEnumerable<string> merchantIds, [Query(CollectionFormat.Multi)] IEnumerable<string> clientMerchantIds, [Query(CollectionFormat.Multi)] IEnumerable<string> statuses, bool? dispute, [Query(CollectionFormat.Multi)] IEnumerable<string> billingCategories, decimal? greaterThan, decimal? lessThan);
 
         [Get("/api/invoices/paymentsFilter")]
-        Task<IReadOnlyList<InvoiceModel>> GetByPaymentsFilter(
+        Task<GetByPaymentsFilterResponse> GetByPaymentsFilter(
             string merchantId,
             [Query(CollectionFormat.Multi)] IEnumerable<string> statuses,
             DateTime? dateFrom,

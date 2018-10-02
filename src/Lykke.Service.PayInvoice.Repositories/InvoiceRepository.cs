@@ -63,6 +63,12 @@ namespace Lykke.Service.PayInvoice.Repositories
 
             return Mapper.Map<List<Invoice>>(entities);
         }
+
+        public async Task<bool> HasAnyInvoiceAsync(string merchantId)
+        {
+            var entity = await _storage.GetTopRecordAsync(GetPartitionKey(merchantId));
+            return entity != null;
+        }
         
         public async Task<Invoice> GetAsync(string merchantId, string invoiceId)
         {

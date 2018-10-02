@@ -9,6 +9,7 @@ namespace Lykke.Service.PayInvoice.Core.Services
     public interface IInvoiceService
     {
         Task<IReadOnlyList<Invoice>> GetAsync(string merchantId);
+        Task<bool> HasAnyInvoiceAsync(string merchantId);
 
         Task<Invoice> GetAsync(string merchantId, string invoiceId);
 

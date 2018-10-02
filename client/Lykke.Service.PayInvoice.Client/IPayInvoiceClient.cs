@@ -23,6 +23,12 @@ namespace Lykke.Service.PayInvoice.Client
         Task<InvoiceModel> GetInvoiceAsync(string invoiceId);
 
         /// <summary>
+        /// Gets whether merchant has any invoice
+        /// </summary>
+        /// <param name="merchantId">The merchant id</param>
+        Task<bool> HasAnyInvoice(string merchantId);
+
+        /// <summary>
         /// Returns invoices by filter
         /// </summary>
         /// <param name="merchantIds">The merchant ids (e.g. ?merchantIds=one&amp;merchantIds=two)</param>
@@ -44,7 +50,7 @@ namespace Lykke.Service.PayInvoice.Client
         /// <param name="dateTo">The date until which to take</param>
         /// <param name="searchText">Search in text fields</param>
         /// <param name="take">The number of records to take</param>
-        Task<IReadOnlyList<InvoiceModel>> GetByPaymentsFilter(
+        Task<GetByPaymentsFilterResponse> GetByPaymentsFilter(
             string merchantId,
             IEnumerable<string> statuses,
             DateTime? dateFrom,

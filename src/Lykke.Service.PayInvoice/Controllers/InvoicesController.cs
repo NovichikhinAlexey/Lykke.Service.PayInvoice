@@ -326,7 +326,7 @@ namespace Lykke.Service.PayInvoice.Controllers
         }
 
         /// <summary>
-        /// Returns invoices by payments filter
+        /// Gets invoices by payments filter
         /// </summary>
         /// <param name="merchantId">The merchant ids (e.g. ?merchantIds=one)</param>
         /// <param name="statuses">The statuses (e.g. ?statuses=one&amp;statuses=two)</param>
@@ -343,7 +343,7 @@ namespace Lykke.Service.PayInvoice.Controllers
         [ProducesResponseType(typeof(ErrorResponse), (int)HttpStatusCode.BadRequest)]
         [ValidateModel]
         public async Task<IActionResult> GetByPaymentsFilter(
-            [Required][RowKey] string merchantId,
+            [Required] [RowKey] string merchantId,
             IEnumerable<string> statuses,
             DateTime? dateFrom,
             DateTime? dateTo,
@@ -368,6 +368,8 @@ namespace Lykke.Service.PayInvoice.Controllers
                 }
             }
 
+            var result = new GetByPaymentsFilterResponse();
+
             IReadOnlyList<Invoice> invoices = await _invoiceService.GetByFilterAsync(new InvoiceFilter
             {
                 MerchantIds = new List<string> { merchantId },
@@ -386,12 +388,30 @@ namespace Lykke.Service.PayInvoice.Controllers
 
             if (take.HasValue)
             {
+                result.HasMoreInvoices = invoices.Count > take.Value;
                 invoices = invoices.OrderByDescending(x => x.CreatedDate).Take(take.Value).ToList();
             }
 
-            var model = Mapper.Map<List<InvoiceModel>>(invoices);
+            result.Invoices = Mapper.Map<List<InvoiceModel>>(invoices);
 
-            return Ok(model);
+            return Ok(result);
+        }
+
+        /// <summary>
+        /// Gets whether merchant has any invoice
+        /// </summary>
+        /// <param name="merchantId">The merchant id</param>
+        [HttpGet]
+        [Route("hasAnyInvoice/{merchantId}")]
+        [SwaggerOperation(nameof(HasAnyInvoice))]
+        [ProducesResponseType(typeof(IEnumerable<bool>), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(ErrorResponse), (int)HttpStatusCode.BadRequest)]
+        [ValidateModel]
+        public async Task<IActionResult> HasAnyInvoice([Required] [RowKey] string merchantId)
+        {
+            var result = await _invoiceService.HasAnyInvoiceAsync(merchantId);
+
+            return Ok(result);
         }
 
         /// <summary>
