@@ -35,7 +35,7 @@ namespace Lykke.Service.PayInvoice.Services
 
             try
             {
-                response = await _payMerchantClient.GroupsApi.GetMerchantsByUsageAsync(
+                response = await _payMerchantClient.Groups.GetMerchantsByUsageAsync(
                 new GetMerchantsByUsageRequest
                 {
                     MerchantId = merchantId,
