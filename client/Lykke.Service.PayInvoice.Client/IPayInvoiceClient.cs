@@ -26,7 +26,7 @@ namespace Lykke.Service.PayInvoice.Client
         /// Gets whether merchant has any invoice
         /// </summary>
         /// <param name="merchantId">The merchant id</param>
-        Task<bool> HasAnyInvoice(string merchantId);
+        Task<bool> HasAnyInvoiceAsync(string merchantId);
 
         /// <summary>
         /// Returns invoices by filter
@@ -50,7 +50,7 @@ namespace Lykke.Service.PayInvoice.Client
         /// <param name="dateTo">The date until which to take</param>
         /// <param name="searchText">Search in text fields</param>
         /// <param name="take">The number of records to take</param>
-        Task<GetByPaymentsFilterResponse> GetByPaymentsFilter(
+        Task<GetByPaymentsFilterResponse> GetByPaymentsFilterAsync(
             string merchantId,
             IEnumerable<string> statuses,
             DateTime? dateFrom,
