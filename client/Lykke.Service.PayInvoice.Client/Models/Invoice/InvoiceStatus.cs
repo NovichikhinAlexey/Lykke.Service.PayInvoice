@@ -73,6 +73,21 @@
         /// <summary>
         /// Payment due date expired and no payment transactions detected
         /// </summary>
-        PastDue
+        PastDue,
+
+        /// <summary>
+        /// Settlement is in progress.
+        /// </summary>
+        SettlementInProgress,
+
+        /// <summary>
+        ///  An error occurred during settlement processing.
+        /// </summary>
+        SettlementError,
+
+        /// <summary>
+        /// Payment is settled.
+        /// </summary>
+        Settled
     }
 }
