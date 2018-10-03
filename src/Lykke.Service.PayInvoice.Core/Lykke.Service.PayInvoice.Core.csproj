@@ -10,9 +10,9 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Lykke.Service.PayCallback.Client" Version="1.0.12" />
-    <PackageReference Include="Lykke.Service.PayHistory.Client" Version="1.0.12" />
-    <PackageReference Include="Lykke.Service.PayInternal.Client" Version="2.0.24" />
-    <PackageReference Include="Lykke.Service.PayInternal.Contract" Version="2.0.3" />
+    <PackageReference Include="Lykke.Service.PayHistory.Client" Version="1.0.13" />
+    <PackageReference Include="Lykke.Service.PayInternal.Client" Version="2.0.32" />
+    <PackageReference Include="Lykke.Service.PayInternal.Contract" Version="2.0.9" />
     <PackageReference Include="Lykke.Service.PayPushNotifications.Client" Version="1.0.2" />
   </ItemGroup>
 </Project>

@@ -45,11 +45,21 @@ namespace Lykke.Service.PayInvoice.Services
                         case PaymentRequestProcessingError.UnknownRefund:
                             return InvoiceStatus.InternalError;
                         default:
-                            throw new Exception($"Unknown payment request error '{error}'");
+                            throw new Exception($"Unknown payment request error '{error.ToString()}: {error}'");
                     }
 
+
+                case PaymentRequestStatus.SettlementInProgress:
+                    return InvoiceStatus.SettlementInProgress;
+
+                case PaymentRequestStatus.SettlementError:
+                    return InvoiceStatus.SettlementError;
+
+                case PaymentRequestStatus.Settled:
+                    return InvoiceStatus.Settled;
+
                 default:
-                    throw new Exception($"Unknown payment request status '{status}'");
+                    throw new Exception($"Unknown payment request status '{status.ToString()}: {status}'");
             }
         }
     }
