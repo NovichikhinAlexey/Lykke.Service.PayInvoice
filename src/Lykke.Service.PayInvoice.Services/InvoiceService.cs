@@ -92,6 +92,11 @@ namespace Lykke.Service.PayInvoice.Services
             return await _invoiceRepository.GetAsync(merchantId);
         }
 
+        public async Task<bool> HasAnyInvoiceAsync(string merchantId)
+        {
+            return await _invoiceRepository.HasAnyInvoiceAsync(merchantId);
+        }
+
         public async Task<Invoice> GetAsync(string merchantId, string invoiceId)
         {
             return await _invoiceRepository.GetAsync(merchantId, invoiceId);

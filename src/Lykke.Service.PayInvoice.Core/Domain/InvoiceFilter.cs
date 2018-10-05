@@ -21,5 +21,7 @@ namespace Lykke.Service.PayInvoice.Core.Domain
         public IEnumerable<string> BillingCategories { get; set; }
         public decimal? GreaterThan { get; set; }
         public decimal? LessThan { get; set; }
+        public DateTime? DateFrom { get; set; }
+        public DateTime? DateTo { get; set; }
     }
 }
