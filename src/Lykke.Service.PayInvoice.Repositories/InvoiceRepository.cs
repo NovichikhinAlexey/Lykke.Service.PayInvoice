@@ -19,7 +19,6 @@ namespace Lykke.Service.PayInvoice.Repositories
         private readonly INoSQLTableStorage<InvoiceEntity> _storage;
         private readonly INoSQLTableStorage<AzureIndex> _invoiceIdIndexStorage;
         private readonly INoSQLTableStorage<AzureIndex> _paymentRequestIdIndexStorage;
-        private readonly InvoiceEntity Entity = new InvoiceEntity();
 
         public InvoiceRepository(
             INoSQLTableStorage<InvoiceEntity> storage,
@@ -53,7 +52,7 @@ namespace Lykke.Service.PayInvoice.Repositories
 
             string StatusEqual(InvoiceStatus status)
             {
-                return nameof(Entity.Status).PropertyEqual(status.ToString());
+                return nameof(InvoiceEntity.Status).PropertyEqual(status.ToString());
             }
         }
 
@@ -79,12 +78,12 @@ namespace Lykke.Service.PayInvoice.Repositories
 
         public async Task<IReadOnlyList<Invoice>> GetByIdsAsync(string merchantId, IEnumerable<string> invoiceIds)
         {
-            var filter = nameof(Entity.PartitionKey).PropertyEqual(GetPartitionKey(merchantId));
+            var filter = nameof(InvoiceEntity.PartitionKey).PropertyEqual(GetPartitionKey(merchantId));
 
             var localFilter = string.Empty;
             foreach (var invoiceId in invoiceIds)
             {
-                localFilter = localFilter.OrIfNotEmpty(nameof(Entity.RowKey).PropertyEqual(invoiceId));
+                localFilter = localFilter.OrIfNotEmpty(nameof(InvoiceEntity.RowKey).PropertyEqual(invoiceId));
             }
             filter = filter.AndIfNotEmpty(localFilter);
 
@@ -104,7 +103,7 @@ namespace Lykke.Service.PayInvoice.Repositories
                 var localFilter = string.Empty;
                 foreach (var merchantId in invoiceFilter.MerchantIds)
                 {
-                    localFilter = localFilter.OrIfNotEmpty(nameof(Entity.PartitionKey).PropertyEqual(GetPartitionKey(merchantId)));
+                    localFilter = localFilter.OrIfNotEmpty(nameof(InvoiceEntity.PartitionKey).PropertyEqual(GetPartitionKey(merchantId)));
                 }
                 filter = localFilter;
             }
@@ -114,7 +113,7 @@ namespace Lykke.Service.PayInvoice.Repositories
                 var localFilter = string.Empty;
                 foreach (var clientMerchantId in invoiceFilter.ClientMerchantIds)
                 {
-                    localFilter = localFilter.OrIfNotEmpty(nameof(Entity.ClientName).PropertyEqual(clientMerchantId));
+                    localFilter = localFilter.OrIfNotEmpty(nameof(InvoiceEntity.ClientName).PropertyEqual(clientMerchantId));
                 }
                 filter = filter.AndIfNotEmpty(localFilter);
             }
@@ -124,14 +123,14 @@ namespace Lykke.Service.PayInvoice.Repositories
                 var localFilter = string.Empty;
                 foreach (var status in invoiceFilter.Statuses)
                 {
-                    localFilter = localFilter.OrIfNotEmpty(nameof(Entity.Status).PropertyEqual(status.ToString()));
+                    localFilter = localFilter.OrIfNotEmpty(nameof(InvoiceEntity.Status).PropertyEqual(status.ToString()));
                 }
                 filter = filter.AndIfNotEmpty(localFilter);
             }
 
             if(invoiceFilter.Dispute)
             {
-                filter = filter.AndIfNotEmpty(nameof(Entity.Dispute).PropertyEqual(true));
+                filter = filter.AndIfNotEmpty(nameof(InvoiceEntity.Dispute).PropertyEqual(true));
             }
 
             if (invoiceFilter.BillingCategories.Any())
@@ -140,25 +139,25 @@ namespace Lykke.Service.PayInvoice.Repositories
                 foreach (var cat in invoiceFilter.BillingCategories)
                 {
                     if (cat.IsEmpty()) continue;
-                    localFilter = localFilter.OrIfNotEmpty(nameof(Entity.BillingCategory).PropertyEqual(cat));
+                    localFilter = localFilter.OrIfNotEmpty(nameof(InvoiceEntity.BillingCategory).PropertyEqual(cat));
                 }
                 filter = filter.AndIfNotEmpty(localFilter);
             }
 
             if (invoiceFilter.DateFrom.HasValue)
             {
-                filter = filter.AndIfNotEmpty(nameof(Entity.CreatedDate).DateGreaterThanOrEqual(invoiceFilter.DateFrom.Value));
+                filter = filter.AndIfNotEmpty(nameof(InvoiceEntity.CreatedDate).DateGreaterThanOrEqual(invoiceFilter.DateFrom.Value));
             }
 
             if (invoiceFilter.DateTo.HasValue)
             {
-                filter = filter.AndIfNotEmpty(nameof(Entity.CreatedDate).DateLessThanOrEqual(invoiceFilter.DateTo.Value));
+                filter = filter.AndIfNotEmpty(nameof(InvoiceEntity.CreatedDate).DateLessThanOrEqual(invoiceFilter.DateTo.Value));
             }
 
             if (filter.IsEmpty())
             {
-                filter = nameof(Entity.RowKey).PropertyNotEqual(GetInvoiceIdIndexRowKey())
-                    .And(nameof(Entity.RowKey).PropertyNotEqual(GetPaymentRequestIndexRowKey()));
+                filter = nameof(InvoiceEntity.RowKey).PropertyNotEqual(GetInvoiceIdIndexRowKey())
+                    .And(nameof(InvoiceEntity.RowKey).PropertyNotEqual(GetPaymentRequestIndexRowKey()));
             }
 
             var tableQuery = new TableQuery<InvoiceEntity>().Where(filter);
