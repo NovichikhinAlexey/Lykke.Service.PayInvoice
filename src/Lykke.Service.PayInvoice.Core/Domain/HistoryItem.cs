@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Lykke.Service.PayInternal.Contract.PaymentRequest;
 
 namespace Lykke.Service.PayInvoice.Core.Domain
 {
@@ -42,6 +43,11 @@ namespace Lykke.Service.PayInvoice.Core.Domain
         /// The invoice status.
         /// </summary>
         public InvoiceStatus Status { get; set; }
+
+        /// <summary>
+        /// The processing error of SettlementError
+        /// </summary>
+        public PaymentRequestProcessingError ProcessingError { get; set; }
 
         /// <summary>
         /// The invoice payment amount.

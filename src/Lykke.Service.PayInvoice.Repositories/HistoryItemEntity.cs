@@ -42,6 +42,8 @@ namespace Lykke.Service.PayInvoice.Repositories
 
         public string Status { get; set; }
 
+        public string ProcessingError { get; set; }
+
         public decimal PaymentAmount
         {
             get => _paymentAmount;
