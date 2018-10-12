@@ -506,6 +506,11 @@ namespace Lykke.Service.PayInvoice.Services
             history.Reason = "Payment request updated";
             history.Date = DateTime.UtcNow;
 
+            if (invoice.Status == InvoiceStatus.SettlementError)
+            {
+                history.ProcessingError = message.ProcessingError;
+            }
+            
             await _historyRepository.InsertAsync(history);
 
             // send additional info only for Paid Statuses and if invoice was paid by another merchant inside our system
