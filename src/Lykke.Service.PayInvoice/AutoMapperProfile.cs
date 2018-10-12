@@ -61,7 +61,8 @@ namespace Lykke.Service.PayInvoice
             CreateMap<UpdateEmployeeModel, Employee>(MemberList.Destination)
                 .ForMember(dest => dest.IsDeleted, opt => opt.UseValue(false));
 
-            CreateMap<HistoryItem, HistoryItemModel>(MemberList.Source);
+            CreateMap<HistoryItem, HistoryItemModel>(MemberList.Source)
+                .ForSourceMember(src => src.ProcessingError, opt => opt.Ignore());
 
             CreateMap<SetMerchantSettingModel, MerchantSetting>(MemberList.Source);
 
