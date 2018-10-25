@@ -7,6 +7,8 @@ using AzureStorage;
 using AzureStorage.Tables.Templates.Index;
 using Lykke.Service.PayInvoice.Core.Domain;
 using Lykke.Service.PayInvoice.Core.Repositories;
+using Lykke.Service.PayInvoice.Repositories.Extensions;
+using Microsoft.WindowsAzure.Storage.Table;
 
 namespace Lykke.Service.PayInvoice.Repositories
 {
@@ -41,10 +43,11 @@ namespace Lykke.Service.PayInvoice.Repositories
 
         public async Task<Employee> GetByIdAsync(string employeeId)
         {
-            IEnumerable<EmployeeEntity> entities =
-                await _storage.GetDataRowKeysOnlyAsync(new[] { GetRowKey(employeeId) });
+            var tableQuery = new TableQuery<EmployeeEntity>().Where(nameof(EmployeeEntity.RowKey).PropertyEqual(GetRowKey(employeeId)));
 
-            EmployeeEntity entity = entities.FirstOrDefault();
+            var result = await _storage.WhereAsync(tableQuery);
+
+            EmployeeEntity entity = result.FirstOrDefault();
 
             if (entity == null)
                 return null;
