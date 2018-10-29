@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
+using Lykke.Common.ApiLibrary.Exceptions;
 using Lykke.Common.Cache;
 using Lykke.Service.PayInternal.Client.Exceptions;
 using Lykke.Service.PayMerchant.Client.Models;
@@ -42,7 +43,7 @@ namespace Lykke.Service.PayInvoice.Services
                     MerchantGroupUse = MerchantGroupUse.Billing
                 });
             }
-            catch (DefaultErrorResponseException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
+            catch (ClientApiException ex) when (ex.HttpStatusCode == HttpStatusCode.NotFound)
             {
                 throw new MerchantGroupNotFoundException(merchantId);
             }
