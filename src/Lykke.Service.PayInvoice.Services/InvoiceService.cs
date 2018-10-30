@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using AutoMapper;
 using Common;
 using Common.Log;
+using Lykke.Common.ApiLibrary.Exceptions;
 using Lykke.Common.Log;
 using Lykke.Service.PayInternal.Client;
 using Lykke.Service.PayInternal.Client.Exceptions;
@@ -603,7 +604,7 @@ namespace Lykke.Service.PayInvoice.Services
             {
                 await _payMerchantClient.Api.GetByIdAsync(merchantId);
             }
-            catch (DefaultErrorResponseException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
+            catch (ClientApiException ex) when (ex.HttpStatusCode == HttpStatusCode.NotFound)
             {
                 throw new MerchantNotFoundException(merchantId);
             }
@@ -1131,11 +1132,11 @@ namespace Lykke.Service.PayInvoice.Services
                         Initiator = Constants.PaymentRequestInitiator
                     });
             }
-            catch (DefaultErrorResponseException ex)
+            catch (CreatePaymentRequestResponseException ex)
             {
-                _log.Error(ex, ex.Error.ErrorMessage, new { invoice = invoice.Sanitize(), amount });
+                _log.Error(ex, ex.Error.Code.ToString(), new { invoice = invoice.Sanitize(), amount });
 
-                throw new InvalidOperationException($"{ex.StatusCode}: {ex.Error.ErrorMessage}", ex);
+                throw new InvalidOperationException($"{ex.StatusCode}: {ex.Error.Code.ToString()}", ex);
             }
         }
 

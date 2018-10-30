@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Net;
 using System.Threading.Tasks;
 using Common.Log;
+using Lykke.Common.ApiLibrary.Exceptions;
 using Lykke.Common.Log;
 using Lykke.Service.PayInternal.Client.Exceptions;
 using Lykke.Service.PayInvoice.Core.Domain;
@@ -66,7 +67,7 @@ namespace Lykke.Service.PayInvoice.Services
             {
                 await _payMerchantClient.Api.GetByIdAsync(employee.MerchantId);
             }
-            catch (DefaultErrorResponseException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
+            catch (ClientApiException ex) when (ex.HttpStatusCode == HttpStatusCode.NotFound)
             {
                 throw new MerchantNotFoundException(employee.MerchantId);
             }
