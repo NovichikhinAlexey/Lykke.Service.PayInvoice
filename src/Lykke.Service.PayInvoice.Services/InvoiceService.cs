@@ -19,6 +19,7 @@ using Lykke.Service.PayInvoice.Core.Domain;
 using Lykke.Service.PayInvoice.Core.Domain.HistoryOperation;
 using Lykke.Service.PayInvoice.Core.Domain.InvoiceConfirmation;
 using Lykke.Service.PayInvoice.Core.Domain.InvoicePayerHistory;
+using Lykke.Service.PayInvoice.Core.Domain.InvoiceUpdate;
 using Lykke.Service.PayInvoice.Core.Domain.PaymentRequest;
 using Lykke.Service.PayInvoice.Core.Domain.PushNotification;
 using Lykke.Service.PayInvoice.Core.Exceptions;
@@ -37,6 +38,7 @@ namespace Lykke.Service.PayInvoice.Services
         private readonly IFileRepository _fileRepository;
         private readonly IHistoryRepository _historyRepository;
         private readonly IPaymentRequestHistoryRepository _paymentRequestHistoryRepository;
+        private readonly IInvoiceUpdatePublisher _invoiceUpdatePublisher;
         private readonly IMerchantService _merchantService;
         private readonly IMerchantSettingService _merchantSettingService;
         private readonly IHistoryOperationService _historyOperationService;
@@ -56,6 +58,7 @@ namespace Lykke.Service.PayInvoice.Services
             IFileRepository fileRepository,
             IHistoryRepository historyRepository,
             IPaymentRequestHistoryRepository paymentRequestHistoryRepository,
+            IInvoiceUpdatePublisher invoiceUpdatePublisher,
             IMerchantService merchantService,
             IMerchantSettingService merchantSettingService,
             IHistoryOperationService historyOperationService,
@@ -74,6 +77,7 @@ namespace Lykke.Service.PayInvoice.Services
             _fileRepository = fileRepository;
             _historyRepository = historyRepository;
             _paymentRequestHistoryRepository = paymentRequestHistoryRepository;
+            _invoiceUpdatePublisher = invoiceUpdatePublisher;
             _merchantService = merchantService;
             _merchantSettingService = merchantSettingService;
             _historyOperationService = historyOperationService;
@@ -215,6 +219,8 @@ namespace Lykke.Service.PayInvoice.Services
 
             await WriteHistory(createdInvoice, "Invoice draft created");
 
+            await _invoiceUpdatePublisher.PublishAsync(Mapper.Map<InvoiceUpdateMessage>(createdInvoice));
+
             return createdInvoice;
         }
 
@@ -252,6 +258,8 @@ namespace Lykke.Service.PayInvoice.Services
 
             await WriteHistory(createdInvoice, "Invoice created");
 
+            await _invoiceUpdatePublisher.PublishAsync(Mapper.Map<InvoiceUpdateMessage>(createdInvoice));
+
             return createdInvoice;
         }
 
@@ -275,6 +283,8 @@ namespace Lykke.Service.PayInvoice.Services
             _log.InfoWithDetails("Invoice created from draft", invoice.SanitizeCopy());
 
             await WriteHistory(invoice, "Invoice created from draft");
+
+            await _invoiceUpdatePublisher.PublishAsync(Mapper.Map<InvoiceUpdateMessage>(invoice));
 
             return invoice;
         }
@@ -475,9 +485,13 @@ namespace Lykke.Service.PayInvoice.Services
                 message
             });
 
+            invoice.Status = status;
+
             // if some error occured during payment then status reverted and we need to remove history operation
             if (isRevertingStatus)
             {
+                await _invoiceUpdatePublisher.PublishAsync(Mapper.Map<InvoiceUpdateMessage>(invoice));
+
                 var invoicePayerHistory = await _invoicePayerHistoryRepository.GetAsync(invoice.Id, paymentRequestId);
 
                 if (invoicePayerHistory != null)
@@ -487,8 +501,6 @@ namespace Lykke.Service.PayInvoice.Services
 
                 return;
             }
-
-            invoice.Status = status;
 
             var history = Mapper.Map<HistoryItem>(invoice);
             history.SettlementAssetId = message.SettlementAssetId;
@@ -508,6 +520,8 @@ namespace Lykke.Service.PayInvoice.Services
             history.Date = DateTime.UtcNow;
 
             await _historyRepository.InsertAsync(history);
+
+            await _invoiceUpdatePublisher.PublishAsync(Mapper.Map<InvoiceUpdateMessage>(invoice));
 
             // send additional info only for Paid Statuses and if invoice was paid by another merchant inside our system
             var invoicePayerHistoryItem = await _invoicePayerHistoryRepository.GetAsync(invoice.Id, paymentRequestId);

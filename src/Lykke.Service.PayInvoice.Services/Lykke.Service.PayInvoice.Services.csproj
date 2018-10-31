@@ -7,9 +7,9 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="AutoMapper" Version="7.0.1" />
-    <PackageReference Include="Lykke.Common" Version="7.0.4" />
+    <PackageReference Include="Lykke.Common" Version="7.3.0" />
     <PackageReference Include="Lykke.Service.EmailPartnerRouter.Client" Version="2.0.4" />
-    <PackageReference Include="Lykke.Service.PayMerchant.Client" Version="1.0.5" />
+    <PackageReference Include="Lykke.Service.PayMerchant.Client" Version="1.0.8" />
     <PackageReference Include="Polly" Version="6.1.0" />
     <PackageReference Include="StackExchange.Redis" Version="1.2.6" />
   </ItemGroup>
