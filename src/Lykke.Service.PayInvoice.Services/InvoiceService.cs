@@ -379,6 +379,8 @@ namespace Lykke.Service.PayInvoice.Services
                 invoice.Status = InvoiceStatus.Removed;
 
                 await WriteHistory(invoice, "Invoice removed");
+
+                await _invoiceUpdatePublisher.PublishAsync(Mapper.Map<InvoiceUpdateMessage>(invoice));
             }
             else
             {
