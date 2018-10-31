@@ -8,5 +8,7 @@ namespace Lykke.Service.PayInvoice.Settings.ServiceSettings.Rabbit
         public string ConnectionString { get; set; }
 
         public string PaymentRequestsExchangeName { get; set; }
+
+        public string InvoiceUpdateExchangeName { get; set; }
     }
 }

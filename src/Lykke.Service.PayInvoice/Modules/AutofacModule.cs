@@ -4,6 +4,8 @@ using Lykke.Service.EmailPartnerRouter.Client;
 using Lykke.Service.PayCallback.Client;
 using Lykke.Service.PayHistory.Client;
 using Lykke.Service.PayInternal.Client;
+using Lykke.Service.PayInvoice.Core.Services;
+using Lykke.Service.PayInvoice.Rabbit.Publishers;
 using Lykke.Service.PayInvoice.Rabbit.Subscribers;
 using Lykke.Service.PayInvoice.Settings;
 using Lykke.Service.PayMerchant.Client;
@@ -56,6 +58,17 @@ namespace Lykke.Service.PayInvoice.Modules
             builder.RegisterInstance(new EmailPartnerRouterClient(_settings.CurrentValue.EmailPartnerRouterServiceClient.ServiceUrl))
                 .As<IEmailPartnerRouterClient>()
                 .SingleInstance();
+
+            RegisterRabbitMqPublishers(builder);
+        }
+
+        private void RegisterRabbitMqPublishers(ContainerBuilder builder)
+        {
+            builder.RegisterType<InvoiceUpdatePublisher>()
+                .As<IInvoiceUpdatePublisher>()
+                .As<IStopable>()
+                .SingleInstance()
+                .WithParameter(TypedParameter.From(_settings.CurrentValue.PayInvoiceService.Rabbit));
         }
     }
 }

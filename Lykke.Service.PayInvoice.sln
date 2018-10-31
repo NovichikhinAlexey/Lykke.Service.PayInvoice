@@ -30,12 +30,12 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{533912F5-9B2E-46A0-9C1E-85C7062D8909}"
 	ProjectSection(SolutionItems) = preProject
 		.gitignore = .gitignore
-		settings.txt = settings.txt
+		settings.yaml = settings.yaml
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "5. Contract", "5. Contract", "{BD238465-93CF-46F9-A341-7CA4109BBF03}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Lykke.Service.PayInvoice.Contract", "src\Lykke.Service.PayInvoice.Contract\Lykke.Service.PayInvoice.Contract.csproj", "{4F234359-5746-4BCA-B8EF-A5A82E15ED28}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Lykke.Service.PayInvoice.Contract", "src\Lykke.Service.PayInvoice.Contract\Lykke.Service.PayInvoice.Contract.csproj", "{4F234359-5746-4BCA-B8EF-A5A82E15ED28}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

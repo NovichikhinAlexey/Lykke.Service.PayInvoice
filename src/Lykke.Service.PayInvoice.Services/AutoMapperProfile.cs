@@ -2,6 +2,7 @@
 using Lykke.Service.PayHistory.Client.Publisher;
 using Lykke.Service.PayInvoice.Core.Domain;
 using Lykke.Service.PayInvoice.Core.Domain.HistoryOperation;
+using Lykke.Service.PayInvoice.Core.Domain.InvoiceUpdate;
 
 namespace Lykke.Service.PayInvoice.Services
 {
@@ -24,6 +25,9 @@ namespace Lykke.Service.PayInvoice.Services
                 .ForMember(dest => dest.Id, opt => opt.Ignore())
                 .ForMember(dest => dest.DesiredAssetId, opt => opt.Ignore())
                 .ForMember(dest => dest.Type, opt => opt.Ignore());
+
+            CreateMap<Invoice, InvoiceUpdateMessage>(MemberList.Destination)
+                .ForMember(dest => dest.InvoiceId, opt => opt.MapFrom(src => src.Id));
         }
     }
 }

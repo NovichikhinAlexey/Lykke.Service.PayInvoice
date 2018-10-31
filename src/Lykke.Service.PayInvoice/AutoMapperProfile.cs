@@ -3,6 +3,7 @@ using AutoMapper;
 using Lykke.Service.PayInternal.Contract.PaymentRequest;
 using Lykke.Service.PayInvoice.Contract.Commands;
 using Lykke.Service.PayInvoice.Core.Domain;
+using Lykke.Service.PayInvoice.Core.Domain.InvoiceUpdate;
 using Lykke.Service.PayInvoice.Core.Domain.Notifications;
 using Lykke.Service.PayInvoice.Models.Employee;
 using Lykke.Service.PayInvoice.Models.File;
@@ -16,6 +17,9 @@ namespace Lykke.Service.PayInvoice
     {
         public AutoMapperProfile()
         {
+            CreateMap<InvoiceUpdateMessage, Contract.Invoice.InvoiceUpdateMessage>(MemberList.Destination)
+                .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.Status.ToString()));
+
             CreateMap<Invoice, InvoiceModel>(MemberList.Source)
                 .ForSourceMember(src => src.TotalPaidAmountInSettlementAsset, opt => opt.Ignore())
                 .ForSourceMember(src => src.HasMultiplePaymentRequests, opt => opt.Ignore());

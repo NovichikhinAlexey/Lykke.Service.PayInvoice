@@ -13,6 +13,9 @@
       PaymentRequestsExchangeName:
         settings-key: LykkePay-PaymentRequestsExchangeName
         types: [Tag]
+      InvoiceUpdateExchangeName:
+        settings-key: LykkePay-InvoiceUpdateExchangeName
+        types: [ Tag ]
     RetryPolicy:
       DefaultAttempts: 5
     DistributedCacheSettings:
