@@ -429,31 +429,44 @@ namespace Lykke.Service.PayInvoice.Services
                     totalPaidAmountInSettlementAsset = await GetTotalPaidAmountInSettlementAsset(invoice, ignoreCurrentPaymentRequest: true);
                     totalPaidAmountInSettlementAsset += currentPaidAmountInSettlementAsset;
 
-                    InvoiceStatus invoiceStatus;
+                    // if has multiple payment requests which were paid
+                    if (invoice.HasMultiplePaymentRequests)
+                    {
+                        InvoiceStatus invoiceStatus;
 
-                    if (totalPaidAmountInSettlementAsset < invoice.Amount)
-                    {
-                        invoiceStatus = InvoiceStatus.Underpaid;
-                    }
-                    else if (totalPaidAmountInSettlementAsset > invoice.Amount)
-                    {
-                        invoiceStatus = InvoiceStatus.Overpaid;
+                        if (totalPaidAmountInSettlementAsset < invoice.Amount)
+                        {
+                            invoiceStatus = InvoiceStatus.Underpaid;
+                        }
+                        else if (totalPaidAmountInSettlementAsset > invoice.Amount)
+                        {
+                            invoiceStatus = InvoiceStatus.Overpaid;
+                        }
+                        else
+                        {
+                            invoiceStatus = InvoiceStatus.Paid;
+                        }
+
+                        _log.InfoWithDetails("Calculate status when HasMultiplePaymentRequests", new
+                        {
+                            invoiceId = invoice.Id,
+                            totalPaidAmountInSettlementAsset,
+                            messageConvertedStatus = status.ToString(),
+                            calculatedInvoiceStatus = invoiceStatus.ToString(),
+                            message
+                        });
+
+                        status = invoiceStatus;
                     }
                     else
                     {
-                        invoiceStatus = InvoiceStatus.Paid;
+                        _log.InfoWithDetails("Calculate totalPaidAmountInSettlementAsset when HasMultiplePaymentRequests or Underpaid", new
+                        {
+                            invoiceId = invoice.Id,
+                            totalPaidAmountInSettlementAsset,
+                            message
+                        });
                     }
-
-                    _log.InfoWithDetails("Calculate status when HasMultiplePaymentRequests or Underpaid", new
-                    {
-                        invoiceId = invoice.Id,
-                        totalPaidAmountInSettlementAsset,
-                        messageConvertedStatus = status.ToString(),
-                        calculatedInvoiceStatus = invoiceStatus.ToString(),
-                        message
-                    });
-
-                    status = invoiceStatus;
                 }
 
                 await _invoiceRepository.SetPaidAmountAsync(invoice.MerchantId, invoice.Id, message.PaidAmount, totalPaidAmountInSettlementAsset);
